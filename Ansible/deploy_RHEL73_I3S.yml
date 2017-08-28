@@ -1,0 +1,161 @@
+###
+# Copyright (2017) Hewlett Packard Enterprise Development LP
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# You may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+###
+---
+- name: Ansible OneView Synergy playbook to deploy Compute Module(s) using Image Streamer
+  hosts: Synergy
+  gather_facts: no
+  vars:
+    - config: "{{ playbook_dir }}/oneview_config.json"
+    - server_template: "RHEL73 for I3S"
+    - deployment_plan_name: 'RHEL-7.3-personalize-and-NIC-teamings'
+
+    # - server_hardware: "Frame2-CN7515049L, bay 3"
+    # without server_hardware, the module randomly selects a server hardware available in the compute resource pool
+
+
+  tasks:
+
+
+    - name: Gathering facts about Enclosure Group name
+      oneview_enclosure_group_facts:
+        config: "{{ config }}"
+      delegate_to: localhost
+
+    # - debug: var=enclosure_groups
+
+
+    - name: Finding the Enclosure Group name
+      set_fact:
+        enclosure_groups_name: "{{ enclosure_groups | map(attribute='name') | list | to_yaml  |  replace('[','') | replace(']\n', '') }}"
+
+    - debug: var=enclosure_groups_name
+
+
+    - name: "Gathering facts about the Enclosure Group {{ enclosure_groups_name }}"
+      oneview_enclosure_group_facts:
+        config: "{{ config }}"
+        name: "{{ enclosure_groups_name }}"
+      delegate_to: localhost
+
+    # - debug: var=enclosure_groups
+
+
+    - name: Finding the Enclosure Group URI
+      set_fact:
+        enclosure_groups_uri: "{{ enclosure_groups | map(attribute='uri') | list | to_yaml  |  replace('[','') | replace(']\n', '') }}"
+
+    - debug: var=enclosure_groups_uri
+
+
+    - name: Gathering facts about the management network to be used by the server(s)
+      oneview_os_deployment_server_facts:
+        config: "{{ config }}"
+      delegate_to: localhost
+
+    # - debug: var=os_deployment_servers
+
+
+    - name: Finding the management network URI
+      set_fact:
+        management_ntwrk_uri: "{{ os_deployment_servers | map(attribute='mgmtNetworkUri') | list | to_yaml |  replace('[','') | replace(']\n', '') }}"
+
+    - debug: var=management_ntwrk_uri
+
+
+    - name : "Creating server profile(s) with deployment plan {{ deployment_plan_name }}"
+      delegate_to: localhost
+      oneview_server_profile:
+        config: "{{ config }}"
+        data:
+            name: "{{ inventory_hostname }}"
+            server_template: "{{ server_template }}"
+            #server_hardware: "{{ server_hardware }}"
+            osDeploymentSettings:
+              osDeploymentPlanName: "{{ deployment_plan_name }}"
+              osCustomAttributes:
+                -  name: DiskName
+                   value: /dev/sda
+                -  name: DomainName
+                   value: "{{ inventory_hostname }}.lj.mougins.net"
+                -  name: FirstNicTeamName
+                   value: team0
+                -  name: FirstPartitionSize
+                   value: 10
+                -  name: LogicalVolumeGroupName
+                   value: new_vol_group
+                -  name: LogicalVolumeName
+                   value: new_vol
+                -  name: LogicalVolumeSize
+                   value: 15
+                -  name: NewUsers
+                   value: lionel
+                -  name: SSH
+                   value: Enabled
+                -  name: SecondPartitionSize
+                   value: 10
+                -  name: Team0NIC1.connectionid
+                   value: 3
+                -  name: Team0NIC1.dhcp
+                   value: false
+                -  name: Team0NIC1.ipv4disable
+                   value: false
+                -  name: Team0NIC1.networkuri
+                   value: "{{ management_ntwrk_uri }}"
+                -  name: Team0NIC1.constraint
+                   value: auto
+                -  name: Team0NIC2.connectionid
+                   value: 4
+                -  name: Team0NIC2.dhcp
+                   value: false
+                -  name: Team0NIC2.ipv4disable
+                   value: false
+                -  name: Team0NIC2.networkuri
+                   value: "{{ management_ntwrk_uri }}"
+                -  name: Team0NIC2.constraint
+                   value: auto
+                -  name: TotalNicTeamings
+                   value: 1
+
+   # - debug: var=server_hardware
+
+
+    - name: Powering on the Compute Module(s)
+      oneview_server_hardware:
+        config: "{{ config }}"
+        state: power_state_set
+        data:
+            name : "{{ server_hardware.name }}"
+            powerStateData:
+                powerState: "On"
+                powerControl: "MomentaryPress"
+      delegate_to: localhost
+
+
+    - name: Displaying IP address(es) assigned to the Compute Module(s)
+      oneview_server_profile_facts:
+         config: "{{ config }}"
+         name: "{{ inventory_hostname }}"
+      delegate_to: localhost
+
+    #- debug: var=server_profiles
+    - debug: msg={{ (server_profiles | map(attribute='osDeploymentSettings.osCustomAttributes') | list )[0]  | selectattr('name', 'equalto', 'Team0NIC1.ipaddress') | map(attribute='value') | list }}
+
+
+
+
+
