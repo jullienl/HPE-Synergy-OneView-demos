@@ -1,0 +1,9 @@
+[Synergy]
+RHEL73-webserver[1:2]
+
+[Composer]
+192.168.1.110
+
+[Test]
+ESX6-1
+Docker-UCP-2
