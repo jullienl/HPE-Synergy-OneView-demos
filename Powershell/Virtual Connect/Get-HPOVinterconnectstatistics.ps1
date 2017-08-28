@@ -5,8 +5,7 @@
        
 .PARAMETER IP
   IP address of the Composer
-  Default: 192.168.1.110
-  
+    
 .PARAMETER username
   OneView administrator account of the Composer
   Default: Administrator
@@ -97,7 +96,7 @@ function Get-HPOVinterconnectstatistics {
 
         [parameter(ParameterSetName="All")]
         [Alias('composer', 'appliance')]
-        [string]$IP = "192.168.1.110",    #IP address of HPE OneView
+        [string]$IP = "",    #IP address of HPE OneView
 
         [parameter(ParameterSetName="All")]
         [Alias('u', 'userid')]
@@ -108,7 +107,7 @@ function Get-HPOVinterconnectstatistics {
         [string]$password = "password",
 
         [parameter(ParameterSetName="All")]
-        [string]$interconnect = "Frame1-CN7516060D, interconnect 3",
+        [string]$interconnect = "",
 
         [parameter(Mandatory=$true, ParameterSetName="All")]
         [string]$portname="",
@@ -125,14 +124,6 @@ function Get-HPOVinterconnectstatistics {
     )
    
    
-  
-
-# OneView Credentials
-#$username = "Administrator" 
-#$password = "password" 
-#$IP = "192.168.1.110" 
-
-
 # Import the OneView 3.1 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
@@ -167,24 +158,21 @@ Else
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
 
 
-
-
+# Creation of the Header and capture of the OneView Session ID
 $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
 $headers = @{} 
-#$headers["Accept"] = "application/json" 
 $headers["X-API-Version"] = "500"
 
-# Capture OneView Session ID
 try {
    $credentialdata = Invoke-WebRequest -Uri "https://$IP/rest/login-sessions" -Body $postParams -ContentType "application/json" -Headers $headers -Method POST -UseBasicParsing
-} catch {
+    } 
+    
+catch {
    $reader = new-object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
    $responsebody = $reader.ReadToEnd()
-}
+      }
 $key = ($credentialdata.Content | ConvertFrom-Json).sessionId 
-
 $headers["auth"] = $key
-
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
 # due to an invalid Remote Certificate
@@ -202,28 +190,9 @@ add-type -TypeDefinition  @"
     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-
-
-
- # $interconnect=(get-HPovInterconnect | Where-Object {$_.name -match "interconnect 3" -and $_.model -match "Virtual" } ).name
- # $interconnect=  "Frame2-CN7515049L, interconnect 6"
-
-
 $IC=get-HPovInterconnect -Name $interconnect
 
 $uri = $IC.uri
-
-# $port = read-host "Enter the Synergy Virtual Connect port number you want to query :
-      
-#$portname="Q8" 
-#$portname="Q3:1" 
-
-#$FC
-#$portname="Q4:1" 
-
-
-#$portname="d18"  
-
 
 Write-Verbose "The interconnect is : $interconnect"
  
