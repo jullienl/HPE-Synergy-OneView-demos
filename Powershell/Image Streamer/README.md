@@ -116,5 +116,5 @@ PS C:\> Get-HPOVOSDeploymentPlan | where {$_.name -match "ESX"} | Remove-HPOVOSd
 Search for OS Deployment plans matching with the name "ESX" and remove them from the Image Streamer appliance 
      
 ## Component
-  This script makes use of the PowerShell language bindings library for HPE OneView
+  This script makes use of the PowerShell language bindings library for HPE OneView   
   https://github.com/HewlettPackard/POSH-HPOneView
