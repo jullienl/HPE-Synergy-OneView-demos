@@ -119,7 +119,7 @@ $err = Set-HPOVResource $lig | Wait-HPOVTaskComplete | Out-Null
 # PAUSE
 
 
-# This takes long time ! Average is 6/7mn with 3 frames but we don't need to wait for the demo
+# This step takes time ! Average is 6mn with 3 frames but we don't need to wait for the demo so I removed the wait-HPOVTaskComplete
 
 Write-host ""
 Write-host "Updating all Logical Interconnects from the Logical Interconnect group" -ForegroundColor Yellow
