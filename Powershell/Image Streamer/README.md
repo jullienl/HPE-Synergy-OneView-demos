@@ -38,8 +38,8 @@
   This script makes use of the PowerShell language bindings library for HPE OneView
   https://github.com/HewlettPackard/POSH-HPOneView   
   
-
-
+   
+   
 
 
 # Remove-HPOVOSdeploymentartifacts
@@ -86,34 +86,34 @@
   Deletes artifact bundle
   
 ## Example
-  ```sh
+```sh
   PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-Foundation - create empty OS Volume" -OSbuildplan -Confirm 
-  ```
+```
   Removes the OS build plan "HPE-Foundation - create empty OS Volume" and provides a prompt requesting confirmation of the deletion 
   
 ## Example
-  ```sh
+```sh
   PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-ESXi-simple host configuration with NIC HA" -deploymentplan 
-    ```
-  Removes without confirmation the deployment plan "HPE-ESXi-simple host configuration with NIC HA" 
+```
+Removes without confirmation the deployment plan "HPE-ESXi-simple host configuration with NIC HA" 
   
 ## Example
-  ```sh
+```sh
   PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-ESXi-simple host configuration with NIC HA" -deploymentplan -OSbuildplan
-    ```
-  Removes without confirmation the deployment plan and OS Build plan "HPE-ESXi-simple host configuration with NIC HA" 
+```
+Removes without confirmation the deployment plan and OS Build plan "HPE-ESXi-simple host configuration with NIC HA" 
   
 ## Example
-  ```sh
-  PS C:\> Remove-HPOVOSdeploymentartifacts -allartifacts -name "ESX" -Confirm -partialsearch
-    ```
-  Removes all artifacts (deployment plans, golden images, build plans, plan scripts and artifact bundles) containing the string "ESX" and provides a prompt requesting confirmation of the deletion 
+```sh
+PS C:\> Remove-HPOVOSdeploymentartifacts -allartifacts -name "ESX" -Confirm -partialsearch
+```
+Removes all artifacts (deployment plans, golden images, build plans, plan scripts and artifact bundles) containing the string "ESX" and provides a prompt requesting confirmation of the deletion 
   
 ## Example
-  ```sh
-  PS C:\> Get-HPOVOSDeploymentPlan | where {$_.name -match "ESX"} | Remove-HPOVOSdeploymentartifacts -deploymentplan 
-      ```
-  Search for OS Deployment plans matching with the name "ESX" and remove them from the Image Streamer appliance 
+```sh
+PS C:\> Get-HPOVOSDeploymentPlan | where {$_.name -match "ESX"} | Remove-HPOVOSdeploymentartifacts -deploymentplan 
+```
+Search for OS Deployment plans matching with the name "ESX" and remove them from the Image Streamer appliance 
      
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView
