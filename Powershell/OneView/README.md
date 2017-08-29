@@ -86,9 +86,9 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
   https://github.com/HewlettPackard/POSH-HPOneView
   
   
-  
-  
-# full_composer_configuration_with_Image_Streamer
+    
+# Full HPE OneView Composer Synergy configuration with HPE Image Streamer
+
 This PowerShell Script creates a full Synergy environment configuration using the HPE Image Streamer from scratch.
  
 > Hardware Setup and Network settings are the two only steps that must be done first on the unconfigured Composer
