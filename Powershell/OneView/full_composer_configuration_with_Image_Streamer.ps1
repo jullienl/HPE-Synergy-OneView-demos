@@ -1,9 +1,46 @@
+# -------------------------------------------------------------------------------------------------------
+#   by lionel.jullien@hpe.com
+#   August 2017
+#
+#   Script to configure a Synergy environment using the HPE Image Streamer from scratch. 
+#   Hardware Setup and Network settings are the two only steps that must be done first on the unconfigured Synergy Composer
+#        
+#   OneView administrator account is required. 
+3PAR-Powershell
+OneView 
+# 
+# --------------------------------------------------------------------------------------------------------
+   
+#################################################################################
+#        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
+#################################################################################
+#                                                                               #
+# Permission is hereby granted, free of charge, to any person obtaining a copy  #
+# of this software and associated documentation files (the "Software"), to deal #
+# in the Software without restriction, including without limitation the rights  #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     #
+# copies of the Software, and to permit persons to whom the Software is         #
+# furnished to do so, subject to the following conditions:                      #
+#                                                                               #
+# The above copyright notice and this permission notice shall be included in    #
+# all copies or substantial portions of the Software.                           #
+#                                                                               #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN     #
+# THE SOFTWARE.                                                                 #
+#                                                                               #
+#################################################################################
+
 
  
 #Global Variables
 
- 
-$baseline1 = "C:\Kits\_HP\_SPP\874800-001.iso"
+# Using external repo now
+# $baseline1 = "C:\Kits\_HP\_SPP\874800-001.iso"
 # $baseline2 = "C:\Kits\_HP\_SPP\Synergy subset\874768-001.iso"
       
 $3PARlibrary = "C:\Kits\_Scripts\_PowerShell\3PAR\3PAR-Powershell-master\3PAR-Powershell"
@@ -23,13 +60,13 @@ $password = Read-Host "Please enter the Administrator password for OneView [$($D
 $password = ($Defaultpassword,$password)[[bool]$password]
 
 
-# Import the OneView 3.0 library
+# Import the OneView 3.1 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.300)) 
+    if (-not (get-module HPOneview.310)) 
     {  
-    Import-module HPOneview.300
+    Import-module HPOneview.310
     }
 
    
@@ -48,7 +85,7 @@ Else
 {
     Try 
     {
-        Connect-HPOVMgmt -appliance $IP -PSCredential $cred -Verbose| Out-Null
+        Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
     }
     Catch 
     {
@@ -62,9 +99,6 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
 
 filter Timestamp {"$(Get-Date -Format G): $_"}
 
-
-
-
 #Upload custom SPP Baseline
     Add-HPOVBaseline $baseline1
     #Add-HPOVBaseline $baseline2
@@ -72,13 +106,13 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
 
 # Adding OneView licenses
 
-		write-host "Adding OneView licenses"
-		New-HPOVLicense -LicenseKey '...' 
-      
-        New-HPOVLicense -LicenseKey '#Synergy 8Gb FC Upgrade License NFR....'
+	write-host "Adding OneView licenses"
 
-        New-HPOVLicense -LicenseKey '#Synergy 8Gb FC Upgrade License NFR...'
- 
+	New-HPOVLicense -LicenseKey '9... HZL4..9-8KPGH' 
+      
+        New-HPOVLicense -LicenseKey '#Synergy 8Gb FC Upgrade License NFR AAAE CQAA H9PY GHXZ V2...UG33U"
+
+        New-HPOVLicense -LicenseKey '#Synergy 8Gb FC Upgrade License NFR...6DDU"  
 
        
 # Create the new users
@@ -102,12 +136,7 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
 
     Add-HPOVSanManager @params -UseSsl  | Wait-HPOVTaskComplete
    
-    
-    #Add-HPOVSanManager -type HP -Hostname 192.168.1.33 -SnmpUserName oneview -SnmpAuthLevel AuthAndPriv -SnmpPrivProtocol aes-128 -SnmpAuthPassword password -SnmpAuthProtocol md5 -SnmpPrivPassword password  | Wait-HPOVTaskComplete 
-
-
-
-
+   
 #create IPv4 Pools for the Image Streamer
 
     #Pool for the management network
@@ -188,11 +217,7 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
     if ($numberofframes -gt 3) { Write-Host "This script does not support more than 3 frames to change frame names"}
 
 
-
-
 #create Logical interconnect group
-
-
 
     Write-host
     Write-host "     Creating M-LAG Logical Interconnect Group.."
@@ -213,7 +238,6 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
     Frame1 = @{Bay1 = 'SE12SAS' ; Bay4 = 'SE12SAS'} } 
 
     New-HPOVLogicalInterconnectGroup -Name $LIG_SAS_Name -frameCount 1 -InterconnectBaySet 1 -Bays $SASbays -FabricModuleType SAS 
-
 
 
 #Create Ethernet Uplink Sets 
@@ -242,19 +266,11 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
 
     
     
-   
-
-
-
 #Create an uplink Set for the Image Streamer (Internal) 
-
-    # Get-HPOVLogicalInterconnectGroup -name $LIG_M_LAG_Name -ErrorAction Stop | New-HPOVUplinkSet -Name "iSCSI-Deployment" -Type ImageStreamer -Networks "iSCSI-Deployment" -UplinkPorts "Enclosure1:Bay3:Q2.1","Enclosure1:Bay3:Q3.1","Enclosure2:Bay6:Q2.1","Enclosure2:Bay6:Q3.1" #| Wait-HPOVTaskComplete
-
 
     $ImageStreamerDeploymentNetwork = Get-HPOVNetwork -Name "iSCSI-Deployment" -ErrorAction Stop
    
     Get-HPOVLogicalInterconnectGroup -Name $LIG_M_LAG_Name -ErrorAction Stop | New-HPOVUplinkSet -Name 'Image Streamer Uplink Set' -Type ImageStreamer -Networks $ImageStreamerDeploymentNetwork -UplinkPorts "Enclosure1:Bay3:Q2.1","Enclosure1:Bay3:Q3.1","Enclosure2:Bay6:Q2.1","Enclosure2:Bay6:Q3.1"
-
 
 
 
@@ -265,7 +281,7 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
 
     $ImageStreamerManagementNetwork = Get-HPOVNetwork -Name "Management" -ErrorAction Stop
 
-    Get-HPOVImageStreamerAppliance | Select -First 1 | New-HPOVOSDeploymentServer -Name "OSDeploymentServers-1" -ManagementNetwork $ImageStreamerManagementNetwork
+    Get-HPOVImageStreamerAppliance | Select -First 1 | New-HPOVOSDeploymentServer -Name "OSDeploymentServer-1" -ManagementNetwork $ImageStreamerManagementNetwork
 
 
 #create Enclosure Group 
@@ -284,14 +300,9 @@ Frame3 = $LIGMLAG  ; }
 
 New-HPOVEnclosureGroup -name "EG" -LogicalInterconnectGroupMapping $LogicalInterConnectGroupMapping -DeploymentNetworkType Internal -EnclosureCount 3 -IPv4AddressType DHCP 
 
-#New-HPOVEnclosureGroup -name "EG" -LogicalInterconnectGroupMapping $LogicalInterConnectGroupMapping  -EnclosureCount 3 -IPv4AddressType DHCP 
-
     
-        
-
-
 #Add SY 3PAR System
-#Connected with 0:0:1 and 1:0:1
+# Connected with 0:0:1 and 1:0:1
 
     Add-HPOVStorageSystem -hostname "3par.lj.mougins.net" -username 3paradm -password 3pardata  | Wait-HPOVTaskComplete 
     Add-HPOVStoragePool -StorageSystem "3par.lj.mougins.net" -Pool "FC_r5", "SSD_r5"  | Wait-HPOVTaskComplete
@@ -314,23 +325,13 @@ New-HPOVEnclosureGroup -name "EG" -LogicalInterconnectGroupMapping $LogicalInter
     #$volume2 = 'LJ-vSphere-Datastore'
     
     
-    # Import 3PAR volumes
+    # Import 3PAR volume
     $volumeID1 = Get-3PARVolumes -name $volume1 |  % {$_.wwn}
-    #$volumeID2 = Get-3PARVolumes -name $volume2 | % {$_.wwn}
     $StorageDeviceName1 = Get-3PARVolumes -name $volume1 | % {$_.name}   
-    #$StorageDeviceName2 = Get-3PARVolumes -name $volume2 | % {$_.name}
-
+   
     Get-HPOVStorageSystem -SystemName "3par.lj.mougins.net"  |  Add-HPOVStorageVolume   -VolumeName $volume1 -StorageDeviceName $StorageDeviceName1 -Shared | Wait-HPOVTaskComplete
-    #Get-HPOVStorageSystem -SystemName VBE_V400 |  Add-HPOVStorageVolume   -VolumeName $volume2 -StorageDeviceName $StorageDeviceName2 -shared | Wait-HPOVTaskComplete
-
-
-    #To ensure the creation of AMVM during the logical enclosure creation, perform the following steps before you create a logical enclosure:
-    #Login to the I3S Service console
-    #Execute the command mkdir -p /var/tmp/i3s/
-
-
-
-
+   
+    
 # New Datacenter
     $NewDCParams = @{
     
@@ -401,24 +402,20 @@ New-HPOVEnclosureGroup -name "EG" -LogicalInterconnectGroupMapping $LogicalInter
  # Add remote backup location  
  
     $HostSSHKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPa4goQZ6RMNohCL+JaAtYkOhEDiuueAsW+Msh85LhYVdcXcV7QssYFiOsmoA+a0GGAyoIZrkWge3SZKBNJr4ylBaJC+T9X9nw/daNdd4mYg64CwTya+RLgi9ztxdJMLP48FnUdFcndEchj6V+ZLpJEy/tU+SP+XlHrwCU2nexSKSERLhbvHp1UiW946I2fCp4O2IcoIW2/MwXtuH/vr6wQViUFuHbXC5UHjdaM45i9xLq2OavO22KgQ7CwckNrAvlSY8/7G4WgaLR0syKNoTwLuIim7w14I2fbNopNdXsnvm6z6Bk3F0PVRdrWa34l2G8RMiFjRAe8PXsPwcaIVgr"
-    Set-HPOVAutomaticBackupConfig -Hostname 192.168.0.2 -Username root -Password (ConvertTo-SecureString password -AsPlainText -Force) -Directory "composer_backup" -HostSSHKey $HostSSHKey -Protocol SFTP -Interval Weekly -Days 'SUN' -Time 18:00
-
-    # Create a backup manually
-    # New-HPOVBackup
-    
+    Set-HPOVAutomaticBackupConfig -Hostname docker-2.lj.mougins.net -Username root -Password (ConvertTo-SecureString password -AsPlainText -Force) -Directory "composer_backup" -HostSSHKey $HostSSHKey -Protocol SFTP -Interval Weekly -Days 'SUN' -Time 18:00
 
 
 # Add an external repository
-# in 3.10 only !
+
+   New-HPOVExternalRepository -Name liogw-kits -Hostname liogw.lj.mougins.net -Directory '_HP/_SPP/Repository' -Http
 
 
-
-#create Logical Enclosure LE-3-frames  !
+#create Logical Enclosure LE-3-frames using the latest SPP  !
 
     $interconnects =  Get-HPOVInterconnect     
     $whosframe1 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | % {$_.enclosurename}
 
-    $baseline = Get-HPOVBaseline | where {$_.name -like "Custom*"}
+    $baseline = Get-HPOVBaseline | Sort-Object -Property @{Expression = "Version"; Descending = $True} | select -First 1
     $EG = Get-HPOVEnclosureGroup -Name "EG"
 
     write-output "Creating the Logical Enclosure 'LE'" | Timestamp
@@ -427,44 +424,86 @@ New-HPOVEnclosureGroup -name "EG" -LogicalInterconnectGroupMapping $LogicalInter
 
 
 
+# Upload OS Deployment plan to Image Streamer
+write-host "`nDownload the ESXi artifacts from https://github.com/HewlettPackard/image-streamer-esxi" -ForegroundColor Cyan
+write-host "`nThen add and extract this artifact bundle on the Image Streamer"
+pause
+# Latest artifact bundle for ESXi : https://github.com/HewlettPackard/image-streamer-esxi/blob/master/artifact-bundles/HPE-ESXi-2017-06-13.zip 
 
 
-#create a SPT for ESX using Image Streamer (not working with latest POSH library ! )
+#create a Server Profile Template for an ESX server using the Image Streamer 
 
-        Write-Output "Creating Local Server Profile Template using the Image Streamer" | Timestamp
+Write-Output "Creating Server Profile Template using the Image Streamer" | Timestamp
 
-        if (get-HPOVServerProfileTemplate -Name "ESXi for I3S" -ErrorAction SilentlyContinue) { Remove-HPOVServerProfileTemplate -ServerProfileTemplate "ESXi for I3S" }
 
-        $serverprofiletemplate = "ESXi for I3S"
+$serverprofiletemplate = "ESXi for I3S OSDEPLOYMENT"
+$OSDeploymentplan = 'HPE - ESXi - deploy with multiple management NIC HA config'
+$datastore =   $volume1 
+
+
         $SY460SHT = Get-HPOVServerHardwareTypes -name "SY 480 Gen9 1"
+        
         $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
         
+        $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri
+
+        $OSDP = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan
+        $osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
+        $OSDeploymentPlanAttributes = $osCustomAttributes 
+
+
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.dhcp').value = 'False'
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.connectionid').value = '3'
+        ($OSDeploymentPlanAttributes | ? name -eq 'DomainName').value = 'lj.mougins.net'
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
+
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
+                      
+        $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
+
+        $IscsiParams1 = @{
+               ConnectionID                  = 1;
+               Name                          = "ImageStreamer Connection 1";
+               ConnectionType                = "Ethernet";
+               Network                       = $ISCSINetwork;
+               Bootable                      = $true;
+               Priority                      = "Primary";
+               IscsiIPv4AddressSource        = "SubnetPool"
+                         }
+
+        $ImageStreamerBootConnection1 = New-HPOVServerProfileConnection @IscsiParams1
         
+        $IscsiParams2 = @{
+               ConnectionID                  = 2;
+               Name                          = "ImageStreamer Connection 2";
+               ConnectionType                = "Ethernet";
+               Network                       = $ISCSINetwork;
+               Bootable                      = $true;
+               Priority                      = "Secondary";
+               IscsiIPv4AddressSource        = "SubnetPool"
+                         }
+
+        $ImageStreamerBootConnection2 = New-HPOVServerProfileConnection @IscsiParams2
+
         
-        # $ImageStreamerCon1 =  Get-HPOVNetwork -Name 'ImageStreamer Network' | New-HPOVServerProfileConnection -ConnectionID 1 -ConnectionType Ethernet -name "ImageStreamer Connection 1" -Bootable -Priority Primary
-        # $ImageStreamerCon2 =  Get-HPOVNetwork -Name 'ImageStreamer Network' | New-HPOVServerProfileConnection -ConnectionID 1 -ConnectionType Ethernet -name "ImageStreamer Connection 2" -Bootable -Priority Secondary
-        
-        
-        
-        
-        
-        $con1 = Get-HPOVNetwork | ? purpose -eq ISCSI | New-HPOVServerProfileConnection -connectionId 1 -ConnectionType Ethernet -Bootable -Priority IscsiPrimary # -IscsiIPv4SubnetMask 255.255.255.0
-        $con2 = Get-HPOVNetwork | ? purpose -eq ISCSI | New-HPOVServerProfileConnection -connectionId 2 -ConnectionType Ethernet -Bootable -Priority IscsiSecondary # -IscsiIPv4SubnetMask 255.255.255.0
         $con3 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
         $con4 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
         $con5 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 0 |  New-HPOVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel 
         $con6 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 1 | New-HPOVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel
-       # $volume1 = Get-HPOVStorageVolume | ? shareable -eq $True  | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
-        $volume1 = Get-HPOVStorageVolume -Name "vSphere-datastore"  | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
+        $volume1 = Get-HPOVStorageVolume -Name $datastore | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
+  
+
   
         $params = @{
             Name                = $serverprofiletemplate;
             Description         = "Server Profile Template for HPE Synergy 480 Gen9 Compute Module using the Image Streamer";
             ServerHardwareType  = $SY460SHT;
-            ServerProfileDescription = "Server Profile for HPE Synergy 480 Gen9 Compute Module using the Image Streamer";
             Affinity            = "Bay";
             Enclosuregroup      = $enclosuregroup;
-            Connections         = $con1, $con2, $con3, $con4, $con5, $con6;
+            Connections         = $ImageStreamerBootConnection1, $ImageStreamerBootConnection2, $con3, $con4, $con5, $con6;
             Manageboot          = $True;
             BootMode            = "UEFIOptimized";
             BootOrder           = "HardDisk";
@@ -472,24 +511,31 @@ New-HPOVEnclosureGroup -name "EG" -LogicalInterconnectGroupMapping $LogicalInter
             SANStorage          = $True;
             OS                  = 'VMware';
             StorageVolume       = $volume1;
-                }
-        
-       
-       $err = New-HPOVServerProfileTemplate @params -ErrorAction Stop | Wait-HPOVTaskComplete
-        if ($err.taskErrors -match "Error")
-       {
-       
-       clear
-       Write-Warning "Task error ! "
-       write-host ""
-       $err.taskErrors.message
-       $err.taskErrors.recommendedActions
-       $err.taskErrors.errorcode
+            OSDeploymentplan    = $OSDP;
+            OSDeploymentPlanAttributes = $OSDeploymentPlanAttributes
 
-       }
-       else
-       {
-        Write-Output "Local Storage Server Profile Template using Image Streamer Created" | Timestamp
+            
+             }
 
-        get-HPOVServerProfileTemplate
-       }
+
+      try
+          {
+       
+          New-HPOVServerProfileTemplate @params -ErrorAction Stop | Wait-HPOVTaskComplete
+
+          }
+
+      catch  
+         {
+       
+         $error[0] | fl * -force 
+               
+         }
+   
+
+
+   Write-Output "Local Storage Server Profile Template $serverprofiletemplate using Image Streamer Created" | Timestamp
+
+   
+
+
