@@ -8,7 +8,7 @@
 
 ## Download
 
-### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Image Streamer/Invoke-HPOVdeploymentServerbackup.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Image%20Streamer/Invoke-HPOVdeploymentServerbackup.ps1)
 
 ## Parameter `IP`
   IP address of the Composer. Default: 192.168.1.110
