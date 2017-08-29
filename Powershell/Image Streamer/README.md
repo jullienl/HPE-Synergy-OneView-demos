@@ -38,9 +38,8 @@
   This script makes use of the PowerShell language bindings library for HPE OneView
   https://github.com/HewlettPackard/POSH-HPOneView   
   
-   
-   
-
+  <br />
+  <br />
 
 # Remove-HPOVOSdeploymentartifacts
   This PowerShell function deletes artifacts that are present in the Image Streamer appliance.
