@@ -1,8 +1,8 @@
 # Get-HPOVinterconnectstatistics
    This PowerShell function provides the network statistics of a given port from a Virtual Connect SE 40Gb F8 Module for Synergy.   
-   A port name must be provided.   
-   ![](https://user-images.githubusercontent.com/13134334/29812587-64563b42-8ca7-11e7-9a05-d7fb21389a69.png)
-   ![](https://user-images.githubusercontent.com/13134334/29812596-6a0a3b56-8ca7-11e7-8a91-b6f0f4bab0c7.png)
+   A port name must be provided.      
+   ![](https://user-images.githubusercontent.com/13134334/29812587-64563b42-8ca7-11e7-9a05-d7fb21389a69.png)   
+   ![](https://user-images.githubusercontent.com/13134334/29812596-6a0a3b56-8ca7-11e7-8a91-b6f0f4bab0c7.png)   
        
 ## Parameter `IP`
   IP address of the Composer.
