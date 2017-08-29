@@ -3,10 +3,10 @@
 # by lionel.jullien@hpe.com
 # Sept 2016
 #
-# Upgrade all iLO FW managed by the OneView Composer using iLO local account so it is required to first use the Add User to Ilo script
+# Upgrade all iLO FW managed by the OneView Composer using iLO local account so it is required to first use the 'Add User to iLO' script
 #
-# OneView administrator account is required and HPE Ilo Cmdlets must be installed
-# from http://h20566.www2.hpe.com/hpsc/swd/public/readIndex?sp4ts.oid=5440658&swLangOid=8&swEnvOid=4208  
+# OneView administrator account is required and HPE iLO PowerShell Cmdlets must be installed
+# from https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html  
 # 
 # --------------------------------------------------------------------------------------------------------
 
@@ -37,10 +37,8 @@
 
 
 #Global variables
-   # location of the iLO Firmware bin file
-   $Location = "C:\\Kits\\_HP\\iLO\\iLO4\\ilo4_254.bin" # make sure to use / or \\ and not \
-   
-   $ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password"   
+$Location = "C:\\Kits\\_HP\\iLO\\iLO4\\ilo4_254.bin" #Location of the iLO Firmware bin file
+$ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password"   
 
 
 #IP address of OneView
