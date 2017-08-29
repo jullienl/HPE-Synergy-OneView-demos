@@ -112,8 +112,9 @@
 ## Example
   ```sh
   PS C:\> Get-HPOVOSDeploymentPlan | where {$_.name -match "ESX"} | Remove-HPOVOSdeploymentartifacts -deploymentplan 
+      ```
   Search for OS Deployment plans matching with the name "ESX" and remove them from the Image Streamer appliance 
-  
+     
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView
   https://github.com/HewlettPackard/POSH-HPOneView
