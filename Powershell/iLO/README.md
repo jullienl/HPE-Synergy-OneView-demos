@@ -7,7 +7,7 @@
   
 ## Download
 
-### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/iLO/Add user to iLO.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/iLO/Add%20user%20to%20iLO.ps1)
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
