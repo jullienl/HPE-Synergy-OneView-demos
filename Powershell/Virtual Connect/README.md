@@ -32,7 +32,9 @@
   Provides the statistics of the FlexNICs of a given downlink port. 
 
 ## Example
-  ```PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username Administrator -password password -portname "Q2" -interconnect "Frame1-CN7516060D, interconnect 3"```  
+  ```sh
+  PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username Administrator -password password -portname "Q2" -interconnect "Frame1-CN7516060D, interconnect 3"
+  ```  
   Provides the common statistics of 40Gb uplink port Q2 on the interconnect "Frame1-CN7516060D, interconnect 3"
   
   `PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "d2" -interconnect "Frame2-CN7515049L, interconnect 6" -throughputstatistics`  
