@@ -2,7 +2,7 @@
    This PowerShell function creates a backup bundle of a HPE Image Streamer with all the artifacts present on the appliance (Deployment Plans, Golden Images, Build plans and Plan Scripts) 
    and copy the backup bundle zip file to a destination folder.
    
-   >Note that the Image Streamer backup feature does not backup OS volumes, only the golden Images if present.
+   >The Image Streamer backup feature does not backup OS volumes, only the golden Images if present.
    Supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
        
 ## Parameter `IP`
