@@ -11,7 +11,8 @@ You need to install Ansible and the Ansible Modules for HPE OneView in order to 
 See https://github.com/HewlettPackard/oneview-ansible 
 
 You also need to use the Image Streamer artifact bundle for RHEL 7.3, see https://github.com/HewlettPackard/image-streamer-rhel/tree/master/artifact-bundles   
-The playbooks have been developed and tested with HPE-RHEL-7.3-2017-04-20.zip.
+
+>The playbooks have been developed and tested with *HPE-RHEL-7.3-2017-04-20.zip*.
 
 ## Overall configuration
 
