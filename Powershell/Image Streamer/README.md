@@ -5,6 +5,8 @@
    >The Image Streamer backup feature does not backup OS volumes, only the golden Images if present.
  
  The function supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
+ 
+ > The backup of the Image Streamer is done through HPE OneView
 
 ## Download
 
@@ -34,19 +36,21 @@
   
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView   
+  
 
 
 
 
 # Remove-HPOVOSdeploymentartifacts
   This PowerShell function deletes artifacts that are present in the Image Streamer appliance.
-  > Image Streamer modifications are done through HPE OneView
-   Supports common parameters -verbose, -whatif, and -confirm. 
+  > Image Streamer modifications are done through HPE OneView   
+  
+   Supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
   
 ## Download
 
-### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Image Streamer/Remove-HPOVOSdeploymentartifacts.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Image%20Streamer/Remove-HPOVOSdeploymentartifacts.ps1)
 
 ## Parameter `IP`
   IP address of the Composer. Default: 192.168.1.110
