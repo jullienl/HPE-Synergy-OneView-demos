@@ -1,5 +1,5 @@
 # DESCRIPTION
-   `Get-HPOVinterconnectstatistics` gets the port statistics from a Virtual Connect SE 40Gb F8 Module for Synergy 
+   `Get-HPOVinterconnectstatistics` gets the port statistics from a Virtual Connect SE 40Gb F8 Module for Synergy   
    A port name must be provided
        
 # PARAMETER IP
