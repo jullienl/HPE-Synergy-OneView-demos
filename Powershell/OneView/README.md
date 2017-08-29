@@ -13,29 +13,29 @@
 ### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/Invoke-HPOVeFuse.ps1)
 
 ## Parameter `composer`
-  IP address of the Composer. Default: 192.168.1.110
+  IP address of the Composer. Default: *192.168.1.110*
   
 ## Parameter `composerusername`
-  OneView administrator account of the Composer. Default: Administrator
+  OneView administrator account of the Composer. Default: *Administrator*
   
 ## Parameter `composerpassword`
-  password of the OneView administrator account. Default: password
+  password of the OneView administrator account. Default: *password*
   
 ## Parameter `compute`
   The server hardware resource to efuse. This is normally retrieved with a `Get-HPOVServer` call.   
-  Can also be the Server Hardware name, e.g. Frame2-CN7515049L, bay 4.   
+  Can also be the Server Hardware name, e.g. *Frame2-CN7515049L, bay 4*.   
   Accepts pipeline input `ByValue` and `ByPropertyName` 
   
 ## Parameter `interconnect`
   The interconnect hardware resource to efuse. This is normally retrieved with a `Get-HPOVInterconnect` call.   
-  Can also be the Interconnect Hardware name, e.g. Frame1-CN7516060D, interconnect 3.
+  Can also be the Interconnect Hardware name, e.g. *Frame1-CN7516060D, interconnect 3*.
   
 ## Parameter `appliance`
-  The serial number of the composable infrastructure appliance resource to efuse; e.g. UH53CP0509.
+  The serial number of the composable infrastructure appliance resource to efuse; e.g. *UH53CP0509*.
   This is normally retrieved with a `(Get-HPOVEnclosure).applianceBays.serialnumber` call.  
   
 ## Parameter `FLM`
-  The serial number of the frame link module resource to efuse; e.g. CN7514V012.   
+  The serial number of the frame link module resource to efuse; e.g. *CN7514V012*.   
   This is normally retrieved with a `(Get-HPOVEnclosure).managerbays.serialnumber` call.
   
 ## Example
@@ -69,6 +69,6 @@ Efuses the compute module in frame CN7515049C in bay 5
 Efuses all servers in the frame whose name matches with "Frame2" and provides a prompt requesting efuse confirmation for each server
   
 ## Components
-  This script makes use of the PowerShell language bindings library for HPE OneView
+  This script makes use of the PowerShell language bindings library for HPE OneView.   
   https://github.com/HewlettPackard/POSH-HPOneView
   
