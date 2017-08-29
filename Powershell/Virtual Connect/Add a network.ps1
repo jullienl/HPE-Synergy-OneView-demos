@@ -11,7 +11,6 @@
 #   OneView administrator account is required. 
 # 
 # --------------------------------------------------------------------------------------------------------
-
    
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -109,8 +108,7 @@ New-HPOVNetwork -Name "$networkprefix$VLAN" -type Ethernet -vlanID "$VLAN" -VLAN
 
 
 
-Write-host ""
-Write-host "Adding Network Production-$VLAN to Logical Interconnect Group" -ForegroundColor Yellow
+Write-host "`nAdding Network Production-$VLAN to Logical Interconnect Group" -ForegroundColor Yellow
 $lig = Get-HPOVLogicalInterconnectGroup -Name $LIG 
 $uplink_set = $lig.uplinkSets | where-Object {$_.name -eq $uplinkset} 
 $uplink_Set.networkUris += (Get-HPOVNetwork -Name $networkprefix$VLAN).uri
@@ -121,8 +119,7 @@ $err = Set-HPOVResource $lig | Wait-HPOVTaskComplete | Out-Null
 
 # This step takes time ! Average is 6mn with 3 frames but we don't need to wait for the demo so I removed the wait-HPOVTaskComplete
 
-Write-host ""
-Write-host "Updating all Logical Interconnects from the Logical Interconnect group" -ForegroundColor Yellow
+Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect group" -ForegroundColor Yellow
 
 $err = Get-HPOVLogicalInterconnect | Update-HPOVLogicalInterconnect -confirm:$false | Out-Null  #| Wait-HPOVTaskComplete | Out-Null
 
@@ -139,8 +136,8 @@ until ($uplinksetnew -eq $vlanuri)
 
 $vlanuri = (Get-HPOVNetwork -Name $networkprefix$VLAN).uri
 
-Write-host ""
-Write-host "Adding Network $networkprefix$vlan in NetworkSet to populate all profiles" -ForegroundColor Yellow
+
+Write-host "`nAdding Network $networkprefix$vlan in NetworkSet to populate all profiles" -ForegroundColor Yellow
 
 
 
@@ -155,11 +152,9 @@ if (
 )
 
 {
- Write-host ""
- Write-host "Network VLAN ID $vlan has been added successfully" -ForegroundColor Yellow
+  Write-host "`nNetwork VLAN ID $vlan has been added successfully" -ForegroundColor Yellow
  }
  else
  {
- Write-host ""
- Write-Warning "The network VLAN ID $vlan has NOT been added successfully" 
+  Write-Warning "`nThe network VLAN ID $vlan has NOT been added successfully" 
  }
