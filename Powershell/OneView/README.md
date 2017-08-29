@@ -72,3 +72,34 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
   This script makes use of the PowerShell language bindings library for HPE OneView.   
   https://github.com/HewlettPackard/POSH-HPOneView
   
+
+
+# New-ESXiserverprofiletemplate
+  This PowerShell Script creates a Server Profile Template using the HPE Image Streamer with OS Deployment Plan Attributes and required iSCSI Network connections.
+ 
+## Download
+
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/New-ESXiserverprofiletemplate.ps1)
+
+## Components
+  This script makes use of the PowerShell language bindings library for HPE OneView.   
+  https://github.com/HewlettPackard/POSH-HPOneView
+  
+  
+  
+  
+  # full_composer_configuration_with_Image_Streamer
+  This PowerShell Script creates a full Synergy environment configuration 
+  
+  > Hardware Setup and Network settings are the two only steps that must be done first on the unconfigured Composer
+  
+  OneView administrator account is required 
+
+## Download
+
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/full_composer_configuration_with_Image_Streamer.ps1)
+
+## Components
+  This script makes use of the PowerShell language bindings library for HPE OneView.   
+  https://github.com/HewlettPackard/POSH-HPOneView
+  
