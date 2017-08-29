@@ -7,7 +7,7 @@ OS deployment and OS configuration are managed by HPE Image Streamer.
 
 ## Environment setup
 
-You need to install Ansible and the Ansible Modules for HPE OneView in order to run these playbooks. 
+You need to install Ansible and the Ansible Modules for HPE OneView in order to run these playbooks.    
 See https://github.com/HewlettPackard/oneview-ansible 
 
 You also need to use the Image Streamer artifact bundle for RHEL 7.3, see https://github.com/HewlettPackard/image-streamer-rhel/tree/master/artifact-bundles   
