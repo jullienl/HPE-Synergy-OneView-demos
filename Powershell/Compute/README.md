@@ -1,7 +1,7 @@
 # Get-HPOVservertelemetry
    This PowerShell function provides average power consumption, CPU utilization and Temperature report from a Compute Module. 
      
-   _Example of the statistics output:_   
+   _Example of the telemetry output:_   
    
    ![](https://user-images.githubusercontent.com/13134334/29814096-72ed6360-8cac-11e7-8212-7af50ca4cb30.png)   
    
