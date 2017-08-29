@@ -1,11 +1,11 @@
 # Get-HPOVinterconnectstatistics
    This PowerShell function provides the network statistics of a given port from a Virtual Connect SE 40Gb F8 Module for Synergy.   
       
-   _Example of the statistics output_   
+   _Example of the statistics output:_   
    
    ![](https://user-images.githubusercontent.com/13134334/29812587-64563b42-8ca7-11e7-9a05-d7fb21389a69.png)   
    
-   _Example of the throughput output_   
+   _Example of the statistics throughput output:_   
    
    ![](https://user-images.githubusercontent.com/13134334/29812596-6a0a3b56-8ca7-11e7-8a91-b6f0f4bab0c7.png)   
        
