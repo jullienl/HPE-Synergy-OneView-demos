@@ -3,7 +3,8 @@
    and copy the backup bundle zip file to a destination folder.
    
    >The Image Streamer backup feature does not backup OS volumes, only the golden Images if present.
-   Supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
+ 
+ The function supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
        
 ## Parameter `IP`
   IP address of the Composer. Default: 192.168.1.110
