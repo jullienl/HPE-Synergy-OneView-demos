@@ -49,7 +49,7 @@ The Ansible `deploy_RHEL73_I3S.yml` playbook gathers first information about you
 
 The Ansible `remove_RHEL73_I3S.yml` playbook can be used to demonstrate the concept of decommissioning resources and returning them back to the Synergy resource pool. The playbook powers off the compute module(s) and deletes the server profile(s). 
 
-## Example output
+## Output example
 
 This is how Ansible `deploy_RHEL73_I3S.yml` playbook output looks:  
 
