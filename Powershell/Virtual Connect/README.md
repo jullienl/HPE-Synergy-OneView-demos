@@ -9,6 +9,11 @@
    
    ![](https://user-images.githubusercontent.com/13134334/29812596-6a0a3b56-8ca7-11e7-8a91-b6f0f4bab0c7.png)   
        
+Download
+--------
+
+### [Click here to download latest version](http://ethanschoonover.com/solarized/files/solarized.zip)
+
 ## Parameter `IP`
   IP address of the Composer.
     
