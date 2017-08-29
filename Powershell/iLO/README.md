@@ -40,7 +40,7 @@ This PowerShell Script changes the default Administrator account password in all
 
 This PowerShell Script upgrades all iLO FW managed by the OneView Composer using iLO local account so it is required to first use the *Add User to Ilo* script.
 
-OneView administrator account is required and HPE Ilo Cmdlets must be installed from http://h20566.www2.hpe.com/hpsc/swd/public/readIndex?sp4ts.oid=5440658&swLangOid=8&swEnvOid=4208 
+>OneView administrator account is required and HPE iLO PowerShell module must be installed.
   
 ## Download
 
@@ -50,5 +50,6 @@ OneView administrator account is required and HPE Ilo Cmdlets must be installed 
   This script makes use of:
   - The PowerShell language bindings library for HPE OneView.   
     https://github.com/HewlettPackard/POSH-HPOneView
-  - The HPE Ilo Cmdlets.   
-    http://h20566.www2.hpe.com/hpsc/swd/public/readIndex?sp4ts.oid=5440658&swLangOid=8&swEnvOid=4208 
+  - The HPE Ilo PowerShell Cmdlets.  
+    https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html
+   
