@@ -66,7 +66,3 @@
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.  
   https://github.com/HewlettPackard/POSH-HPOneView
-
-## Links
-  https://github.com/HewlettPackard/POSH-HPOneView
-  
