@@ -37,8 +37,10 @@
 
 
 #Global variables
-$Location = "C:\\Kits\\_HP\\iLO\\iLO4\\ilo4_254.bin" # make sure to use / or \\ and not \
-$ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password"   
+   # location of the iLO Firmware bin file
+   $Location = "C:\\Kits\\_HP\\iLO\\iLO4\\ilo4_254.bin" # make sure to use / or \\ and not \
+   
+   $ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password"   
 
 
 #IP address of OneView
