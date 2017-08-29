@@ -82,7 +82,7 @@ OneView administrator account is required.
 
 ## Download
 
-### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Virtual Connect/Add%20a%20network.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Virtual%20Connect/Add%20a%20network.ps1)
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.  
