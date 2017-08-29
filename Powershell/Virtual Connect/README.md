@@ -9,10 +9,9 @@
    
    ![](https://user-images.githubusercontent.com/13134334/29812596-6a0a3b56-8ca7-11e7-8a91-b6f0f4bab0c7.png)   
        
-Download
---------
+## Download
 
-### [Click here to download latest version](http://ethanschoonover.com/solarized/files/solarized.zip)
+### [Click here to download the function](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Virtual%20Connect/Get-HPOVinterconnectstatistics.ps1)
 
 ## Parameter `IP`
   IP address of the Composer.
