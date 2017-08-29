@@ -72,8 +72,8 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
   This script makes use of the PowerShell language bindings library for HPE OneView.   
   https://github.com/HewlettPackard/POSH-HPOneView
 
-\\
-\\
+  \\
+  \\
 # New-ESXiserverprofiletemplate
   This PowerShell Script creates a Server Profile Template using the HPE Image Streamer with OS Deployment Plan Attributes and required iSCSI Network connections.
  
