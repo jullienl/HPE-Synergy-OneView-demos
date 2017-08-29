@@ -2,12 +2,19 @@
 #   by lionel.jullien@hpe.com
 #   August 2017
 #
-#   Script to configure a Synergy environment using the HPE Image Streamer from scratch. 
+#   This PowerShell Script creates a full Synergy environment configuration using the HPE Image Streamer from scratch.
+#   
 #   Hardware Setup and Network settings are the two only steps that must be done first on the unconfigured Synergy Composer
 #        
 #   OneView administrator account is required. 
-3PAR-Powershell
-OneView 
+#
+#   This script makes use of:
+#
+#   - The PowerShell language bindings library for HPE OneView
+#     https://github.com/HewlettPackard/POSH-HPOneView
+#
+#   - The HPE 3PAR PowerShell Toolkit for HPE 3PAR StoreServ Storage
+#     https://h20392.www2.hpe.com/portal/swdepot/displayProductInfo.do?productNumber=3PARPSToolkit      
 # 
 # --------------------------------------------------------------------------------------------------------
    
@@ -39,7 +46,7 @@ OneView
  
 #Global Variables
 
-# Using external repo now
+# Using an external repository now in the script
 # $baseline1 = "C:\Kits\_HP\_SPP\874800-001.iso"
 # $baseline2 = "C:\Kits\_HP\_SPP\Synergy subset\874768-001.iso"
       
@@ -47,20 +54,13 @@ $3PARlibrary = "C:\Kits\_Scripts\_PowerShell\3PAR\3PAR-Powershell-master\3PAR-Po
 
 
  
-#IP address of OneView
-$DefaultIP = "192.168.1.110" 
-Clear
-$IP = Read-Host "Please enter the IP address of your OneView appliance [$($DefaultIP)]" 
-$IP = ($DefaultIP,$IP)[[bool]$IP]
-
 # OneView Credentials
 $username = "Administrator" 
-$defaultpassword = "password" 
-$password = Read-Host "Please enter the Administrator password for OneView [$($Defaultpassword)]"
-$password = ($Defaultpassword,$password)[[bool]$password]
+$password = "password" 
+$IP = "192.168.1.110" 
 
 
-# Import the OneView 3.1 library
+# Import the OneView 3.10 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -70,10 +70,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
     }
 
    
-$PWord = ConvertTo-SecureString –String $password –AsPlainText -Force
-$cred = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Username, $PWord
-
-
 # Connection to the Synergy Composer
 
 If ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
@@ -85,7 +81,7 @@ Else
 {
     Try 
     {
-        Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
     }
     Catch 
     {
@@ -93,8 +89,7 @@ Else
     }
 }
 
-
-                
+              
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
 
 filter Timestamp {"$(Get-Date -Format G): $_"}
