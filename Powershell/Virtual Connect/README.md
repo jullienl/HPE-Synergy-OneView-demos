@@ -10,7 +10,7 @@
   Default: Administrator
   
 # PARAMETER password
-  password of the OneView administrator account 
+  Password of the OneView administrator account 
   Default: password
   
 # PARAMETER interconnect
@@ -18,7 +18,7 @@
   This is normally retrieved with a `Get-HPOVInterconnect` call like `(get-HPovInterconnect | Where-Object {$_.name -match "interconnect 3" -and $_.model -match "Virtual" } ).name`
   
 # PARAMETER portname
-  case-insensitive name of the port to query for statistics
+  Case-insensitive name of the port to query for statistics
   - Downlink ports: d1, d2, d3, ... d60
   - Uplink ports: Q1, Q2, Q3:1, Q3:2, Q3:3, Q3:4, Q4, ... Q8 
 
