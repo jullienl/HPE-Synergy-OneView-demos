@@ -11,7 +11,7 @@
        
 ## Download
 
-### [Click here to download the function](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Virtual%20Connect/Get-HPOVinterconnectstatistics.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/Virtual%20Connect/Get-HPOVinterconnectstatistics.ps1)
 
 ## Parameter `IP`
   IP address of the Composer.
