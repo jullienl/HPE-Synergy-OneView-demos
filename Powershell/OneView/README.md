@@ -88,7 +88,9 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
   https://github.com/HewlettPackard/POSH-HPOneView
   
   
-    
+<br />
+<br />
+ 
 # Full HPE OneView Composer Synergy configuration with HPE Image Streamer
 
 This PowerShell Script creates a full Synergy environment configuration using the HPE Image Streamer from scratch.
@@ -105,6 +107,6 @@ OneView administrator account is required
 This script makes use of:
 - The PowerShell language bindings library for HPE OneView.   
 https://github.com/HewlettPackard/POSH-HPOneView
-- The HPE 3PAR PowerShell Toolkit for HPE 3PAR StoreServ Storage
+- The HPE 3PAR PowerShell Toolkit for HPE 3PAR StoreServ Storage.   
 https://h20392.www2.hpe.com/portal/swdepot/displayProductInfo.do?productNumber=3PARPSToolkit 
   
