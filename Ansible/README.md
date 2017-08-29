@@ -36,8 +36,8 @@ OneView and Image Streamer connectivity details must be provided in `oneview_con
 You need to customize the playbook with your environment details. 
 
 Two variables in the `vars` section of the playbook must be personalized:   
-1- `server_template`: this is the name of your server profile template that the playbook will use to generate the server profile(s).   
-2- `deployment_plan_name`: this is the Image Streamer deployment plan name that the playbook will use to generate the server OS Volume.    
+1. `server_template`: this is the name of your server profile template that the playbook will use to generate the server profile(s).   
+2. `deployment_plan_name`: this is the Image Streamer deployment plan name that the playbook will use to generate the server OS Volume.    
 
 You also need to customize the `osCustomAttributes` located in the "Creating server profile..." section so that they match with your environment and needs. Those parameters are used to define the OS deployment plan settings (like domain name, hostname, SSH enabled, new user, etc.).
 
