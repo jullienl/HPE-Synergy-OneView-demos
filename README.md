@@ -1,6 +1,5 @@
-# OneView-demos
-OneView Demonstrations
+# HPE-Synergy-OneView-demos
 
-This repo stores examples of HPE OneView PowerShell scripts, Ansible playbooks and more.
+This repo stores examples of PowerShell scripts, Ansible playbooks and more for HPE Synergy and HPE OneView.
 
 
