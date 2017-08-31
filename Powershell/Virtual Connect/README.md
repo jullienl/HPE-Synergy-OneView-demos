@@ -84,7 +84,8 @@ This script can be used in conjunction with [Remove a network.ps1](https://githu
 
 >With this script, you can demonstrate that with a single line of code, you can present easily and quickly a network VLAN to all Compute Modules present in the Synergy frames managed by HPE OneView. 
        
-OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
+OneView administrator account is required.   
+Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
 
 ## Download
 
@@ -112,7 +113,8 @@ This script can be used in conjunction with [Add a network.ps1](https://github.c
   
 >With this script, you can demonstrate that with a single line of code, you can unpresent easily and quickly a network VLAN from all Compute Modules present in the Synergy frames managed by HPE OneView. 
         
-OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
+OneView administrator account is required.    
+Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
 
 ## Download
 
