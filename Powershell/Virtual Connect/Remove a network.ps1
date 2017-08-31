@@ -10,7 +10,7 @@
 #   
 #   With this script, you can demonstrate that with a single line of code, you can unpresent easily and quickly a network VLAN from all Compute Modules present in the Synergy frames managed by HPE OneView. 
 #        
-#   OneView administrator account is required. 
+#   OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
 # 
 # --------------------------------------------------------------------------------------------------------
 
