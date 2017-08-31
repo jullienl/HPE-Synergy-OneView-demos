@@ -207,7 +207,7 @@ if ($Updating -eq "y")
 
         Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
         Write-host -f Cyan $LIG
-        Write-host "`nThis step takes time ! Average is 5mn with a 3 frames Logical Enclosure. Please wait..." 
+        Write-host "`nPlease wait..." 
 
 
         try {
