@@ -13,7 +13,6 @@
 #   OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
 # 
 # --------------------------------------------------------------------------------------------------------
-
    
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -137,15 +136,17 @@ Write-host  "Please wait..."
 
 
 
-$Mylig = Get-HPOVLogicalInterconnectGroup -Name $LIG 
+$MyLIG = Get-HPOVLogicalInterconnectGroup -Name $LIG 
+$MyLI = ((Get-HPOVLogicalInterconnect) | ? logicalInterconnectGroupUri -eq $MyLIG.uri)
 
-$Myuplinkset = $Mylig.uplinkSets | where-Object {$_.name -eq $Uplinkset} 
+
+$Myuplinkset = $MyLIG.uplinkSets | where-Object {$_.name -eq $Uplinkset} 
 
 $NewUplinkSet = ($Myuplinkset.networkUris | where { $_ -ne $NetToRemoveUri } ) 
 
 $Myuplinkset.networkUris = $NewUplinkSet
 
-Set-HPOVResource $Mylig | Wait-HPOVTaskComplete  #| Out-Null
+Set-HPOVResource $MyLIG | Wait-HPOVTaskComplete  #| Out-Null
 
 
 #################################################################################
@@ -159,7 +160,8 @@ Write-Host -f Cyan ($networkprefix + $VLAN) -NoNewline
 Write-host  " from OneView" 
 Write-host  "Please wait..."
 
-$task = Get-HPOVNetwork -name ($networkprefix + $VLAN) |  remove-HPOVNetwork -Confirm:$false  | Wait-HPOVTaskComplete | Out-Null
+$task = Get-HPOVNetwork -name ($networkprefix + $VLAN) |  remove-HPOVNetwork -Confirm:$false | Wait-HPOVTaskComplete | Out-Null
+
 # do {$newnetworks= (Get-HPOVNetwork -Name ($networkprefix + $VLAN) -ErrorAction Ignore) } until ($newnetworks -eq $Null)
    
 
@@ -168,20 +170,36 @@ $task = Get-HPOVNetwork -name ($networkprefix + $VLAN) |  remove-HPOVNetwork -Co
 #################################################################################
 
    
-# This step takes  time ! Average is 5mn with 3 frames 
-
-$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] (This step takes times ! Average 6mn with 3 frames) ?" 
+# This steps takes time (average 5mn for 3 frames) 
+$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] (This step takes times ! Average 5mn with 3 frames) ?" 
 
 if ($Updating -eq "y")
     {
-    Write-host "`nUpdating the Logical Interconnect from the Logical Interconnect group: " -NoNewline
-    Write-Host -f Cyan $LIG   
-    Write-host  "Please wait..."
-    $task = Get-HPOVLogicalInterconnect | Update-HPOVLogicalInterconnect -confirm:$false | Wait-HPOVTaskComplete | Out-Null
-    }
-else
-    {
-    write-warning "The Logical Interconnects will be marked in OneView as inconsistent with the logical interconnect group: $LIG"
+
+        # Making sure the LI is not in updating state before we run a LI Update
+        $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state  
+        if ($Interconnectstate -notcontains "Configured")
+        {
+            Write-host "`nWaiting for the current Logical Interconnect update to finish, please wait...`n" -NoNewline
+        }
+        
+        do { $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state }
+
+        until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains  "Imported" -and $Interconnectstate -notcontains "Configuring")
+
+
+        Write-host "`nUpdating the Logical Interconnect from the Logical Interconnect group: " -NoNewline
+        Write-Host -f Cyan $LIG   
+        Write-host  "`nThis step takes time ! Average is 5mn with a 3 frames Logical Enclosure. Please wait...`n"
+                       
+        try {
+            $task = Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+            }
+        catch
+            {
+            echo $_ #.Exception
+            }
+               
     }
 
 
@@ -203,6 +221,8 @@ if ($Updating -eq "n" -and ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris  
     Write-host " has been removed successfully to all Server profiles using the Network Set: " -NoNewline
     Write-host -f Cyan $networkset 
     Write-host "but the Virtual Connect Modules have not been configured yet`n"
+    write-warning "The Logical Interconnect is inconsistent with the logical interconnect group: $LIG"
+
     return
     }
 
