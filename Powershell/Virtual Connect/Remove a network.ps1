@@ -190,7 +190,7 @@ if ($Updating -eq "y")
 
         Write-host "`nUpdating the Logical Interconnect from the Logical Interconnect group: " -NoNewline
         Write-Host -f Cyan $LIG   
-        Write-host  "`nThis step takes time ! Average is 5mn with a 3 frames Logical Enclosure. Please wait...`n"
+        Write-host  "`nPlease wait...`n"
                        
         try {
             $task = Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
