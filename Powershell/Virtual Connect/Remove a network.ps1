@@ -3,7 +3,7 @@
 #   June 2016
 #
 #   This PowerShell script removes a network resource from a Synergy environment and unpresents this network to all Compute Modules using a Network Set.    
-#   The network name defined in OneView/Virtual Connect deleted by this script is always a `prefixname`+`VLAN ID` like *Production-400*.   
+#   The network name defined in OneView/Virtual Connect deleted by this script is always a `prefixname`+`VLAN ID` like `Production-400`.   
 #   The script also removes the network resource from the LIG uplinkset and from the network set present in OneView.    
 #   
 #   This script can be use in conjunction with 'Add a network.ps1". See https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/Virtual Connect/Add a network.ps1
