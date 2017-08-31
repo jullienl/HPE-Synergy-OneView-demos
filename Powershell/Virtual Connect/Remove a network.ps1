@@ -180,7 +180,7 @@ if ($Updating -eq "y")
         $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state  
         if ($Interconnectstate -notcontains "Configured")
         {
-            Write-host "`nWaiting for the current Logical Interconnect update to finish, please wait...`n" -NoNewline
+            Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
         }
         
         do { $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state }
