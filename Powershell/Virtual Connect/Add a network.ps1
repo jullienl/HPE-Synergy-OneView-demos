@@ -47,15 +47,14 @@ $Uplinkset="M-LAG-Comware"
 $Networkprefix="Production-"
 $NetworkSet="Production Networks"
 
-# OneView Credentials
+
+# OneView Credentials and IP
 $username = "Administrator" 
 $password = "password" 
 $IP = "192.168.1.110" 
 
 
-
-
-# Import the OneView 3.10 library
+# Importing the OneView 3.10 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -71,16 +70,16 @@ $cred = New-Object –TypeName System.Management.Automation.PSCredential –Argu
 
 # Connection to the Synergy Composer
 
-If ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
+if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
 {
     Write-Verbose "Already connected to $IP."
 }
 
-Else
+else
 {
     Try 
     {
-        Connect-HPOVMgmt -appliance $IP -PSCredential $cred -Verbose| Out-Null
+        Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
     }
     Catch 
     {
@@ -90,71 +89,182 @@ Else
 
                
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
-
-
 clear-host
 
-write-host "`nThe following Production networks are available:"
-Get-HPOVNetwork -type Ethernet | where {$_.Name -match $Networkprefix} | % {$_.name}
+
+#################################################################################
+#                     Creating a new Network resource                          #
+#################################################################################
+
+
+
+$networks = Get-HPOVNetwork -type Ethernet | where {$_.Name -match $Networkprefix} | % {$_.name}
+
+if ($networks -eq $Null)
+
+{
+
+write-host "`nThere is no network using the prefix: " -NoNewline
+Write-host -f Cyan $networkprefix -NoNewline
+Write-host "* available in Oneview"
+
+}
+
+if ($networks.count -lt 2)
+
+{
+
+write-host "`nThe following: " -NoNewline
+Write-host -f Cyan $networkprefix -NoNewline
+Write-host "* network is available in OneView:`n"
+
+Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name="Network name";Expression={$_.Name}}, @{Name="VLAN ID";Expression={$_.vlanid}} | Out-Host
+
+}
+
+if ($networks.count -gt 1)
+
+{
+
+write-host "`nThe following: " -NoNewline
+Write-host -f Cyan $networkprefix -NoNewline
+Write-host "* networks are available in OneView:`n"
+
+Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name="Network name";Expression={$_.Name}}, @{Name="VLAN ID";Expression={$_.vlanid}}  | Out-Host
+
+}
 
 
 $VLAN = Read-Host "`n`nEnter the VLAN ID you want to add" 
- 
 
-Write-host "`nCreating a Network Production-$VLAN in OneView " -ForegroundColor Yellow 
-New-HPOVNetwork -Name "$networkprefix$VLAN" -type Ethernet -vlanID "$VLAN" -VLANType "Tagged" -purpose General -smartLink $True -typicalBandwidth 2500 -maximumBandwidth 10000 | Out-Null
+Write-host "`nCreating a Network: " -NoNewline
+Write-host -f Cyan ($networkprefix + $VLAN) -NoNewline
+Write-host " in OneView" 
 
-# PAUSE
-
-
-
-Write-host "`nAdding Network Production-$VLAN to Logical Interconnect Group" -ForegroundColor Yellow
-$lig = Get-HPOVLogicalInterconnectGroup -Name $LIG 
-$uplink_set = $lig.uplinkSets | where-Object {$_.name -eq $uplinkset} 
-$uplink_Set.networkUris += (Get-HPOVNetwork -Name $networkprefix$VLAN).uri
-$err = Set-HPOVResource $lig | Wait-HPOVTaskComplete | Out-Null
-
-# PAUSE
+try {
+    New-HPOVNetwork -Name ($networkprefix + $VLAN) -type Ethernet -vlanID "$VLAN" -VLANType "Tagged" -purpose General -typicalBandwidth 2500 -maximumBandwidth 10000 -ErrorAction Stop | Out-Null
+    }
+catch [exception]
+    { 
+    echo $_
+    return
+    }
 
 
-# This step takes time ! Average is 6mn with 3 frames but we don't need to wait for the demo so I removed the wait-HPOVTaskComplete
-
-Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect group" -ForegroundColor Yellow
-
-$err = Get-HPOVLogicalInterconnect | Update-HPOVLogicalInterconnect -confirm:$false | Out-Null  #| Wait-HPOVTaskComplete | Out-Null
-
-# As long as the network is detected in the uplinkset we continue
-do {
-$uplinksetnew= (Get-HPOVUplinkSet -Name $uplinkset).networkUris  | where { $_ -eq $vlanuri }  
-   } 
-until ($uplinksetnew -eq $vlanuri)
+#################################################################################
+#                       Adding Network to LIG Uplink Set                        #
+#################################################################################
 
 
 
-# PAUSE
+Write-host "`nAdding Network: " -NoNewline
+Write-host -f Cyan ($networkprefix + $VLAN) -NoNewline
+Write-host " to Logical Interconnect Group: " -NoNewline
+Write-host -f Cyan $LIG
 
 
-$vlanuri = (Get-HPOVNetwork -Name $networkprefix$VLAN).uri
+$Mylig = Get-HPOVLogicalInterconnectGroup -Name $LIG 
+$uplink_set = $Mylig.uplinkSets | where-Object {$_.name -eq $uplinkset} 
+$uplink_Set.networkUris += (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
+
+try {
+    Set-HPOVResource $Mylig -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+    }
+catch
+    {
+    echo $_ #.Exception
+    }
 
 
-Write-host "`nAdding Network $networkprefix$vlan in NetworkSet to populate all profiles" -ForegroundColor Yellow
+#################################################################################
+#                            Updating LI from LIG                               #
+#################################################################################
+
+
+$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] (This step takes times ! Average 5mn with 3 frames) ?" 
+
+$vlanuri = (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
+
+if ($Updating -eq "y")
+    {
+    
+        Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
+        Write-host -f Cyan $LIG
+
+        try {
+            Get-HPOVLogicalInterconnect | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop| Out-Null  #| Wait-HPOVTaskComplete | Out-Null
+            }
+        catch
+            {
+            echo $_ #.Exception
+            }
+    
+
+
+        # As long as the network is detected in the uplinkset we continue
+
+
+        do  {
+                $uplinksetnew= (Get-HPOVUplinkSet -Name $uplinkset).networkUris  | where { $_ -eq $vlanuri }  
+            } 
+        until ($uplinksetnew -eq $vlanuri)
+
+    }
+else
+    {
+    write-warning "The Logical Interconnects will be marked in OneView as inconsistent with the logical interconnect group: $LIG"
+    }
+
+
+#################################################################################
+#                       Adding Network to Network Set                           #
+#################################################################################
+
+
+
+Write-host "`nAdding Network: " -NoNewline
+Write-host -f Cyan ($networkprefix + $VLAN) -NoNewline
+Write-host " to NetworkSet: " -NoNewline
+Write-host -f Cyan $networkset
 
 
 
 $netset = Get-HPOVNetworkSet -Name $NetworkSet
 $netset.networkUris += (Get-HPOVNetwork -Name Production-$VLAN).uri
-$add = Set-HPOVNetworkSet $netset | Wait-HPOVTaskComplete | Out-Null
 
 
-if (
+try
+    {
+    Set-HPOVNetworkSet $netset -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+    }
+catch
+    {
+    echo $_
+    }
 
-(Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
-)
 
-{
-  Write-host "`nNetwork VLAN ID $vlan has been added successfully" -ForegroundColor Yellow
- }
- else
- {
-  Write-Warning "`nThe network VLAN ID $vlan has NOT been added successfully" 
- }
+if  ((Get-HPOVLogicalInterconnect).consistencyStatus -eq "consistent" -and $Updating -eq "y")   # Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
+
+    {
+    Write-host "`nThe network VLAN ID: " -NoNewline
+    Write-host -f Cyan $vlan -NoNewline
+    Write-host " has been successfully added and presented to all server profiles that are using the Network Set: " -NoNewline
+    Write-host -f Cyan $networkset 
+    Write-host ""
+    return
+    }
+
+if ($Updating -eq "n" -and ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri))
+    {
+    Write-host "`nThe network VLAN ID: " -NoNewline
+    Write-host -f Cyan $vlan -NoNewline
+    Write-host " has been added successfully to all Server Profiles that are using the Network Set: " -NoNewline
+    Write-host -f Cyan $networkset 
+    Write-host "but the Virtual Connect Module(s) have not been configured yet`n" -NoNewline
+    return
+    }
+
+if ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -notcontains $vlanuri)
+    {
+    Write-Warning "`nThe network VLAN ID: $vlan has NOT been added successfully, check the status of your Logical Interconnect resource`n" 
+    }
