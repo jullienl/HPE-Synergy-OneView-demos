@@ -165,12 +165,15 @@ Write-host " to Logical Interconnect Group: " -NoNewline
 Write-host -f Cyan $LIG
 
 
-$Mylig = Get-HPOVLogicalInterconnectGroup -Name $LIG 
-$uplink_set = $Mylig.uplinkSets | where-Object {$_.name -eq $uplinkset} 
+$MyLIG = Get-HPOVLogicalInterconnectGroup -Name $LIG 
+$MyLI = ((Get-HPOVLogicalInterconnect) | ? logicalInterconnectGroupUri -eq $MyLIG.uri)
+
+
+$uplink_set = $MyLIG.uplinkSets | where-Object {$_.name -eq $uplinkset} 
 $uplink_Set.networkUris += (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
 
 try {
-    Set-HPOVResource $Mylig -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+    Set-HPOVResource $MyLIG -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
     }
 catch
     {
@@ -182,31 +185,38 @@ catch
 #                            Updating LI from LIG                               #
 #################################################################################
 
-# This steps takes time (average 5mn for 3 frames) so we don't wait for the LI update to be completed, once the network is detected in the uplinkset we continue
-$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] ?" 
+# This step takes time, average is 5mn for 3 frames... 
+$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] (This step takes times ! Average 6mn with 3 frames) ?" 
 
 $vlanuri = (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
 
 if ($Updating -eq "y")
     {
-    
+          
+        # Making sure the LI is not in updating state before we run a LI Update
+        $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state  
+        if ($Interconnectstate -notcontains "Configured")
+        {
+            Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
+        }
+        
+        do { $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state }
+
+        until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains  "Imported" -and $Interconnectstate -notcontains "Configuring")
+
+
         Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
         Write-host -f Cyan $LIG
+        Write-host "`nThis step takes time ! Average is 5mn with a 3 frames Logical Enclosure. Please wait..." 
+
 
         try {
-            Get-HPOVLogicalInterconnect | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop| Out-Null  #| Wait-HPOVTaskComplete | Out-Null
+            Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop| Wait-HPOVTaskComplete | Out-Null
             }
         catch
             {
             echo $_ #.Exception
             }
-    
-
-        do  {
-                $uplinksetnew= (Get-HPOVUplinkSet -Name $uplinkset).networkUris  | where { $_ -eq $vlanuri }  
-            } 
-        until ($uplinksetnew -eq $vlanuri)
-
     }
 else
     {
