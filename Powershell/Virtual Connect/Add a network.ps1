@@ -182,8 +182,8 @@ catch
 #                            Updating LI from LIG                               #
 #################################################################################
 
-
-$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] (This step takes times ! Average 5mn with 3 frames) ?" 
+# This steps takes time (average 5mn for 3 frames) so we don't wait for the LI update to be completed, once the network is detected in the uplinkset we continue
+$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] ?" 
 
 $vlanuri = (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
 
@@ -201,10 +201,6 @@ if ($Updating -eq "y")
             echo $_ #.Exception
             }
     
-
-
-        # As long as the network is detected in the uplinkset we continue
-
 
         do  {
                 $uplinksetnew= (Get-HPOVUplinkSet -Name $uplinkset).networkUris  | where { $_ -eq $vlanuri }  
