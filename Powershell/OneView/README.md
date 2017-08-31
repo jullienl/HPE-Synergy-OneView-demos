@@ -95,7 +95,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 
 This PowerShell Script creates a full Synergy environment configuration using the HPE Image Streamer from scratch.
  
-> Hardware Setup and Network settings are the two only steps that must be done first on the unconfigured Composer
+> Hardware Setup and Network settings are the only two manual configuration steps that must be done on the unconfigured Composer before running this script
   
 OneView administrator account is required 
 
