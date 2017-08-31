@@ -78,7 +78,7 @@ The script also adds the network resource to the LIG uplinkset and to the networ
 
  _Example of the script output:_   
    
-![](https://user-images.githubusercontent.com/13134334/29915972-b2d51bfc-8e3d-11e7-9961-f2a7d6ea7ef2.png)
+![](https://user-images.githubusercontent.com/13134334/29916199-5c1e893c-8e3e-11e7-9240-9e1a9cd40f4b.png)
 
 This script can be used in conjunction with [Remove a network.ps1](https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/Virtual%20Connect/Remove%20a%20network.ps1)
 
