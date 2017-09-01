@@ -13,3 +13,10 @@ You also need to use the Image Streamer artifact bundle for RHEL 7.3, see https:
 
 >The manifests have been developed and tested with *HPE-RHEL-7.3-2017-04-20.zip*.
 
+## How tu run the manifest
+
+### To create a new server profile using the Image Streamer
+puppet apply <path>/Server_Profile_Provisioning_with_Image_Streamer.pp
+
+### To remove a server profile using the Image Streamer
+puppet apply <path>/Server_Profile_Unprovisioning_with_Image_Streamer.pp
