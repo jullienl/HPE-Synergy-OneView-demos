@@ -20,5 +20,9 @@ It is necessary to edit the manifest variables with your own settings (i.e. Prof
 ### To create a new server profile using the Image Streamer to deploy the OS
 ` puppet apply <path>/Server_Profile_Provisioning_with_Image_Streamer.pp` 
 
-### To remove a server profile 
+The manifest ensures the Compute Module is power-off before the profile is created and assigned. Then the script automatically power-on the server once the profile creation is completed.
+
+### To remove the server profile 
 ` puppet apply <path>/Server_Profile_Unprovisioning_with_Image_Streamer.pp` 
+
+The manifest powers off the server then delete the server profile 
