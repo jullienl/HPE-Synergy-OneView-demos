@@ -52,6 +52,7 @@ osDeploymentSettings    =>{
   name              => 'Team0NIC1.ipaddress',
   value             => '192.168.0.52'
   },
+  # Network URIs are easily retrieved using PowerShell call: (Get-HPOVNetwork -Name Management ).uri 
   {
   name              => 'Team0NIC1.networkuri',
   value             => '/rest/ethernet-networks/fe781dae-d0ba-4ac6-986f-bd9ab60877b8'
