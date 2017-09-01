@@ -26,8 +26,6 @@ serverHardwareTypeUri   =>$server_hardware_type,
 osDeploymentSettings    =>{
  osDeploymentPlanUri    =>$deployment_plan_name,
  osCustomAttributes     => [
-  
- # The Server Profile name is used to define the OS Hostname
   {
   name              => 'DomainName',
   value             => "$server_profile_name.lj.mougins.net"
@@ -36,7 +34,6 @@ osDeploymentSettings    =>{
   name              => 'Team0NIC1.connectionid',
   value             => '3'
   },
-  # The RHEL7.3 OS Deployment plan does not provide a DHCP IP option from an external DHCP server so 'False' is the only valid choice
   {
   name              => 'Team0NIC1.dhcp',
   value             => 'False'
@@ -48,14 +45,14 @@ osDeploymentSettings    =>{
   # 'Auto' to get an IP address from the OneView IP pool or 'Userspecified' to assign a static IP
   {
   name              => 'Team0NIC1.constraint',
-  value             => 'userspecified'
+  value             => 'Auto'
   },
   # An IP address is required here if 'Team0NIC1.constraint' = 'userspecified'
   {
   name              => 'Team0NIC1.ipaddress',
-  value             => '192.168.0.52'
+  value             => ''
   },
-  # Network URIs are easily retrieved using PowerShell call: (Get-HPOVNetwork -Name Management ).uri 
+  # network URIs are easily retrieved using PowerShell call: (Get-HPOVNetwork -Name Management ).uri 
   {
   name              => 'Team0NIC1.networkuri',
   value             => '/rest/ethernet-networks/fe781dae-d0ba-4ac6-986f-bd9ab60877b8'
@@ -64,7 +61,6 @@ osDeploymentSettings    =>{
   name              => 'Team0NIC2.networkuri',
   value             => '/rest/ethernet-networks/fe781dae-d0ba-4ac6-986f-bd9ab60877b8'
   },
-  # Or 'Disabled' to disable SSH on the server
   {
   name              => 'SSH',
   value             => 'Enabled'
@@ -113,7 +109,6 @@ pxeBootPolicy       =>'Auto',
 mode                =>'UEFIOptimized',
 },
 connections         =>[
-# Connection 1 and 2 are always the internal iSCSI network used by the Image Streamer
 {
 id                  =>1,
 name                =>'connection1',
@@ -173,4 +168,3 @@ hostname            =>$server_hardware_name,
 power_state         =>'on',
 },
 }
-
