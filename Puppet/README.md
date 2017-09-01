@@ -18,7 +18,7 @@ In these manifests, we use the RHEL 7.3 artifact bundle, see https://github.com/
 It is necessary to edit the manifest variables with your own settings (i.e. Profile name, Server Hardware name, Network names, etc.)
 
 ### To create a new server profile using the Image Streamer
-puppet apply <path>/Server_Profile_Provisioning_with_Image_Streamer.pp
+` puppet apply <path>/Server_Profile_Provisioning_with_Image_Streamer.pp` 
 
 ### To remove a server profile using the Image Streamer
-puppet apply <path>/Server_Profile_Unprovisioning_with_Image_Streamer.pp
+` puppet apply <path>/Server_Profile_Unprovisioning_with_Image_Streamer.pp` 
