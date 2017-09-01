@@ -15,7 +15,7 @@ In these manifests, we use the RHEL 7.3 artifact bundle, see https://github.com/
 
 >The manifests have been developed and tested with *HPE-RHEL-7.3-2017-04-20.zip*.
 
-It is necessary to edit the manifest variables with your own settings (i.e. Profile name, Server Hardware name, Network names, etc.)
+It is necessary to edit the manifest variables with your own settings (i.e. Profile name, Server Hardware name, Network names, etc.) and with your custom attributes to personalized the OS settings (i.e. Hostname, network URIs, new user, SSH enabled, etc.).
 
 ### To create a new server profile using the Image Streamer to deploy the OS
 ` puppet apply <path>/Server_Profile_Provisioning_with_Image_Streamer.pp` 
