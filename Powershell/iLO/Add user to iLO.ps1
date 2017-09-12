@@ -79,22 +79,18 @@ $cred = New-Object –TypeName System.Management.Automation.PSCredential –Argu
 import-HPOVSSLCertificate
 
 
+# Creation of the header
 
-$postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-$headers = @{} 
-$headers["Accept"] = "application/json" 
-$headers["X-API-Version"] = "300"
+    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
+    $headers = @{} 
+    #$headers["Accept"] = "application/json" 
+    $headers["X-API-Version"] = "300"
 
-# Capture OneView Session ID
-try {
-   $credentialdata = Invoke-WebRequest -Uri "https://$IP/rest/login-sessions" -Body $postParams -ContentType "application/json" -Headers $headers -Method POST -UseBasicParsing
-} catch {
-   $reader = new-object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-   $responsebody = $reader.ReadToEnd()
-}
-$key = ($credentialdata.Content | ConvertFrom-Json).sessionId 
+    # Capturing the OneView Session ID and adding it to the header
+    
+    $key = $ConnectedSessions[0].SessionID 
 
-$headers["auth"] = $key
+    $headers["auth"] = $key
 
 
 
