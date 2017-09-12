@@ -80,21 +80,18 @@ import-HPOVSSLCertificate
 
 
 
-$postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-$headers = @{} 
-$headers["Accept"] = "application/json" 
-$headers["X-API-Version"] = "300"
+# Creation of the header
 
-# Capture OneView Session ID
-try {
-   $credentialdata = Invoke-WebRequest -Uri "https://$IP/rest/login-sessions" -Body $postParams -ContentType "application/json" -Headers $headers -Method POST -UseBasicParsing
-} catch {
-   $reader = new-object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-   $responsebody = $reader.ReadToEnd()
-}
-$key = ($credentialdata.Content | ConvertFrom-Json).sessionId 
+    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
+    $headers = @{} 
+    #$headers["Accept"] = "application/json" 
+    $headers["X-API-Version"] = "300"
 
-$headers["auth"] = $key
+    # Capturing the OneView Session ID and adding it to the header
+    
+    $key = $ConnectedSessions[0].SessionID 
+
+    $headers["auth"] = $key
 
 
 # Capture iLO IP adresses managed by OneView
