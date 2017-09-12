@@ -187,13 +187,13 @@ Function Get-HPOVTaskError ($Taskresult)
 
 
 
-# Import the OneView 3.0 library
+# Import the OneView 3.10 library
 
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.300)) 
+    if (-not (get-module HPOneview.310)) 
     {  
-    Import-module HPOneview.300
+    Import-module HPOneview.310
     }
 
    
@@ -215,32 +215,35 @@ Function Get-HPOVTaskError ($Taskresult)
 
 
                 
+                
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
 
-#clear
-
 # Creation of the header
-   $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-   $headers = @{} 
-   #$headers["Accept"] = "application/json" 
-   $headers["X-API-Version"] = "300"
 
-   # Capturing the OneView Session ID and adding it to the header
-   $key = $ConnectedSessions[0].SessionID 
+    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
+    $headers = @{} 
+    #$headers["Accept"] = "application/json" 
+    $headers["X-API-Version"] = "300"
 
-   $headers["auth"] = $key
+    # Capturing the OneView Session ID and adding it to the header
+    
+    $key = $ConnectedSessions[0].SessionID 
+
+    $headers["auth"] = $key
+
+
 
 
 #####################################################################################
 #            Capturing OS Deployment Server IP address managed by OneView           #
 #####################################################################################
 
-  if ($I3sIP -eq $Null) 
+ # if (!$I3sIP) 
  
-         { $I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0] }   
+  #       { $I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0] }   
 
 
-# $I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]
+$I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]
 
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
