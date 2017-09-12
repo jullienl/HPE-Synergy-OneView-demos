@@ -158,21 +158,18 @@ Else
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
 
 
-# Creation of the Header and capture of the OneView Session ID
-$postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-$headers = @{} 
-$headers["X-API-Version"] = "500"
+# Creation of the header
 
-try {
-   $credentialdata = Invoke-WebRequest -Uri "https://$IP/rest/login-sessions" -Body $postParams -ContentType "application/json" -Headers $headers -Method POST -UseBasicParsing
-    } 
+    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
+    $headers = @{} 
+    #$headers["Accept"] = "application/json" 
+    $headers["X-API-Version"] = "300"
+
+    # Capturing the OneView Session ID and adding it to the header
     
-catch {
-   $reader = new-object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-   $responsebody = $reader.ReadToEnd()
-      }
-$key = ($credentialdata.Content | ConvertFrom-Json).sessionId 
-$headers["auth"] = $key
+    $key = $ConnectedSessions[0].SessionID 
+
+    $headers["auth"] = $key
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
 # due to an invalid Remote Certificate
