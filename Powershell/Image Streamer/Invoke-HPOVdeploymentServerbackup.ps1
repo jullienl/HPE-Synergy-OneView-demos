@@ -161,18 +161,10 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
     #$headers["Accept"] = "application/json" 
     $headers["X-API-Version"] = "300"
 
-# Capturing the OneView Session ID and adding it to the header
+    # Capturing the OneView Session ID and adding it to the header
     
-    try     {
-                $credentialdata = Invoke-WebRequest -Uri "https://$IP/rest/login-sessions" -Body $postParams -ContentType "application/json" -Headers $headers -Method POST -UseBasicParsing
-            } 
-    catch   {
-                $reader = new-object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-                $responsebody = $reader.ReadToEnd()
-            }
-
-    $key = ($credentialdata.Content | ConvertFrom-Json).sessionId 
-
+    $key = $ConnectedSessions[0].SessionID 
+    
     $headers["auth"] = $key
 
 # Capturing the Image Streamer IP address
