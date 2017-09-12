@@ -14,26 +14,26 @@
   Default: Administrator
   
 .PARAMETER password
-  password of the OneView administrator account 
+  Password of the OneView administrator account 
   Default: password
 
 .PARAMETER name
-  name of the backup file
+  Name of the backup file
   file is overwritten if already present 
 
 .PARAMETER destination
-  existing local folder to save the backup bundle ZIP file 
+  Existing local folder to save the backup bundle ZIP file 
      
 .EXAMPLE
   PS C:\> Invoke-HPOVOSdeploymentServerBackup -IP 192.168.5.1 -username administrator -password HPEinvent -name "Backup-0617" -destination "c:/temp" 
   Creates a backup bundle of the Image Streamer 192.168.1.5 and uploads that backup file named "Backup-0617.zip" to "c:/temp" 
   
-.COMPONENT
+.COMPONENTS
   This script makes use of the PowerShell language bindings library for HPE OneView
   https://github.com/HewlettPackard/POSH-HPOneView
 
-.LINK
-    https://github.com/HewlettPackard/POSH-HPOneView
+.LINKS
+  https://github.com/HewlettPackard/POSH-HPOneView
   
 .NOTES
     Author: lionel.jullien@hpe.com
@@ -126,13 +126,13 @@ Function Get-HPOVTaskError ($Taskresult)
 }
 
 
-# Import the OneView 3.0 library
+# Import the OneView 3.10 library
 
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.300)) 
+    if (-not (get-module HPOneview.310)) 
     {  
-    Import-module HPOneview.300
+    Import-module HPOneview.310
     }
 
 # Connection to the Synergy Composer
@@ -164,7 +164,7 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
     # Capturing the OneView Session ID and adding it to the header
     
     $key = $ConnectedSessions[0].SessionID 
-    
+
     $headers["auth"] = $key
 
 # Capturing the Image Streamer IP address
