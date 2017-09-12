@@ -230,31 +230,20 @@ Check-HPOVVersion
         }
 
                 
-# import-HPOVSSLCertificate
+import-HPOVSSLCertificate
 
-    $postParams = @{userName=$composerusername;password=$composerpassword} | ConvertTo-Json 
+# Creation of the header
+
+    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
     $headers = @{} 
-    $headers["Accept"] = "application/json" 
+    #$headers["Accept"] = "application/json" 
     $headers["X-API-Version"] = "300"
 
-# Capture OneView Session ID
-
-    try 
-    {
-        $credentialdata = Invoke-WebRequest -Uri "https://$composer/rest/login-sessions" -Body $postParams -ContentType "application/json" -Headers $headers -Method POST -UseBasicParsing
-    } 
-    catch 
-    {
-        $reader = new-object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-        $responsebody = $reader.ReadToEnd()
-    }
+    # Capturing the OneView Session ID and adding it to the header
     
-    $key = ($credentialdata.Content | ConvertFrom-Json).sessionId 
+    $key = $ConnectedSessions[0].SessionID 
 
     $headers["auth"] = $key
-
-
-
 
 
 # eFusing component
