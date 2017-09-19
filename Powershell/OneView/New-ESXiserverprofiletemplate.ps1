@@ -43,8 +43,6 @@
 
 $serverprofiletemplate = "ESXi for I3S OSDEPLOYMENT"
 $OSDeploymentplan = 'HPE - ESXi - deploy with multiple management NIC HA config'
-$datastore = "vSphere-datastore" 
-
 
 # OneView Credentials
 $username = "Administrator" 
