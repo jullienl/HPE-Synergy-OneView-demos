@@ -6,6 +6,8 @@
 #   with OSDeploymentPlanAttributes and required iSCSI Network connections
 #        
 #   OneView administrator account is required. 
+#   
+#   Latest OneView POSH Library must be used.
 # 
 # --------------------------------------------------------------------------------------------------------
    
