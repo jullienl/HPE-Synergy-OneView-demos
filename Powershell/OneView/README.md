@@ -77,7 +77,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 <br />
 
 # New-ESXiserverprofiletemplate
-  This PowerShell Script creates a Server Profile Template using the HPE Image Streamer with OS Deployment Plan Attributes and required iSCSI Network connections.
+  This PowerShell Script is an example of how to create a Server Profile Template using the HPE Image Streamer with OS Deployment Plan Attributes and required iSCSI Network connections.
  
 ## Download
 
@@ -92,11 +92,11 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 <br />
 
 # New-ESXiserverprofile
-  This PowerShell Script creates a Server Profile using the HPE Image Streamer with OS Deployment Plan Attributes. A Server Profile Template is required. The server profile template can be created using 'New-ESXiserverprofiletemplate.ps1'
+  This PowerShell Script is an example of how to create a Server Profile using the HPE Image Streamer with OS Deployment Plan Attributes. A Server Profile Template is required. The server profile template can be created using 'New-ESXiserverprofiletemplate.ps1'
  
 ## Download
 
-### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/New-ESXiserverprofiletemplate.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/New-ESXiserverprofile.ps1)
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
