@@ -36,6 +36,8 @@
 #################################################################################
 
 
+
+
 #################################################################################
 #                                Global Variables                               #
 #################################################################################
@@ -43,6 +45,10 @@
 
 $serverprofiletemplate = "ESXi for I3S OSDEPLOYMENT"
 $OSDeploymentplan = 'HPE - ESXi - deploy with multiple management NIC HA config'
+# This can be found using Get-HPOVServerHardwareTypes
+$ServerHardwareType = "SY 480 Gen9 1"
+
+
 
 # OneView Credentials
 $username = "Administrator" 
@@ -83,7 +89,7 @@ Else
      
         
         
-        $SY460SHT = Get-HPOVServerHardwareTypes -name "SY 480 Gen9 1"
+        $SY460SHT = Get-HPOVServerHardwareTypes -name $ServerHardwareType
         $enclosuregroup = Get-HPOVEnclosureGroup  
 
         $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri
