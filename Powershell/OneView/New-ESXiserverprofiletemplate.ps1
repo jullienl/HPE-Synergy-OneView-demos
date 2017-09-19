@@ -2,7 +2,7 @@
 #   by lionel.jullien@hpe.com
 #   August 2017
 #
-#   Script to creates a Server Profile Template using the HPE Image Streamer 
+#   Script to create a Server Profile Template using the HPE Image Streamer 
 #   with OSDeploymentPlanAttributes and required iSCSI Network connections
 #        
 #   OneView administrator account is required. 
