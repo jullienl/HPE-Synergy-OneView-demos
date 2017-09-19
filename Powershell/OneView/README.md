@@ -92,7 +92,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 <br />
 
 # New-ESXiserverprofile
-  This PowerShell Script is an example of how to create a Server Profile using the HPE Image Streamer with OS Deployment Plan Attributes. A Server Profile Template is required. The server profile template can be created using 'New-ESXiserverprofiletemplate.ps1'
+  This PowerShell Script is an example of how to create a Server Profile using the HPE Image Streamer with OS Deployment Plan Attributes. A Server Profile Template is required. The server profile template can be created using `New-ESXiserverprofiletemplate.ps1`
  
 ## Download
 
