@@ -12,7 +12,7 @@
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
   
 <br />
 <br />
@@ -31,7 +31,7 @@ This PowerShell Script changes the default Administrator account password in all
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
   
 <br />
 <br />
@@ -49,7 +49,7 @@ This PowerShell Script upgrades all iLO FW managed by the OneView Composer using
 ## Components
   This script makes use of:
   - The PowerShell language bindings library for HPE OneView.   
-    https://github.com/HewlettPackard/POSH-HPOneView
+    https://github.com/HewlettPackard/POSH-HPOneView/releases
   - The HPE iLO PowerShell Cmdlets.  
     https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html
    
