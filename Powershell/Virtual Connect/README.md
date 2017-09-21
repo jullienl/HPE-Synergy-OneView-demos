@@ -65,7 +65,7 @@
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.  
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
 
 <br/>
 <br/>
@@ -93,7 +93,7 @@ Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.)
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.  
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
 
 
 <br/>
@@ -122,5 +122,5 @@ Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.)
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.  
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
 
