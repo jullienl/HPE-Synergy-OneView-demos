@@ -41,6 +41,29 @@
 #################################################################################
 
 
+[string]$HPOVMinimumVersion = "3.10.1443.2882"
+
+
+function Check-HPOVVersion {
+    #Check HPOV version
+    #Encourge people to run the latest version
+    $arrMinVersion = $HPOVMinimumVersion.split(".")
+    $arrHPOVVersion=((Get-HPOVVersion ).LibraryVersion)
+    if ( ($arrHPOVVersion.Major -gt $arrMinVersion[0]) -or
+        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -gt $arrMinVersion[1])) -or
+        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -gt $arrMinVersion[2])) -or
+        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -eq $arrMinVersion[2]) -and ($arrHPOVVersion.Revision -ge $arrMinVersion[3])) )
+        {
+        #HPOVVersion the same or newer than the minimum required
+        }
+    else {
+        Write-Error "You are running a version of POSH-HPOneView that do not support this script. Please update your HPOneView POSH from: https://github.com/HewlettPackard/POSH-HPOneView/releases"
+        
+        exit
+        }
+    }
+
+
 
 
 #################################################################################
@@ -95,20 +118,33 @@ Else
                
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
 
+
+# Check oneview version
+
+Check-HPOVVersion
+
+
+
 filter Timestamp {"$(Get-Date -Format G): $_"}
 
 
         
 Write-Output "Creating Server Profile using the Image Streamer" | Timestamp
 
+  # if (get-HPOVServerProfile -Name "ESXi-I3S" -ErrorAction SilentlyContinue) { Remove-HPOVServerProfile -ServerProfileTemplate "ESXi-I3S" }
+
 
         $spt = Get-HPOVServerProfileTemplate -Name $serverprofiletemplate  -ErrorAction Stop
 
+        #$server = Get-HPOVServer -Name "Frame3-CN7515049C, bay 4"
         $server = Get-HPOVServer -NoProfile -InputObject $spt | Select -first 1
         
         $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
 
 
+
+
+#$osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplanname -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
 $osCustomAttributes = Get-HPOVOSDeploymentPlanAttribute -InputObject $spt
 
 $My_osCustomAttributes = $osCustomAttributes
@@ -131,3 +167,4 @@ New-HPOVServerProfile -Name $serverprofile -ServerProfileTemplate $spt -Server $
 Write-Output "Server Profile $serverprofile using the Image Streamer has been created" | Timestamp
 
 
+       
