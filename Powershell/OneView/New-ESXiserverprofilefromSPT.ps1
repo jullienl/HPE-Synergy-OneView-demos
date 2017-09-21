@@ -45,8 +45,8 @@
 
 
 function Check-HPOVVersion {
-    #Check HPOV version
-    #Encourge people to run the latest version
+    # Check HPE OneView POSH library version
+    # Encourge people to run the latest version
     $arrMinVersion = $HPOVMinimumVersion.split(".")
     $arrHPOVVersion=((Get-HPOVVersion ).LibraryVersion)
     if ( ($arrHPOVVersion.Major -gt $arrMinVersion[0]) -or
@@ -131,20 +131,12 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
         
 Write-Output "Creating Server Profile using the Image Streamer" | Timestamp
 
-  # if (get-HPOVServerProfile -Name "ESXi-I3S" -ErrorAction SilentlyContinue) { Remove-HPOVServerProfile -ServerProfileTemplate "ESXi-I3S" }
-
-
         $spt = Get-HPOVServerProfileTemplate -Name $serverprofiletemplate  -ErrorAction Stop
 
-        #$server = Get-HPOVServer -Name "Frame3-CN7515049C, bay 4"
         $server = Get-HPOVServer -NoProfile -InputObject $spt | Select -first 1
         
         $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
 
-
-
-
-#$osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplanname -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
 $osCustomAttributes = Get-HPOVOSDeploymentPlanAttribute -InputObject $spt
 
 $My_osCustomAttributes = $osCustomAttributes
