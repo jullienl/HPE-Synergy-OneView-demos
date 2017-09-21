@@ -2,8 +2,8 @@
 #   by lionel.jullien@hpe.com
 #   September 2017
 #
-#   Script to create a Server Profile using the HPE Image Streamer 
-#   with OSDeploymentPlanAttributes.
+#   This PowerShell Script is an example of how to create a Server Profile using the HPE 
+#   Image Streamer with OS Deployment Plan Attributes.
 #   
 #   A Server Profile Template is required. The server profile template can be created using
 #   New-ESXiserverprofiletemplate.ps1
