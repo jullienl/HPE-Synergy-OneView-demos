@@ -91,12 +91,12 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 <br />
 <br />
 
-# New-ESXiserverprofile
+# New-ESXiserverprofilefromSPT
   This PowerShell Script is an example of how to create a Server Profile using the HPE Image Streamer with OS Deployment Plan Attributes. A Server Profile Template is required. The server profile template can be created using `New-ESXiserverprofiletemplate.ps1`
  
 ## Download
 
-### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/New-ESXiserverprofile.ps1)
+### [Click here to download the function (right click to save)](https://github.com/jullienl/OneView-demos/blob/master/Powershell/OneView/New-ESXiserverprofilefromSPT.ps1)
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
