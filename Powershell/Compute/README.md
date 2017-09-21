@@ -34,4 +34,4 @@
   
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
