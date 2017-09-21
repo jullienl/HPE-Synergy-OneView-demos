@@ -70,7 +70,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
   
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
 
   
 <br />
@@ -85,7 +85,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
   
 
 <br />
@@ -100,7 +100,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
   
 
 
@@ -122,7 +122,7 @@ OneView administrator account is required.
 ## Components
 This script makes use of:
 - The PowerShell language bindings library for HPE OneView.   
-https://github.com/HewlettPackard/POSH-HPOneView
+https://github.com/HewlettPackard/POSH-HPOneView/releases
 - The HPE 3PAR PowerShell Toolkit for HPE 3PAR StoreServ Storage.   
 https://h20392.www2.hpe.com/portal/swdepot/displayProductInfo.do?productNumber=3PARPSToolkit 
   
