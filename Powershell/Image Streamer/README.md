@@ -36,7 +36,7 @@
   
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView
-  https://github.com/HewlettPackard/POSH-HPOneView   
+  https://github.com/HewlettPackard/POSH-HPOneView/releases  
   
   <br />
   <br />
@@ -116,4 +116,4 @@ Search for OS Deployment plans matching with the name "ESX" and remove them from
      
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView   
-  https://github.com/HewlettPackard/POSH-HPOneView
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
