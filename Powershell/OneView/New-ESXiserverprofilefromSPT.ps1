@@ -46,7 +46,7 @@
 
 function Check-HPOVVersion {
     # Check HPE OneView POSH library version
-    # Encourge people to run the latest version
+    # Encourage people to run the latest version
     $arrMinVersion = $HPOVMinimumVersion.split(".")
     $arrHPOVVersion=((Get-HPOVVersion ).LibraryVersion)
     if ( ($arrHPOVVersion.Major -gt $arrMinVersion[0]) -or
