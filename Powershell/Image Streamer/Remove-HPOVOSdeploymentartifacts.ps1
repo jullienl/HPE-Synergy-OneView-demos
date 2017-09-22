@@ -238,13 +238,7 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
 #            Capturing OS Deployment Server IP address managed by OneView           #
 #####################################################################################
 
- # if (!$I3sIP) 
- 
-  #       { $I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0] }   
-
-
-$I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]
-
+ Do {$I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]} until ($I3sIP)
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
 # due to an invalid Remote Certificate
