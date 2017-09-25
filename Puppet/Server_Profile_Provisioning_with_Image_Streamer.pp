@@ -34,6 +34,7 @@ osDeploymentSettings    =>{
   name              => 'Team0NIC1.connectionid',
   value             => '3'
   },
+  # 'True' must be used here if 'Team0NIC1.constraint' = 'DHCP'
   {
   name              => 'Team0NIC1.dhcp',
   value             => 'False'
