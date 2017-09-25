@@ -453,9 +453,10 @@ $datastore =   $volume1
         ($OSDeploymentPlanAttributes | ? name -eq 'DomainName').value = 'lj.mougins.net'
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
-
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
+	($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
+
                       
         $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
 
