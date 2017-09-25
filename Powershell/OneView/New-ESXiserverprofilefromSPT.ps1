@@ -141,16 +141,28 @@ $osCustomAttributes = Get-HPOVOSDeploymentPlanAttribute -InputObject $spt
 
 $My_osCustomAttributes = $osCustomAttributes
 
-        #($My_osCustomAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''
+         # An IP address is required here if 'ManagementNIC.constraint' = 'userspecified'
+        ($My_osCustomAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''   
+
+         # 'Auto' to get an IP address from the OneView IP pool or 'Userspecified' to assign a static IP or 'DHCP' to a get an IP from an external DHCP Server
+        ($My_osCustomAttributes | ? name -eq 'ManagementNIC.constraint').value = 'auto' 
+        
+         # 'True' must be used here if 'ManagementNIC.constraint' = 'DHCP'
         ($My_osCustomAttributes | ? name -eq 'ManagementNIC.dhcp').value = 'False'
+        
+         # '3' corresponds to the third connection ID number in the server profile connections
         ($My_osCustomAttributes | ? name -eq 'ManagementNIC.connectionid').value = '3'
+        
         ($My_osCustomAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
+        
         ($My_osCustomAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
+        
         ($My_osCustomAttributes | ? name -eq 'SSH').value = 'enabled'
+        
         ($My_osCustomAttributes | ? name -eq 'Password').value = 'password'
      
-        # Hostname is by default the server Profile name
-        # ($My_osCustomAttributes | ? name -eq 'Hostname').value = $serverprofile
+        # We are using here the 'profile' token. The server will get its hostname from the server Profile name
+        ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
 
 
 
