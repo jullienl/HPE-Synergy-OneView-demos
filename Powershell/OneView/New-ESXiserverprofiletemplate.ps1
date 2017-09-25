@@ -52,7 +52,7 @@ $OSDeploymentplan = 'HPE - ESXi - deploy with multiple management NIC HA config'
 # This can be found using Get-HPOVServerHardwareTypes
 $ServerHardwareType = "SY 480 Gen9 1"
 
-#datastore present amd managed by OneView (get-hpovstoragevolume)
+# Datastore must be present, managed by OneView (get-hpovstoragevolume)
 $datastore = "vSphere-datastore"
 
 
