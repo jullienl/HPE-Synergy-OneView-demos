@@ -530,7 +530,8 @@ $datastore =   $volume1
    
 
 
-   Write-Output "Local Storage Server Profile Template $serverprofiletemplate using Image Streamer Created" | Timestamp
+     Write-Output "Server Profile Template $serverprofiletemplate using Image Streamer Created" | Timestamp
+
 
    
 
