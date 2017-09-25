@@ -45,10 +45,16 @@
 #################################################################################
 
 
-$serverprofiletemplate = "ESXi for I3S OSDEPLOYMENT"
+$serverprofiletemplate = "ESXi for I3S OSDEPLOYMENT2"
+
 $OSDeploymentplan = 'HPE - ESXi - deploy with multiple management NIC HA config'
+
 # This can be found using Get-HPOVServerHardwareTypes
 $ServerHardwareType = "SY 480 Gen9 1"
+
+#datastore present amd managed by OneView (get-hpovstoragevolume)
+$datastore = "vSphere-datastore"
+
 
 
 
@@ -56,6 +62,10 @@ $ServerHardwareType = "SY 480 Gen9 1"
 $username = "Administrator" 
 $password = "password" 
 $IP = "192.168.1.110" 
+
+
+#################################################################################
+
 
 
 # Import the OneView 3.10 library
@@ -108,9 +118,11 @@ Else
         ($OSDeploymentPlanAttributes | ? name -eq 'DomainName').value = 'lj.mougins.net'
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
-
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
+
+
                       
         $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
 
@@ -162,9 +174,8 @@ Else
             OS                  = 'VMware';
             StorageVolume       = $volume1;
             OSDeploymentplan    = $OSDP;
-            OSDeploymentPlanAttributes = $OSDeploymentPlanAttributes
-
-            
+            OSDeploymentPlanAttributes = $OSDeploymentPlanAttributes;
+           
              }
 
 
