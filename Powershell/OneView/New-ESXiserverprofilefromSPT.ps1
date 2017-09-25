@@ -162,7 +162,7 @@ $My_osCustomAttributes = $osCustomAttributes
         ($My_osCustomAttributes | ? name -eq 'Password').value = 'password'
      
         # We are using here the 'profile' token. The server will get its hostname from the server Profile name
-        ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
+        ($My_osCustomAttributes | ? name -eq 'Hostname').value = "{profile}"
 
 
 
