@@ -112,14 +112,27 @@ Else
         $OSDeploymentPlanAttributes = $osCustomAttributes 
 
 
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''
+         # An IP address is required here if 'ManagementNIC.constraint' = 'userspecified'
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''   
+
+         # 'Auto' to get an IP address from the OneView IP pool or 'Userspecified' to assign a static IP or 'DHCP' to a get an IP from an external DHCP Server
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.constraint').value = 'auto' 
+        
+         # 'True' must be used here if 'ManagementNIC.constraint' = 'DHCP'
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.dhcp').value = 'False'
+        
+         # '3' corresponds to the third connection ID number in the server profile connections
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.connectionid').value = '3'
-        ($OSDeploymentPlanAttributes | ? name -eq 'DomainName').value = 'lj.mougins.net'
+        
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
+        
         ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
+        
+        ($OSDeploymentPlanAttributes | ? name -eq 'SSH').value = 'enabled'
+        
+        ($OSDeploymentPlanAttributes | ? name -eq 'Password').value = 'password'
+     
+        # We are using here the 'profile' token. The server will get its hostname from the server Profile name
         ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
 
 
@@ -182,7 +195,7 @@ Else
       try
           {
        
-          New-HPOVServerProfileTemplate @params -ErrorAction Stop | Wait-HPOVTaskComplete
+          New-HPOVServerProfileTemplate @params -ErrorAction Stop -Verbose | Wait-HPOVTaskComplete
 
           }
 
@@ -194,4 +207,4 @@ Else
          }
    
       
-    
+   Write-Output "Server Profile Template $serverprofiletemplate using Image Streamer Created"
