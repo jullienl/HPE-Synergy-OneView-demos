@@ -129,7 +129,7 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
 
 
         
-Write-Output "Creating Server Profile using the Image Streamer" | Timestamp
+Write-Output "`nCreating Server Profile $serverprofile using the Image Streamer" | Timestamp
 
         $spt = Get-HPOVServerProfileTemplate -Name $serverprofiletemplate  -ErrorAction Stop
 
@@ -137,13 +137,14 @@ Write-Output "Creating Server Profile using the Image Streamer" | Timestamp
         
         $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
 
+
 $osCustomAttributes = Get-HPOVOSDeploymentPlanAttribute -InputObject $spt
 
 $My_osCustomAttributes = $osCustomAttributes
 
          # An IP address is required here if 'ManagementNIC.constraint' = 'userspecified'
-         #  ($My_osCustomAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''   
-
+         # ($My_osCustomAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''   
+         
          # 'Auto' to get an IP address from the OneView IP pool or 'Userspecified' to assign a static IP or 'DHCP' to a get an IP from an external DHCP Server
         ($My_osCustomAttributes | ? name -eq 'ManagementNIC.constraint').value = 'auto' 
         
@@ -165,10 +166,24 @@ $My_osCustomAttributes = $osCustomAttributes
         ($My_osCustomAttributes | ? name -eq 'Hostname').value = "{profile}"
 
 
+    try
+         {
+            New-HPOVServerProfile -Name $serverprofile -ServerProfileTemplate $spt -Server $server -OSDeploymentAttributes $My_osCustomAttributes  -AssignmentType server -ErrorAction Stop | Wait-HPOVTaskComplete
+         }
+    
+    catch
+         {
+                 
+           $_ 
 
-New-HPOVServerProfile -Name $serverprofile -ServerProfileTemplate $spt -Server $server -OSDeploymentAttributes $My_osCustomAttributes  -AssignmentType server 
+           return
+            
+         }
 
-Write-Output "Server Profile $serverprofile using the Image Streamer has been created" | Timestamp
+Write-Output "`nServer Profile $serverprofile using the Image Streamer has been created" | Timestamp
+
+
+Pause
 
 
        
