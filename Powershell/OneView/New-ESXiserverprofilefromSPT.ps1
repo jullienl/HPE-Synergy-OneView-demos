@@ -142,7 +142,7 @@ $osCustomAttributes = Get-HPOVOSDeploymentPlanAttribute -InputObject $spt
 $My_osCustomAttributes = $osCustomAttributes
 
          # An IP address is required here if 'ManagementNIC.constraint' = 'userspecified'
-        ($My_osCustomAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''   
+         #  ($My_osCustomAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''   
 
          # 'Auto' to get an IP address from the OneView IP pool or 'Userspecified' to assign a static IP or 'DHCP' to a get an IP from an external DHCP Server
         ($My_osCustomAttributes | ? name -eq 'ManagementNIC.constraint').value = 'auto' 
