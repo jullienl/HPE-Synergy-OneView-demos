@@ -42,7 +42,7 @@
   deletes artifact bundle
   
 .EXAMPLE
-  PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-Foundation - create empty OS Volume" -OSbuildplan -Confirm 
+  PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.1.110 -username administrator -password paswword -name "HPE-Foundation - create empty OS Volume" -OSbuildplan -Confirm 
   Removes the OS build plan "HPE-Foundation - create empty OS Volume" and provides a prompt requesting confirmation of the deletion 
   
 .EXAMPLE
@@ -238,7 +238,9 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
 #            Capturing OS Deployment Server IP address managed by OneView           #
 #####################################################################################
 
- Do {$I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]} until ($I3sIP)
+
+Do {$I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]} until ($I3sIP)
+
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
 # due to an invalid Remote Certificate
@@ -337,7 +339,9 @@ if ($deploymentplan.IsPresent -or $allartifacts.IsPresent)
                 catch  {
         
                 write-host ""
-                Write-warning "[$Deploymentplantoremovename] cannot be deleted because it is used by a server profile"
+                Write-warning "[$Deploymentplantoremovename] cannot be deleted because it is used by a server profile or a server profile template !"
+
+                pause
 
                        }
 
@@ -351,6 +355,7 @@ if ($deploymentplan.IsPresent -or $allartifacts.IsPresent)
     {
         write-host ""
         Write-warning "Cannot find any Deployment plan on the Streamer with a name containing: $name"
+        pause
     }
 
    
@@ -431,6 +436,7 @@ if ($goldenimage.IsPresent -or $allartifacts.IsPresent)
     
                 write-host ""
                 Write-warning "[$goldenimagestoremovename] cannot be deleted because it is being referenced by a deployment plan"
+                pause
                   }
         }
 
@@ -441,6 +447,7 @@ if ($goldenimage.IsPresent -or $allartifacts.IsPresent)
     {
     write-host ""
     Write-warning "Cannot find any Golden Image on the Streamer with a name containing: $name"
+    pause
     }
     
 }
@@ -512,7 +519,9 @@ if ($OSbuildplan.IsPresent -or $allartifacts.IsPresent)
             
             catch 
             {
+                write-host ""
                 Write-warning "[$OSbuildplantoremovename] cannot be deleted because it is in use by one or more deployment plans"
+                pause
             }
         }
    }
@@ -523,6 +532,7 @@ if ($OSbuildplan.IsPresent -or $allartifacts.IsPresent)
 
         write-host ""
         Write-warning "Cannot find any Build plan on the Streamer with a name containing: $name"
+        pause
 
     }
 
@@ -601,6 +611,7 @@ if ($planscript.IsPresent -or $allartifacts.IsPresent)
             {
     
                 Write-warning "[$planscripttoremovename] cannot be deleted because it is in use by one or more deployment plans"
+                pause
             }
         }
 
@@ -611,6 +622,7 @@ if ($planscript.IsPresent -or $allartifacts.IsPresent)
     {
         write-host ""
         Write-warning "Cannot find any plan script on the Streamer with a name containing: $name"
+        pause
 
     }
 
@@ -687,6 +699,7 @@ if ($namebundle.IsPresent -or $allartifacts.IsPresent)
             catch 
             {
                 Write-warning "[$artifactbundletoremovename] cannot be deleted because it is in use by one or more deployment plans"
+                pause
             }
         }
     }
@@ -696,6 +709,7 @@ if ($namebundle.IsPresent -or $allartifacts.IsPresent)
     {
         write-host ""
         Write-warning "Cannot find any artifact bundle on the Streamer with a name containing: $name"
+        pause
     }
 
 }
