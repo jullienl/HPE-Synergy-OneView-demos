@@ -180,17 +180,18 @@ function Check-HPOVVersion {
     #Check HPOV version
     #Encourge people to run the latest version
     $arrMinVersion = $HPOVMinimumVersion.split(".")
-    $arrHPOVVersion=((Get-HPOVVersion ).OneViewPowerShellLibrary).split(".")
-    if ( ($arrHPOVVersion[0] -gt $arrMinVersion[0]) -or
-        (($arrHPOVVersion[0] -eq $arrMinVersion[0]) -and ($arrHPOVVersion[1] -gt $arrMinVersion[1])) -or
-        (($arrHPOVVersion[0] -eq $arrMinVersion[0]) -and ($arrHPOVVersion[1] -eq $arrMinVersion[1]) -and ($arrHPOVVersion[2] -gt $arrMinVersion[2])) -or
-        (($arrHPOVVersion[0] -eq $arrMinVersion[0]) -and ($arrHPOVVersion[1] -eq $arrMinVersion[1]) -and ($arrHPOVVersion[2] -eq $arrMinVersion[2]) -and ($arrHPOVVersion[3] -ge $arrMinVersion[3])) )
+    $arrHPOVVersion=((Get-HPOVVersion ).LibraryVersion)
+    if ( ($arrHPOVVersion.Major -gt $arrMinVersion[0]) -or
+        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -gt $arrMinVersion[1])) -or
+        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -gt $arrMinVersion[2])) -or
+        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -eq $arrMinVersion[2]) -and ($arrHPOVVersion.Revision -ge $arrMinVersion[3])) )
         {
         #HPOVVersion the same or newer than the minimum required
         }
     else {
-        Write-warning "`tYou are running the latest version of POSH-HPOneView. Please consider updating your HPOneView POSH from: https://github.com/HewlettPackard/POSH-HPOneView"
-        pause
+        Write-Error "You are running a version of POSH-HPOneView that do not support this script. Please update your HPOneView POSH from: https://github.com/HewlettPackard/POSH-HPOneView/releases"
+        
+        exit
         }
     }
 
@@ -200,9 +201,9 @@ function Check-HPOVVersion {
 
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.300)) 
+    if (-not (get-module HPOneview.310)) 
     {  
-    Import-module HPOneview.300
+    Import-module HPOneview.310
     }
 
 
@@ -230,7 +231,9 @@ Check-HPOVVersion
         }
 
                 
-import-HPOVSSLCertificate
+                
+    import-HPOVSSLCertificate
+
 
 # Creation of the header
 
