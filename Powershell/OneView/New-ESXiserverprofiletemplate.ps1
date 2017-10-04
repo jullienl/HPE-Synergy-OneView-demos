@@ -47,7 +47,7 @@
 
 $serverprofiletemplate = "ESXi for I3S OSDEPLOYMENT2"
 
-$OSDeploymentplan = 'HPE - ESXi - deploy with multiple management NIC HA config'
+$OSDeploymentplan = 'ESXi - deploy with multiple management NIC HA config+FCoE'
 
 # This can be found using Get-HPOVServerHardwareTypes
 $ServerHardwareType = "SY 480 Gen9 1"
@@ -70,7 +70,7 @@ $IP = "192.168.1.110"
 
 # Import the OneView 3.10 library
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$False
 
     if (-not (get-module HPOneview.310)) 
     {  
@@ -97,14 +97,11 @@ Else
     }
 }
 
-
-     
-        
         
         $SY460SHT = Get-HPOVServerHardwareTypes -name $ServerHardwareType
         $enclosuregroup = Get-HPOVEnclosureGroup  
 
-        $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri
+        $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri -Confirm:$False
 
         $OSDP = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan
         $osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
@@ -135,6 +132,9 @@ Else
         # We are using here the 'profile' token. The server will get its hostname from the server Profile name
         ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
 
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
+        
+        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
 
                       
         $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
@@ -195,8 +195,8 @@ Else
       try
           {
        
-          New-HPOVServerProfileTemplate @params -ErrorAction Stop -Verbose | Wait-HPOVTaskComplete
-
+          New-HPOVServerProfileTemplate @params -ErrorAction Stop | Wait-HPOVTaskComplete
+          Write-Output "Server Profile Template $serverprofiletemplate using Image Streamer has been created"
           }
 
       catch  
@@ -207,4 +207,3 @@ Else
          }
    
       
-   Write-Output "Server Profile Template $serverprofiletemplate using Image Streamer Created"
