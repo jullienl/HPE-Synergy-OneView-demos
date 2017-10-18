@@ -110,10 +110,11 @@
   Leave the server off once the profile is created in OneView
 
 .EXAMPLE
-  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -hostpassword HPEinvent -ManagementNIC DHCP 
+  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -hostpassword HPEinvent -ManagementNIC DHCP -SSHEnabled
   Deploy an ESXi server named ESX6-2 and assign the password HPEinvent to the ESXi root user 
   The server profile is named using the name of the hostname "ESX6-2" 
   Assign a DHCP IPv4 address to the first Management NIC 
+  Enable SSH and ESXi shell on the ESXi Host 
   Leave the server off once the profile is created in OneView
 
 .EXAMPLE
@@ -139,11 +140,12 @@
 .COMPONENT
   This script makes use of the PowerShell language bindings library for HPE OneView
   https://github.com/HewlettPackard/POSH-HPOneView
+  Make sure you use the latest version of the library
   
   Image Streamer artifacts for ESXi 5.x and ESXi 6.x must be installed
   https://github.hpe.com/ImageStreamer/esxi/tree/master/artifact-bundles
   
-  It also requires VMware vSphere PowerCLI in order to add the ESX host into a vcenter server
+  This script makes also use of VMware vSphere PowerCLI. It is installed by this script if not present. VMWare PowerCLI is used to add the ESX host into a vcenter server
   http://vmware.com/go/powercli
 
 .LINK
@@ -153,7 +155,7 @@
   
 .NOTES
     Author: lionel.jullien@hpe.com
-    Date:   April 2017 
+    Date:   Sept 2017 
     
 #################################################################################
 #                             new-ESXserver.ps1                                 #
