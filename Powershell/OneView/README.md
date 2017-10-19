@@ -126,3 +126,36 @@ https://github.com/HewlettPackard/POSH-HPOneView/releases
 - The HPE 3PAR PowerShell Toolkit for HPE 3PAR StoreServ Storage.   
 https://h20392.www2.hpe.com/portal/swdepot/displayProductInfo.do?productNumber=3PARPSToolkit 
   
+
+
+<br />
+<br />
+ 
+# New-ESXserver
+
+   new-ESXserver provisions an ESX server using an Image Streamer deployment plan for ESXi.
+   Several parameters can be used to customize the ESXi host like: Management IP address, SSH enabled, hostname, datastore, etc.
+
+   Once the server is provisioned, the script can power on the server and also add the ESXi host to a vcenter folder, datacenter    or cluster.
+       
+   Supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
+   
+   OneView administrator account is required 
+
+   ImageStreamer artifacts for ESXi 5.x and ESXi 6.x must be installed
+   See https://github.hpe.com/ImageStreamer/esxi/tree/master/artifact-bundles 
+  
+   A deployment plan name must be provided. If not present, the script is looking for "ESXi - deploy with multiple management NIC HA config+FCoE"
+
+   Latest OneView POSH Library must be used.
+ 
+   OneView administrator account is required. 
+
+## Download
+
+### [Click here to download the function (right click to save)](https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/OneView/new-ESXserver.ps1)
+
+## Components
+This script makes use of:
+- The PowerShell language bindings library for HPE OneView.   
+https://github.com/HewlettPackard/POSH-HPOneView/releases
