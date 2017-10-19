@@ -166,8 +166,30 @@ This script makes use of:
 - The PowerShell language bindings library for HPE OneView.   
 https://github.com/HewlettPackard/POSH-HPOneView/releases
 
-## Example
+## Example 1
 ```sh
   PS C:\> New-ESXserver -hostname ESX-01 -ManagementNIC DHCP -poweron 
 ```  
-Deploys an ESXi server named ESX-01, assigns a DHCP Address to the first Management NIC and powers on the server. . 
+Deploy an ESXi server named ESX-01, assign a DHCP Address to the first Management NIC and power on the server. 
+
+
+## Example 2
+```sh
+  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -hostpassword HPEinvent -ManagementNIC 192.168.2.22 
+```  
+Deploy an ESXi server named ESX6-2 and assign the password HPEinvent to the ESXi root user 
+The server profile is named using the name of the hostname "ESX6-2" 
+Assign a static IPv4 address "192.168.2.22" to the first Management NIC 
+Leave the server off once the profile is created in OneView
+
+
+## Example 3
+```sh
+  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-3 -hostpassword HPEinvent -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcenterlocation Synergy  
+```  
+Deploy an ESXi server named ESX6-3, power on the server 
+Add the server to be managed by a vCenter server "vcenter.hpe.net" and import the server in the "Synergy" location 
+
+
+
+
