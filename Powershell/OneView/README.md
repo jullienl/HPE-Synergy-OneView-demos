@@ -145,7 +145,7 @@ https://h20392.www2.hpe.com/portal/swdepot/displayProductInfo.do?productNumber=3
    ImageStreamer artifacts for ESXi 5.x and ESXi 6.x must be installed
    See https://github.hpe.com/ImageStreamer/esxi/tree/master/artifact-bundles 
   
-   A deployment plan name must be provided. If not present, the script is looking for "ESXi - deploy with multiple management NIC HA config+FCoE"
+>   A deployment plan name must be provided. If not present, the script is looking for "*ESXi - deploy with multiple management NIC HA config+FCoE*"
 
    Latest OneView POSH Library must be used.
  
@@ -155,7 +155,27 @@ https://h20392.www2.hpe.com/portal/swdepot/displayProductInfo.do?productNumber=3
 
 ### [Click here to download the function (right click to save)](https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/OneView/new-ESXserver.ps1)
 
+## Configuration
+  Global Variables at the begining of the script needs to be configured according to your environment.
+  - `$ServerHardwareTypename` sets the type of server model name to use for the deployment e.g. '480' will select a server model 'Synergy 480 Gen9' or 'Synergy 480 Gen10'.  
+  - `$myproxy` and `$myproxyport` set proxy settings (if required) to install the VMware PowerCLI library (if needed)
+  - `$vcenterlicensename` sets the VMware license name to use on the ESXi host
+
 ## Components
 This script makes use of:
 - The PowerShell language bindings library for HPE OneView.   
 https://github.com/HewlettPackard/POSH-HPOneView/releases
+
+## Parameter `composer`
+  IP address of the Composer.
+  Default: 192.168.1.110  
+  
+## Parameter `FLM`
+  The serial number of the frame link module resource to efuse; e.g. *CN7514V012*.   
+  This is normally retrieved with a `(Get-HPOVEnclosure).managerbays.serialnumber` call.
+  
+## Example
+```sh
+  PS C:\> Invoke-HPOVefuse -composer 192.168.1.110 -composerusername Administrator -composerpassword password -compute "CN7515049C, bay 5" 
+```  
+Efuses the compute module in frame CN7515049C in bay 5. 
