@@ -1,7 +1,11 @@
 <#
 .DESCRIPTION
-   new-ESXserver creates an ESX server using an Image Streamer deployment plan for ESXi 
-      
+   
+   new-ESXserver provisions an ESX server using an Image Streamer deployment plan for ESXi.
+   Several parameters can be used to customize the ESXi host like: Management IP address, SSH enabled, hostname, datastore, etc.
+
+   Once the server is provisioned, the script can power on the server and also add the ESXi host to a vcenter folder, datacenter or cluster.
+       
    Supports common parameters -verbose, -whatif, and -confirm 
    
    OneView administrator account is required 
@@ -27,7 +31,7 @@
   Default: password
 
 .PARAMETER hostname
-  Name of the ESXi Host (not the Fully Qualified Domain Name) to deploy
+  Name of the ESXi Host (not the Fully Qualified Domain Name)
   ex: ESX6-1
   
 .PARAMETER hostpassword
@@ -41,10 +45,9 @@
 .PARAMETER SSHEnabled
   Enables SSH and ESXi shell on the ESXi Host
   Requirement: the Golden Image must be captured using an ESXi volume with the default troubleshooting options (i.e. SSH Disabled)
-
    
 .PARAMETER profilename
-  Name of the server profile to create.
+  Name of the server profile that the script will generate.
   If not present, hostname is used to generate profilename  
 
 .PARAMETER serverhardware
