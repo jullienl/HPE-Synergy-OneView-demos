@@ -192,4 +192,10 @@ Add the server to be managed by a vCenter server "vcenter.hpe.net" and import th
 
 
 
-
+## Example 4
+```sh
+  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-4 -hostpassword HPEinvent -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcentercluster Synergy-Cluster -SSHEnabled  
+```  
+Deploy an ESXi server named ESX6-4, power on the server 
+Add the server to be managed by a vCenter server "vcenter.hpe.net" and add the server to the "Synergy-Cluster" vSphere cluster 
+Enable SSH and ESXi shell on the ESXi Host 
