@@ -1,8 +1,7 @@
 <#
 .DESCRIPTION
    new-ESXserver creates an ESX server using an Image Streamer deployment plan for ESXi 
-   A server profile template is created by the script if not already present
-   
+      
    Supports common parameters -verbose, -whatif, and -confirm 
    
    OneView administrator account is required 
