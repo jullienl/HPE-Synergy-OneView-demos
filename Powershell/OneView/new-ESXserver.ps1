@@ -780,7 +780,7 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
 
  Write-Verbose "The server profile has the following customized OS Custom Attributes just before the profile creation:"
  Write-Verbose  ( $OSdp_osCustomAttributes | Out-String)
- pause
+ # pause
    
 # Creation of the server profile using the deployment plan + osCustomAttributes
 
