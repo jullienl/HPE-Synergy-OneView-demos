@@ -135,7 +135,7 @@
   Use the Image Streamer deployment plan "HPE - ESXi - deploy in single frame non-HA config- 2017-03-24" 
 
 .EXAMPLE
-  PS C:\> Get-HPOVServer |  ? {$_.serverProfileUri -eq $Null -and $_.name -match "Bay 5"} | New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2
+  PS C:\> Get-HPOVServer |  ? {$_.serverProfileUri -eq $Null -and $_.name -match "Bay 5" -and $_.status -eq "ok"} | New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2
   Deploy a new ESXi server using a selected server with no profile and located in bay 5 
   
 .COMPONENT
