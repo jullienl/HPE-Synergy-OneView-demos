@@ -44,7 +44,6 @@
 
 .PARAMETER SSHEnabled
   Enables SSH and ESXi shell on the ESXi Host
-  Requirement: the Golden Image must be captured using an ESXi volume with the default troubleshooting options (i.e. SSH Disabled)
    
 .PARAMETER profilename
   Name of the server profile that the script will generate.
@@ -52,9 +51,9 @@
 
 .PARAMETER serverhardware
   The server hardware resource where the new profile is to be applied. This is normally retrieved with a 'Get-HPOVServer' call, and the Server state property should be "NoProfileApplied"  
-  Can also be the Server Hardware name, e.g. Frame2-CN7515049L, bay 4
-  If not present, the script selects the first available compute module
-  Accepts pipeline input ByValue and ByPropertyName
+  Can also be the Server Hardware name, e.g. "Frame2-CN7515049L, bay 4"
+  If not present, the script selects the first available healthy compute module
+  Accepts pipeline input ByValue and byPropertyName
 
 .PARAMETER OSDeploymentplanname
   Provides an Image Streamer deployment plan name 
@@ -223,8 +222,9 @@ Function New-ESXserver {
         [parameter(ParameterSetName="Addtovcenter")]
         [string]$profilename="",
 
-        [parameter(ParameterSetName="default")]
-        [parameter(ParameterSetName="Addtovcenter")]
+        [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName="default")]
+        [parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName="Addtovcenter")]
+        [Alias('name')]
         [string]$serverhardware="",
 
         [parameter(ParameterSetName="default")]
@@ -236,8 +236,9 @@ Function New-ESXserver {
         [ValidateScript({($_ -eq "dhcp" -or $_ -match [IPAddress]$_  )})] # 'DHCP' or <IP> 
         [string]$ManagementNIC="",
              
+        [parameter(ParameterSetName="default")]
         [parameter(ParameterSetName="Addtovcenter")]
-        [string]$datastore = "vSphere-datastore",
+        [string]$datastore, # = "vSphere-datastore",
         
         [parameter(Mandatory, ParameterSetName="Addtovcenter")]
         [string]$vcenterserver, 
@@ -271,7 +272,7 @@ Function New-ESXserver {
 # New-ESXserver -hostname ESX-test-Auto -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcenterlocation Synergy 
 
 # DHCP
-# New-ESXserver -hostname ESX-test-DHCP -ManagementNIC DHCP -poweron
+# New-ESXserver -hostname ESX-test-DHCP -ManagementNIC DHCP -datastore "vSphere-datastore" -poweron 
  
 
 
@@ -293,17 +294,17 @@ Function New-ESXserver {
 # This is the server model name to use for the deployment e.g. '480' will select a server model 'Synergy 480 Gen9' or 'Synergy 480 Gen10'.   
 $ServerHardwareTypename = "480"
 
-# Proxy settings to install the VMware PowerCLI
+# Corporate Proxy settings to install the VMware PowerCLI
 $myproxy = "16.44.10.134"
 $myproxyport = "8080"
 
-# License to use on the ESXi host
+# VMware license name to use on the ESXi host
 $vcenterlicensename = "VMware vSphere 6 Enterprise Plus"
 
 
 ## -------------------------------------------------------------------------------------------------------------
 ##
-##                     Function Get-OVTaskError and Check-HPOVVersion
+##                     Function Get-OVTaskError - Check-HPOVVersion
 ##
 ## -------------------------------------------------------------------------------------------------------------
 
@@ -350,18 +351,19 @@ function Check-HPOVVersion {
     }
 
 
-filter Timestamp {"$(Get-Date -Format G): $_"}
+## -------------------------------------------------------------------------------------------------------------
+##
+##                     Import the OneView 3.10 library
+##
+## -------------------------------------------------------------------------------------------------------------
 
 
-# Import the OneView 3.10 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$False
 
     if (-not (get-module HPOneview.310)) 
     {  
     Import-module HPOneview.310
-    #remove-module HPOneview.300
-    #Import-Module "C:\Program Files\WindowsPowerShell\Modules\HPOneView.300.beta\HPOneView.300.psm1"
 
     }
 
@@ -383,8 +385,7 @@ Else{
     }
 }
 
-
-   
+  
         
 import-HPOVSSLCertificate
 
@@ -398,21 +399,14 @@ clear
 
 
 
+# Select the first enclosure group using the Image Streamer
+$enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
 
 
 
-# If serverhardware, check it is a server without a profile assigned
-# If not, select a random server with no profile and a Server Hardware Type matching with the Server Prolile Template
+# If serverhardware is provided, check that the server is present and without a profile assigned
+# If not, select the first available (with no profile) and healthy server 
 
-    # $serverhardware = Get-HPOVServer |  ? {$_.serverProfileUri -eq $Null -and $_.name -match "Bay 5"} | select -First 1 | % name
-    # not available   $serverhardware = "Frame1-CN7516060D, bay 1"
-    # available       $serverhardware = "Frame1-CN7516060D, bay 6"
-    # not compatible  $serverhardware = "Frame1-CN7516060D, bay 2"
-    # with a profile  $serverhardware = "Frame2-CN7515049L, bay 3"
-    # without a profile  $serverhardware = "Frame2-CN7515049L, bay 4"
-
-    # Select the first enclosure group using the Image Streamer
-    $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
 
 if ($PSboundParameters['serverhardware'])
 {
@@ -425,8 +419,9 @@ if ($PSboundParameters['serverhardware'])
     }
     catch
     {
-        Write-warning "Server Hardware $serverhardware not found !"
-        
+        write-host `n
+        Write-warning "Server Hardware '$serverhardware' not found !"
+        pause
         return
     }
 
@@ -435,9 +430,9 @@ if ($PSboundParameters['serverhardware'])
 
     if (((Get-HPOVServer -Name $serverhardware).state ) -eq "ProfileApplied")
     { 
-      
-        Write-warning "A server profile is already applied to the selected Server Hardware ! $serverhardware cannot be used !"
-        
+        write-host `n
+        Write-warning "A server profile is already applied to the selected Server Hardware ! '$serverhardware' cannot be used !"
+        pause
         return
     }
     
@@ -461,8 +456,10 @@ if ($PSboundParameters['serverhardware'])
         }
         catch
         {
-            Write-warning "Server Hardware $serverhardware not found !"
             
+            write-host `n
+            Write-warning "Server Hardware $serverhardware not found !"
+            pause
             return
         }
     }
@@ -473,6 +470,15 @@ else
     
     # List of available server with no profile and healthy
     $availableservers= Get-HPOVServer -NoProfile  | ? {$_.status -eq "ok" -and $_.model -match $ServerHardwareTypename}
+    
+    if (-not $availableservers) 
+    { 
+    write-host `n
+    Write-Warning "No healthy server hardware matching with the defined server hardware type '$ServerHardwareTypename' is available ! "
+    pause
+    return
+
+    }
 
     Write-host -ForegroundColor Cyan "`n`n`n`n`n`nA server is going to be selected from your resource pool of $($availableservers.count) available server(s) !"  
 
@@ -482,8 +488,7 @@ else
 
     Write-Host -ForegroundColor Cyan "`n$($server.name) has been selected"
 
-    sleep 3
-
+    
 } 
 
 
@@ -500,29 +505,23 @@ else
   
 # When $profilename is provided as a parameter, the name of the profile is $profilename otherwise we use the name of the hostname to generate the server profile name
 
-# $hostname="ESX-test"
-# $profilename = "ESX-NEW"
-
 if ($profilename) { $serverprofilename = $profilename } else { $serverprofilename = $hostname }
 
 
-###############################################################################################################
-# Creation of the profile 
-###############################################################################################################
+
+## -------------------------------------------------------------------------------------------------------------
+##
+##                     Creation of the server profile 
+##
+## -------------------------------------------------------------------------------------------------------------
 
 
 Write-host "`n`nCreating server profile '$serverprofilename', please wait..." 
 
-
-# $OSDeploymentplanname = "ESXi - deploy with multiple management NIC HA config+FCoE"
-# $OSDeploymentplanname = "HPE - ESXi - deploy in single frame non-HA config"
-# wrong $OSDeploymentplanname = "HPE"
-
-
-
 $ServerHardwareType = Get-HPOVServerHardwareTypes  | ? uri -match $server.serverHardwareTypeUri
 
 $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq "true"} | select -First 1
+
 
 # Building the network connections
 
@@ -572,8 +571,18 @@ $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDe
         $con6 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 1 | New-HPOVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel
 
         # SAN Volume
-        $volume1 = Get-HPOVStorageVolume -Name $datastore | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
-  
+        if ($datastore)
+        {
+        Try {
+            $storagevolume = Get-HPOVStorageVolume -Name $datastore -ErrorAction stop | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
+            }
+        Catch
+            {
+            Write-Warning "The datastore volume name provided is not managed by the OneView appliance !"
+            pause
+            return
+            }
+        }
 
 
 # Building the OS Custom attributes
@@ -587,15 +596,13 @@ $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDe
         }
     catch
         {
-            Write-Warning "The selected deployment plan $OSDeploymentplanname does not exist !"
-            
+            Write-Warning "The selected deployment plan '$OSDeploymentplanname' does not exist !"
+            pause
             return
         }
 
        
 # Getting the OS deployment plan attributes of the selected OS deployment plan  
-# $OSdp_osCustomAttributes = Get-HPOVOSDeploymentPlan -name "ESXi - deploy with multiple management NIC HA config+FCoE" | Get-HPOVOSDeploymentPlanAttribute
-
 
 $OSdp_osCustomAttributes = $OSDeploymentplan | Get-HPOVOSDeploymentPlanAttribute
 
@@ -617,13 +624,6 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
 
    
 # Generating the OS deployment plan customized attributes for the Server Profile
-
-# $OSdp_osCustomAttributes
-
-    # setting the IP addres of NIC1 if present
-    # $ManagementNIC = "192.168.2.46"
-    # $ManagementNIC = ""
-
 
     # Static IPv4 Address management
     if ($ManagementNIC -and $ManagementNIC -ne "DHCP")
@@ -684,9 +684,6 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
         # Removing attributes that are not applicable to Auto settings
         $OSdp_osCustomAttributes = $OSdp_osCustomAttributes | ? name -notmatch  "gateway|netmask|dns1|dns2|vlanid|ipaddress"
 
-        #$OSdp_osCustomAttributes = $OSdp_osCustomAttributes | ? { $_.name -ne  "ManagementNIC.mac"-and $_.name -ne  "ManagementNIC.gateway"-and $_.name -ne  "ManagementNIC2.mac"`
-        #-and $_.name -ne  "ManagementNIC2.gateway"-and $_.name -ne  "ManagementNIC.dns1"-and $_.name -ne  "ManagementNIC.dns2"-and $_.name -ne  "ManagementNIC.netmask"}
-        
         #NIC1
         ($OSdp_osCustomAttributes | ? name -eq 'ManagementNIC.constraint').value = 'auto'
         ($OSdp_osCustomAttributes | ? name -eq 'ManagementNIC.dhcp').value = $false
@@ -715,11 +712,8 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
     {
 
         # Filter out attributes that are not applicable to DHCP settings 
-        $OSdp_osCustomAttributes = $OSdp_osCustomAttributes | ? name -NotMatch "gateway|netmask|dns1|dns2|ipaddress|mac|vlanid"
-
-        #$OSdp_osCustomAttributes = $OSdp_osCustomAttributes | ? { $_.name -ne  "ManagementNIC.mac"-and $_.name -ne  "ManagementNIC.gateway"-and $_.name -ne  "ManagementNIC2.mac"`
-        #-and $_.name -ne  "ManagementNIC2.gateway"-and $_.name -ne  "ManagementNIC.dns1"-and $_.name -ne  "ManagementNIC.dns2"-and $_.name -ne  "ManagementNIC.netmask"}
-
+        $OSdp_osCustomAttributes = $OSdp_osCustomAttributes | ? name -NotMatch "gateway|netmask|dns1|dns2|ipaddress|vlanid"
+        
         #NIC1
         ($OSdp_osCustomAttributes | ? name -eq 'ManagementNIC.constraint').value = 'DHCP'
         ($OSdp_osCustomAttributes | ? name -eq 'ManagementNIC.dhcp').value =  $True
@@ -745,13 +739,11 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
 
 
     # setting the hostname
-    # $hostname = "ESX6-NEW"
     ($OSdp_osCustomAttributes | ? name -eq 'Hostname').value = $hostname
 
   
     # setting the host password if present
-    # $hostpassword = "password"
-    if ($hostpassword.IsPresent) 
+    if ($hostpassword) 
      {
          ($OSdp_osCustomAttributes | ? name -eq 'Password').value = $hostpassword
      }
@@ -759,40 +751,38 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
     
     # setting the domain name if present
     # $hostdomainname = "lj.mougins.net"
-    if ($hostdomainname.IsPresent) 
+    if ($hostdomainname) 
      {
          ($OSdp_osCustomAttributes | ? name -eq 'DomainName').value = $hostdomainname
      }
 
 
     # Enabling SSH if present
-    # $hostnoSSH = "192.168.2.22"
+
     if ($SSHEnabled.IsPresent) 
     {
-        ($OSdp_osCustomAttributes | ? name -eq 'SSH').value = 'enabled'
+        ($OSdp_osCustomAttributes | ? name -eq 'SSH').value = 'Enabled'
     }
     else
     {
-        ($OSdp_osCustomAttributes | ? name -eq 'SSH').value = 'disabled'
+        ($OSdp_osCustomAttributes | ? name -eq 'SSH').value = 'Disabled'
     }
  
 
 
  Write-Verbose "The server profile has the following customized OS Custom Attributes just before the profile creation:"
  Write-Verbose  ( $OSdp_osCustomAttributes | Out-String)
- # pause
    
+
 # Creation of the server profile using the deployment plan + osCustomAttributes
 
-    # $serverprofilename = "ESX6-00"
-    # $server = "Frame3-CN7515049C, bay 3"
-
-    
+   
     # make sure the Server Profile ressource name is not already in use
     if (Get-HPOVServerProfile -Name $serverprofilename -ErrorAction SilentlyContinue) 
     { 
     write-host `n
     Write-Warning "The server profile '$serverprofilename' already exist !"
+    pause
     return
     }
 
@@ -800,26 +790,62 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
 
       
         $params = @{
-            Name                = $serverprofilename;
-            Description         = "Server Profile for HPE Synergy 480 Gen9 Compute Module using the Image Streamer";
-            ServerHardwareType  = $ServerHardwareType;
-            Affinity            = "Bay";
-            Enclosuregroup      = $enclosuregroup;
-            Connections         = $ImageStreamerBootConnection1, $ImageStreamerBootConnection2, $con3, $con4, $con5, $con6;
-            Manageboot          = $True;
-            BootMode            = "UEFIOptimized";
-            BootOrder           = "HardDisk";
-            HideUnusedFlexnics  = $True;
-            SANStorage          = $True;
-            OS                  = 'VMware';
-            StorageVolume       = $volume1;
-            OSDeploymentplan    = $OSDeploymentplan;
+            Name                   = $serverprofilename;
+            Description            = "Server Profile for HPE Synergy 480 Gen9 Compute Module using the Image Streamer";
+            ServerHardwareType     = $ServerHardwareType;
+            Affinity               = "Bay";
+            Enclosuregroup         = $enclosuregroup;
+            Connections            = $ImageStreamerBootConnection1, $con3;# $ImageStreamerBootConnection2, # $con4 , $con5, $con6;
+            Manageboot             = $True;
+            BootMode               = "UEFIOptimized";
+            BootOrder              = "HardDisk";
+            HideUnusedFlexnics     = $True;
+            # SANStorage           = $True;
+            # OS                   = 'VMware';
+            # StorageVolume        = $storagevolume;
+            OSDeploymentplan       = $OSDeploymentplan;
             OSDeploymentAttributes = $OSdp_osCustomAttributes;
-            Assignmenttype     = 'server';
-            server              =  $server
+            Assignmenttype         = 'server';
+            server                 =  $server
+                       
+                 }
 
-            
-             }
+    
+        if ($datastore) 
+        {
+            $params.add('OS','VMware')
+            $params.add('SANStorage',$True)
+            $params.add('StorageVolume',$storagevolume)
+        }
+
+
+        if ($ImageStreamerBootConnection2)
+        {
+            $params.Connections += $ImageStreamerBootConnection2
+        }
+
+
+        if ($con4)
+        {
+            $params.Connections += $con4
+        }
+
+
+        if ($con5)
+        {
+            $params.Connections += $con5
+        }
+
+
+        if ($con6)
+        {
+            $params.Connections += $con6
+        }
+
+Write-Verbose "The server profile has the following parameters just before the profile creation:"
+Write-Verbose  ( $params | Out-String)
+
+#pause
    
     try
          {
@@ -855,10 +881,6 @@ $ManagementNICgateway = $I3S_managemensubnet.gateway
 
 
 # Getting the IP address assigned to the server
-
-    # $server = "Frame1-CN7516060D, bay 4"
-    # $serverprofilename = "ESX-test-Auto"
-
 $host_osCustomAttributes = (Get-HPOVServerProfile -Name $serverprofilename).osdeploymentsettings.osCustomAttributes 
 
 # If Static IP, the host IP address is the IP address of ManagementNIC
@@ -944,8 +966,6 @@ If ($PSboundParameters['vcenterserver'] -and $ManagementNIC -eq "DHCP" )
 
 
 If ($PSboundParameters['vcenterserver'] -and $ManagementNIC -ne "DHCP" )
-# if ($vcenterserver -ne $Null) 
-
     { 
 
         $secpasswd = ConvertTo-SecureString $hostpassword -AsPlainText -Force
@@ -1015,15 +1035,6 @@ If ($PSboundParameters['vcenterserver'] -and $ManagementNIC -ne "DHCP" )
   
     write-host "`n'$hostipaddress' has starting to respond ! The server is ready to be added to vcenter"
             
-        # $vcenterserver = "vcenter.lj.mougins.net"
-        # $vcenterusername = "Administrator@vsphere.local"
-        # $vcenterpassword = "P@ssw0rd1"
-        # $hostpassword = "password"
-        # $vcenterlocation = "Synergy"
-        # $vcentercluster = "Cluster-new"
-        # $hostipaddress = "192.168.2.164"
-        
-
     # Connect to vCenter
     Try {
         $vcenterconnection = connect-viserver -server $vcenterserver -User $vcenterusername -Password $vcenterpassword -ErrorAction Stop
