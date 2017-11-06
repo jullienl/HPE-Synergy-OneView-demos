@@ -252,10 +252,8 @@ Function New-ESXserver {
         [parameter(ParameterSetName="Addtovcenter")]
         [String]$vcenterlocation = "Synergy",
 
-
         [parameter(ParameterSetName="Addtovcenter")]
         [String]$vcentercluster = "Cluster-Synergy",
-
 
         [parameter(ParameterSetName="default")]
         [switch]$poweron      
