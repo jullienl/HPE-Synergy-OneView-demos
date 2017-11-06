@@ -124,8 +124,8 @@
   Add the server to be managed by a vCenter server "vcenter.hpe.net" and import the server in the "Synergy" location 
 
 .EXAMPLE
-  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-4 -hostpassword HPEinvent -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcentercluster Synergy-Cluster 
-  Deploy an ESXi server named ESX6-4, power on the server 
+  PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-4 -hostpassword HPEinvent -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcentercluster Synergy-Cluster -datastore "vsphere-datastore" 
+  Deploy an ESXi server named ESX6-4, present a datastore "vsphere-datastore" and then power on the server 
   Add the server to be managed by a vCenter server "vcenter.hpe.net" and add the server to the "Synergy-Cluster" vSphere cluster 
 
 .EXAMPLE
@@ -268,12 +268,14 @@ Function New-ESXserver {
 # Static
 # New-ESXserver -hostname ESX-test-Static -ManagementNIC 192.168.2.225 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcenterlocation Synergy 
 
-# Auto
-# New-ESXserver -hostname ESX-test-Auto -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcenterlocation Synergy 
-
 # DHCP
 # New-ESXserver -hostname ESX-test-DHCP -ManagementNIC DHCP -datastore "vSphere-datastore" -poweron 
+
+# Auto
+# New-ESXserver -hostname ESX-6-1 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "password" -vcenterlocation Synergy 
  
+
+#   New-ESXserver -hostname ESX-6-2 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1"  -SSHEnabled -datastore "vsphere-datastore" -vcentercluster "cluster-Synergy"
 
 
 ################################################################################
