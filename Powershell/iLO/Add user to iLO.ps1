@@ -46,13 +46,13 @@ $password = Read-Host "Please enter the Administrator password for OneView [$($D
 $password = ($Defaultpassword,$password)[[bool]$password]
 
 
-# Import the OneView 3.0 library
+# Import the OneView 3.10 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.300)) 
+    if (-not (get-module HPOneview.310)) 
     {  
-    Import-module HPOneview.300
+    Import-module HPOneview.310
     }
 
    
@@ -102,6 +102,7 @@ $unsupportediLO = Get-HPOVServer | where mpModel -ne iLO4 | % {$_.mpHostInfo.mpI
 
 
 $iloIPs
+pause
 clear
 
 
@@ -144,22 +145,15 @@ add-type -TypeDefinition  @"
 Foreach($iloIP in $iloIPs)
 {
 # Capture of the SSO Session Key
-
-$serveruri = Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP} | select uri
-$uri = $serveruri.uri
-
-#$serveruri = Get-HPOVServer | where mpIpAddress -eq $iloIP | select uri
-
-$credentialilodata = Invoke-WebRequest -Uri "https://$IP$uri/remoteConsoleUrl"  -ContentType "application/json" -Headers $headers -Method GET -UseBasicParsing
-
- $ilosessionkey =  ($credentialilodata.Content | ConvertFrom-Json).remoteConsoleUrl
- $ilosessionkey = $ilosessionkey.substring($ilosessionkey.Length -32, 32)
  
+$ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+
 # Creation of the header using the SSO Session Key
 $headerilo = @{} 
 $headerilo["Accept"] = "application/json" 
 $headerilo["X-API-Version"] = "3"
 $headerilo["X-Auth-Token"] = $ilosessionkey 
+
 
 #Creation of the user account using the hearder and body created previously
 Try {
