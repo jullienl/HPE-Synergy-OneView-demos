@@ -162,6 +162,9 @@
   PS C:\> Get-HPOVServer -noprofile |  ? {$_.name -match "Bay 5" -and $_.status -eq "ok"} | New-ESXserver -HostnamePattern "ESX" -SSHEnabled -PowerON
   Deploy ESXi server using the Image Streamer default OS Deployment plan on every compute module located in a "bay 5" with no server profile assigned and with an "ok" status
   Generate Server Profile names according to the provided pattern name "ESX", i.e. "ESX-1" for the first server, "ESX-2" for the second server, etc.
+  Enable SSH and ESXi shell on the ESXi Hosts 
+  Turn on the ESXi Hosts once their server profiles are created in OneView 
+
 
 .COMPONENT
   This script makes use of the PowerShell language bindings library for HPE OneView
