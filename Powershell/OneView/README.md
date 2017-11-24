@@ -37,29 +37,29 @@ https://github.com/HewlettPackard/POSH-HPOneView/releases
 ```sh
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-1 -hostpassword HPEinvent -poweron 
 ```  
-Deploy an ESXi server named ESX6-1 using the Image Streamer default OS Deployment plan, and assign the password HPEinvent to the ESXi root user account
-Generate a OneView server profile named "ESX6-1"   
-Assign an IPv4 address to the first Management NIC using the OneView IPv4 address pool
-Turn on the server once the server profile is created in OneView 
+Deploy an ESXi server named ESX6-1 using the Image Streamer default OS Deployment plan, and assign the password HPEinvent to the ESXi root user account 
+Generate a OneView server profile named "ESX6-1"    
+Assign an IPv4 address to the first Management NIC using the OneView IPv4 address pool  
+Turn on the server once the server profile is created in OneView   
 
 
 ## Example 2
 ```sh
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -ManagementNIC 192.168.2.22  
 ```  
-Deploy an ESXi server named ESX6-2 using the Image Streamer default OS Deployment plan
-Assign the default password defined in the OS Deployment plan to the ESXi root user account
-The server profile is named using the name of the hostname "ESX6-2" 
-Assign a static IPv4 address "192.168.2.22" to the first Management NIC 
-Leave the server off once the profile is created in OneView
+Deploy an ESXi server named ESX6-2 using the Image Streamer default OS Deployment plan   
+Assign the default password defined in the OS Deployment plan to the ESXi root user account  
+The server profile is named using the name of the hostname "ESX6-2"   
+Assign a static IPv4 address "192.168.2.22" to the first Management NIC   
+Leave the server off once the profile is created in OneView   
 
 
 ## Example 3
 ```sh
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-3 -hostpassword HPEinvent -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcenterlocation Synergy  
 ```  
-Deploy an ESXi server named ESX6-3, power on the server 
-Add the server to be managed by a vCenter server "vcenter.hpe.net" and import the server in the "Synergy" location 
+Deploy an ESXi server named ESX6-3, power on the server    
+Add the server to be managed by a vCenter server "vcenter.hpe.net" and import the server in the "Synergy" location   
 
 
 
@@ -67,24 +67,24 @@ Add the server to be managed by a vCenter server "vcenter.hpe.net" and import th
 ```sh
   PS C:\> "Frame1-CN7516060D, bay 3", "Frame1-CN7516060D, bay 4"  | New-ESXserver -HostnamePattern "ESX" -SSHEnabled -datastore "vsphere-datastore" -vCenterServer "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcentercluster Synergy-Cluster   
 ```  
-Deploy two ESXi Hosts using the Image Streamer default OS Deployment plan in "Frame1-CN7516060D, bay 3" and "Frame1-CN7516060D, bay 4" 
-Generate Server Profile names according to the provided pattern name "ESX", i.e. "ESX-1" for the first server, "ESX-2" for the second server.
-Enable SSH and ESXi shell on the ESXi Hosts 
-Present the SAN Volume datastore "vsphere-datastore" to the servers
-Assign the default password defined in the OS Deployment plan to the ESXi root user account
-Assign an IPv4 address to the Management NIC1 using the OneView IPv4 address pool
-Turn on automatically the two ESXi Hosts once their server profiles are created in OneView because the vCenterserver parameter is used
-Add the ESXi Hosts to be managed by a vCenter server "vcenter.lj.mougins.net" 
-Add the ESXi Hosts to the "Synergy-Cluster" vSphere cluster, if not present, the cluster ressource is created 
+Deploy two ESXi Hosts using the Image Streamer default OS Deployment plan in "Frame1-CN7516060D, bay 3" and "Frame1-CN7516060D, bay 4"    
+Generate Server Profile names according to the provided pattern name "ESX", i.e. "ESX-1" for the first server, "ESX-2" for the second server.  
+Enable SSH and ESXi shell on the ESXi Hosts   
+Present the SAN Volume datastore "vsphere-datastore" to the servers   
+Assign the default password defined in the OS Deployment plan to the ESXi root user account   
+Assign an IPv4 address to the Management NIC1 using the OneView IPv4 address pool   
+Turn on automatically the two ESXi Hosts once their server profiles are created in OneView because the vCenterserver parameter is used   
+Add the ESXi Hosts to be managed by a vCenter server "vcenter.lj.mougins.net"    
+Add the ESXi Hosts to the "Synergy-Cluster" vSphere cluster, if not present, the cluster ressource is created    
 
 ## Example 5
 ```sh
   PS C:\> Get-HPOVServer -noprofile |  ? {$_.name -match "Bay 5" -and $_.status -eq "ok"} | New-ESXserver -HostnamePattern "ESX" -SSHEnabled -PowerON   
 ```  
-Deploy ESXi server using the Image Streamer default OS Deployment plan on every compute module located in a "bay 5" with no server profile assigned and with an "ok" status
-Generate Server Profile names according to the provided pattern name "ESX", i.e. "ESX-1" for the first server, "ESX-2" for the second server, etc.
-Enable SSH and ESXi shell on the ESXi Hosts 
-Turn on the ESXi Hosts once their server profiles are created in OneView 
+Deploy ESXi server using the Image Streamer default OS Deployment plan on every compute module located in a "bay 5" with no server profile assigned and with an "ok" status   
+Generate Server Profile names according to the provided pattern name "ESX", i.e. "ESX-1" for the first server, "ESX-2" for the second server, etc.   
+Enable SSH and ESXi shell on the ESXi Hosts   
+Turn on the ESXi Hosts once their server profiles are created in OneView   
 
 <br />
 <br />
