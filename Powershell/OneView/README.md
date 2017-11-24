@@ -9,7 +9,7 @@
    
    OneView administrator account is required 
 
-   Image Streamer artifacts for ESXi 5.x and ESXi 6.x must be installed
+   Image Streamer artifacts for ESXi 5.x and ESXi 6.x must be installed   
    See  https://github.com/HewlettPackard/image-streamer-esxi 
   
 >   A deployment plan name must be provided using the 'OSDeploymentplanname' parameter. If not present, the script is looking for "*ESXi - deploy with multiple management NIC HA config+FCoE*"
