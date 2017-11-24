@@ -67,7 +67,7 @@ Generate a OneView server profile named "ESX6-3"
 Turn on automatically the ESXi Host once the server profile is created in OneView because the vCenterserver parameter is used  
 Add the server to be managed by a vCenter server "vcenter.hpe.net" and import the server in the "Synergy" location, if not present, the location ressource is created     
 
-
+![](https://user-images.githubusercontent.com/13134334/33219178-37549498-d141-11e7-9c41-39a2d377342c.png)
 
 ## Example 4
 ```sh
