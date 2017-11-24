@@ -77,6 +77,8 @@ Turn on automatically the two ESXi Hosts once their server profiles are created 
 Add the ESXi Hosts to be managed by a vCenter server "vcenter.lj.mougins.net"    
 Add the ESXi Hosts to the "Synergy-Cluster" vSphere cluster, if not present, the cluster ressource is created    
 
+![](https://user-images.githubusercontent.com/13134334/33218293-5dc95078-d13c-11e7-8b76-2db5415e3a91.png)
+
 ## Example 5
 ```sh
   PS C:\> Get-HPOVServer -noprofile |  ? {$_.name -match "Bay 5" -and $_.status -eq "ok"} | New-ESXserver -HostnamePattern "ESX" -SSHEnabled -PowerON   
