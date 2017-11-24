@@ -4,7 +4,7 @@
    new-ESXserver provisions an ESX server using an Image Streamer deployment plan for ESXi.
    Several parameters can be used to customize the ESXi host like: Management IP address, SSH enabled, hostname, datastore, etc.
 
-   Once the server is provisioned, the script can turn the server on and also add the ESXi host to a vcenter folder, datacenter or cluster.
+   Once the server is provisioned, the script can turn the server ON and also add the ESXi host to a vcenter folder, datacenter or cluster.
        
    Supports common parameters -verbose, -whatif, and -confirm 
    
@@ -109,6 +109,7 @@
 .EXAMPLE
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -ManagementNIC 192.168.2.22 
   Deploy an ESXi server named ESX6-2 using the Image Streamer default OS Deployment plan
+  Select the first available healthy compute module compatible with the serverhardwaretypename defined in the global variables
   Assign the default password defined in the OS Deployment plan to the ESXi root user account
   The server profile is named using the name of the hostname "ESX6-2" 
   Assign a static IPv4 address "192.168.2.22" to the first Management NIC 
@@ -117,6 +118,7 @@
 .EXAMPLE
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -ManagementNIC DHCP -SSHEnabled
   Deploy an ESXi server named ESX6-2 using the Image Streamer default OS Deployment plan, 
+  Select the first available healthy compute module compatible with the serverhardwaretypename defined in the global variables
   Assign the default password defined in the OS Deployment plan to the ESXi root user account
   Generate a OneView server profile named "ESX6-2" 
   Assign a DHCP IPv4 address to the first Management NIC 
@@ -126,6 +128,7 @@
 .EXAMPLE
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-3 -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcenterlocation Synergy 
   Deploy an ESXi server using the Image Streamer default OS Deployment plan
+  Select the first available healthy compute module compatible with the serverhardwaretypename defined in the global variables
   Assign the default password defined in the OS Deployment plan to the ESXi root user account
   Generate a OneView server profile named "ESX6-3" 
   Turn on automatically the ESXi Host once the server profile is created in OneView because the vCenterserver parameter is used
@@ -134,6 +137,7 @@
 .EXAMPLE
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-4 -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcentercluster Synergy-Cluster -datastore "vsphere-datastore" 
   Deploy an ESXi server using the Image Streamer default OS Deployment plan, assign the default password defined in the OS Deployment plan to the ESXi root user account
+  Select the first available healthy compute module compatible with the serverhardwaretypename defined in the global variables
   Generate a OneView server profile named "ESX6-4" 
   Present the SAN Volume datastore "vsphere-datastore" to the server
   Turn on the server once the server profile is created in OneView
@@ -143,6 +147,7 @@
 .EXAMPLE
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-5 -profilename "ESX-server-05" -OSDeploymentplanname "HPE - ESXi - deploy in single frame non-HA config- 2017-03-24" 
   Deploy an ESXi server named ESX6-5 using the Image Streamer OS Deployment plan "HPE - ESXi - deploy in single frame non-HA config- 2017-03-24"
+  Select the first available healthy compute module compatible with the serverhardwaretypename defined in the global variables
   Assign the default password defined in the OS Deployment plan to the ESXi root user account
   Generate a OneView server profile named "ESX-server-05" 
 
