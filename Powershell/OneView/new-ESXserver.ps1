@@ -102,6 +102,7 @@
 .EXAMPLE
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-1 -hostpassword HPEinvent -poweron
   Deploy an ESXi server named ESX6-1 using the Image Streamer default OS Deployment plan, and assign the password HPEinvent to the ESXi root user account
+  Select the first available healthy compute module compatible with the serverhardwaretypename defined in the global variables
   Generate a OneView server profile named "ESX6-1"   
   Assign an IPv4 address to the first Management NIC using the OneView IPv4 address pool
   Turn on the server once the server profile is created in OneView
