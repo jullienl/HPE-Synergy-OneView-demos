@@ -11,7 +11,7 @@
    OneView administrator account is required 
 
    Image Streamer artifacts for ESXi 5.x and ESXi 6.x must be installed
-   See https://github.hpe.com/ImageStreamer/esxi/tree/master/artifact-bundles 
+   See  https://github.com/HewlettPackard/image-streamer-esxi
   
    A deployment plan name must be provided. If not present, the script is looking for "ESXi - deploy with multiple management NIC HA config+FCoE"
 
@@ -172,7 +172,7 @@
   Make sure you use the latest version of the library
   
   Image Streamer artifacts for ESXi 5.x and ESXi 6.x must be installed
-  https://github.hpe.com/ImageStreamer/esxi/tree/master/artifact-bundles
+  https://github.com/HewlettPackard/image-streamer-esxi
   
   This script makes also use of VMware vSphere PowerCLI. It is installed by this script if not present. VMWare PowerCLI is used to add the ESX host into a vcenter server
   http://vmware.com/go/powercli
