@@ -3,14 +3,14 @@
    new-ESXserver provisions an ESX server using an Image Streamer deployment plan for ESXi.
    Several parameters can be used to customize the ESXi host like: Management IP address, SSH enabled, hostname, datastore, etc.
 
-   Once the server is provisioned, the script can power on the server and also add the ESXi host to a vcenter folder, datacenter    or cluster.
+   Once the server is provisioned, the script can power on the server and also add the ESXi host to a vcenter folder, datacenter or cluster.
        
    Supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
    
    OneView administrator account is required 
 
-   ImageStreamer artifacts for ESXi 5.x and ESXi 6.x must be installed
-   See https://github.hpe.com/ImageStreamer/esxi/tree/master/artifact-bundles 
+   Image Streamer artifacts for ESXi 5.x and ESXi 6.x must be installed
+   See  https://github.com/HewlettPackard/image-streamer-esxi 
   
 >   A deployment plan name must be provided using the 'OSDeploymentplanname' parameter. If not present, the script is looking for "*ESXi - deploy with multiple management NIC HA config+FCoE*"
 
