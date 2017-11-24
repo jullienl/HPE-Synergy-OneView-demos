@@ -44,7 +44,6 @@
   Pattern name used by the script to generate Server Profile names when the ServerHardware parameter is used as a pipeline input
   Pattern name "ESX" will generate the profile name "ESX-1" for the first server, "ESX-2" for the second server, etc.
 
-
 .PARAMETER OSDeploymentPlanName
   Provides an Image Streamer deployment plan name 
   Default: "ESXi - deploy with multiple management NIC HA config+FCoE"
@@ -295,16 +294,24 @@ Function New-ESXserver {
 
 
 #region Examples
- # Static
- # New-ESXserver -hostname ESX-test-Static -ManagementNIC 192.168.2.225 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcenterlocation Synergy 
+
+<#
+
+ # Static 
+ New-ESXserver -hostname ESX-test-Static -ManagementNIC 192.168.2.225 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcenterlocation Synergy 
 
  # DHCP
- # New-ESXserver -hostname ESX-test-DHCP -ManagementNIC DHCP -datastore "vSphere-datastore" -poweron 
+ New-ESXserver -hostname ESX-test-DHCP -ManagementNIC DHCP -datastore "vSphere-datastore" -poweron 
  
  # Auto
- # New-ESXserver -hostname ESX-6-1 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "password" -vcenterlocation Synergy 
+ New-ESXserver -hostname ESX-6-1 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "password" -vcenterlocation Synergy 
  
- # New-ESXserver -hostname ESX-6-2 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1"  -SSHEnabled -datastore "vsphere-datastore" -vcentercluster "cluster-Synergy"
+ 
+ New-ESXserver -hostname ESX-6-2 -vcenterserver "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1"  -SSHEnabled -datastore "vsphere-datastore" -vcentercluster "cluster-Synergy"
+
+#>
+
+
 #endregion
 
 Begin
