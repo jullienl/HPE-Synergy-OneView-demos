@@ -3,7 +3,7 @@
    new-ESXserver provisions an ESX server using an Image Streamer deployment plan for ESXi.
    Several parameters can be used to customize the ESXi host like: Management IP address, SSH enabled, hostname, datastore, etc.
 
-   Once the server is provisioned, the script can power on the server and also add the ESXi host to a vcenter folder, datacenter or cluster.
+   Once the server is provisioned, the script can turn the server ON and also add the ESXi host to a vcenter folder, datacenter or cluster.
        
    Supports common parameters `-verbose`, `-whatif`, and `-confirm`. 
    
