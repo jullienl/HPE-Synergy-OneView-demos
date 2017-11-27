@@ -167,6 +167,12 @@ Efuses the compute module in frame CN7515049C in bay 5.
   PS C:\> Get-HPOVServer | ? {$_.name -match "Frame2"} | Invoke-HPOVefuse
 ```
 Efuses all servers in the frame whose name matches with "Frame2" and provides a prompt requesting efuse confirmation for each server.
+
+## Example
+```sh
+  PS C:\> (Get-HPOVServer).portmap.deviceslots | ? {$_.slotnumber -eq 1 -and $_.devicename -eq "" } | Invoke-HPOVefuse
+```
+Efuses all servers managed by OneView that have mezzanine slot 1 empty
   
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
