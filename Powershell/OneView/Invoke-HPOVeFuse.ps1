@@ -55,9 +55,12 @@
   Efuses the frame link module with the serial number CN7514V012
 
 .EXAMPLE
-  PS C:\> Get-HPOVServer | ? {$_.name -match "Frame2"} | Invoke-HPOVefuse
-  Efuses all servers in the frame whose name matches with "Frame2" and provides a prompt requesting efuse confirmation for each server
+  PS C:\> Get-HPOVServer -NoProfile | ? {$_.name -match "Frame1"} | Invoke-HPOVefuse
+  Efuses all servers without server profile in the frame whose name matches with "Frame1" and provides a prompt requesting efuse confirmation for each server
 
+.EXAMPLE
+  PS C:\> (Get-HPOVServer).portmap.deviceslots | ? {$_.slotnumber -eq 1 -and $_.devicename -eq "" } | Invoke-HPOVefuse
+  Efuses all servers that have mezzanine slot 1 empty
   
 .COMPONENT
   This script makes use of the PowerShell language bindings library for HPE OneView
@@ -137,25 +140,17 @@ Function Invoke-HPOVefuse {
             
     )
 
-
-Process
-
+Begin
 {
 
-################################################################################
-#                                Global Variables
-################################################################################
-
+#region Global Variables
    
 [string]$HPOVMinimumVersion = "3.0.1264.2772"
 
+#endregion
 
-## -------------------------------------------------------------------------------------------------------------
-##
-##                     Function Get-OVTaskError and Check-HPOVVersion
-##
-## -------------------------------------------------------------------------------------------------------------
 
+#region Functions
 Function Get-HPOVTaskError ($Taskresult)
 {
         if ($Taskresult.TaskState -eq "Error")
@@ -194,27 +189,27 @@ function Check-HPOVVersion {
         exit
         }
     }
+#endregion
 
 
+#region Import the OneView 3.10 library
 
-# Import the OneView 3.0 library
-
-# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
     if (-not (get-module HPOneview.310)) 
     {  
     Import-module HPOneview.310
     }
+#endregion
 
 
-
-#Check oneview version
+#region Check oneview version
 
 Check-HPOVVersion
-
+#endregion
       
        
-# Connection to the Synergy Composer
+#region Connection to the Synergy Composer
 
     if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
         Write-Host -ForegroundColor red "`n`tDisconnect all existing HPOV / Composer sessions and before running script"
@@ -233,9 +228,15 @@ Check-HPOVVersion
                 
                 
     import-HPOVSSLCertificate
+#endregion
+
+}
 
 
-# Creation of the header
+Process
+{
+
+#region Creation of the header
 
     $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
     $headers = @{} 
@@ -247,19 +248,19 @@ Check-HPOVVersion
     $key = $ConnectedSessions[0].SessionID 
 
     $headers["auth"] = $key
+#endregion
 
+<# eFusing component
+     Get-HPOVServer | ? {$_.name -match "Frame2"} | Invoke-HPOVefuse -whatif
+     $compute = "Frame3-CN7515049C, bay 5"
+     $compute = Get-HPOVServer | select -First 1
+     $compute = Get-HPOVServer | ? {$_.name -match "Frame2"} 
+     #>
 
-# eFusing component
+#region Preparation for efusing Compute            
+ if ($compute)  
 
-
-   #  Get-HPOVServer | ? {$_.name -match "Frame2"} | Invoke-HPOVefuse
-   #  $compute = "Frame3-CN7515049C, bay 5"
-   #  $compute = Get-HPOVServer | select -First 1
-   #  $compute = Get-HPOVServer | ? {$_.name -match "Frame2"} 
-            
-if ($compute)  
-
-{    
+ {    
     Foreach ($singlecompute in $compute)
     {
 
@@ -306,7 +307,7 @@ if ($compute)
                     Body:                        $body"
         
                 $efusecomponent = Invoke-WebRequest -Uri "https://$composer$frameUri" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body -ErrorAction Stop
-        
+                sleep 15
                 Write-host -ForegroundColor Cyan "`n`tThe $component in Frame $frame in Bay $baynb is efusing!"
              }
                 
@@ -316,45 +317,45 @@ if ($compute)
                 write-warning "`tThe component $ressource cannot be found ! "
              }
         
-    }
+        }
         
-}
+    }
+#endregion
 }
 
-else
-{
+#region Preparation for efusing Interconnect
+ else
+ {
 
     if ($PSboundParameters['interconnect'])
 
-    {   #not present $interconnect = "Frame3-CN7515049C, interconnect 1"
-        #present $interconnect = "Frame3-CN7515049C, interconnect 3"
-
-        $baynb = ((Get-HPOVInterconnect | where {$_.name -eq $interconnect} | % {$_.interconnectLocation }).locationEntries | where {$_.type -eq "Bay"}).value
+    {   $baynb = ((Get-HPOVInterconnect | where {$_.name -eq $interconnect} | % {$_.interconnectLocation }).locationEntries | where {$_.type -eq "Bay"}).value
 
         if ($baynb -eq $Null) 
-        { 
+            { 
             write-warning  "`tThe interconnect $interconnect cannot be found ! " 
             return
-        }
+            }
+        
         $body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'  
         $frameUri = (Get-HPOVInterconnect | where {$_.name -eq $interconnect}).enclosureUri 
         $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name 
         $component = "interconnect"
         $ressource = $interconnect
 }
+#endregion
 
-
-
+#region Preparation for efusing Appliance
     if ($PSboundParameters['appliance'])
   
     {   # $appliance = "CN751704ZD"
         $baynb = ((Get-HPOVEnclosure).applianceBays | where  {$_.serialNumber -Match $appliance}).bayNumber
 
         if ($baynb -eq $Null) 
-        { 
+            { 
             write-warning  "`tThe appliance $appliance cannot be found ! " 
             return
-        }
+            }
 
         $body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
         $frameUri = (Get-HPOVEnclosure | where  {$_.applianceBays.serialNumber -Match $appliance}).uri
@@ -362,61 +363,62 @@ else
         $component = "appliance"
         $ressource = $appliance
     }
+#endregion
 
-
- 
+#region Preparation for efusing FLM
     if ($PSboundParameters['FLM'])  
 
     {   # $FLM = "CN7514V012"
     $baynb = ((Get-HPOVEnclosure).managerbays | where  {$_.serialNumber -Match $FLM}).bayNumber
 
     if ($baynb -eq $Null) 
-    { 
+        { 
         write-warning  "`tThe FLM $FLM cannot be found ! " 
         return
-    }
+        }
+
     $body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
     $frameUri = ((Get-HPOVEnclosure) | where  {$_.managerbays.serialNumber -Match $FLM}).uri
     $frame = ((Get-HPOVEnclosure) | where  {$_.managerbays.serialNumber -Match $FLM}).name
     $component = "FLM"
     $ressource = $FLM
 }
+#endregion
 
     write-verbose "`$baynb = $baynb"
     write-verbose "`$frame = $frame"
-                        
     Write-verbose "   REST request destination:    https://$composer$frameUri 
             Body:                        $body"
 
-
-    if ($pscmdlet.ShouldProcess($frame,"eFusing the $component $ressource"))  
-    
+#region efusing Component
+    if ($pscmdlet.ShouldProcess($frame,"eFusing the $component $ressource"))   
     {   
         Try
-        {
-        
+            {
             $efusecomponent = Invoke-WebRequest -Uri "https://$composer$frameUri" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body -ErrorAction Stop
-        
+            sleep 15
             Write-host -ForegroundColor Cyan "`n`tThe $component in Frame $frame in Bay $baynb is efusing!"
-        }
+            }
+        
         catch [System.Net.WebException]
-        {
+            {
             write-warning "`tThe component $ressource cannot be found ! "
-        }
+            }
     } 
 }
+#endregion
+
+}
 
 
+End
+{
 
-
-
-
-
-# Clean up
-# Disconnect-HPOVMgmt
-
-
+#region Clean up
+Disconnect-HPOVMgmt
+#endregion
 
 }
 
 }
+
