@@ -60,7 +60,7 @@
 
 .EXAMPLE
   PS C:\> (Get-HPOVServer).portmap.deviceslots | ? {$_.slotnumber -eq 1 -and $_.devicename -eq "" } | Invoke-HPOVefuse
-  Efuses all servers that have mezzanine slot 1 empty
+  Efuses all servers managed by OneView that have mezzanine slot 1 empty and provides a prompt requesting efuse confirmation for each server found
   
 .COMPONENT
   This script makes use of the PowerShell language bindings library for HPE OneView
@@ -415,7 +415,7 @@ End
 {
 
 #region Clean up
-Disconnect-HPOVMgmt
+# Disconnect-HPOVMgmt
 #endregion
 
 }
