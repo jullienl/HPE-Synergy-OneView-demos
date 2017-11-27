@@ -172,7 +172,7 @@ Efuses all servers in the frame whose name matches with "Frame2" and provides a 
 ```sh
   PS C:\> (Get-HPOVServer).portmap.deviceslots | ? {$_.slotnumber -eq 1 -and $_.devicename -eq "" } | Invoke-HPOVefuse
 ```
-Efuses all servers managed by OneView that have mezzanine slot 1 empty
+Efuses all servers managed by OneView that have mezzanine slot 1 empty and provides a prompt requesting efuse confirmation for each server found.
   
 ## Components
   This script makes use of the PowerShell language bindings library for HPE OneView.   
