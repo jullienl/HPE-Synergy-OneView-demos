@@ -38,11 +38,7 @@ Else {
     }
 }
 
-
-
-
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
-
 
 # Creation of the header
 
