@@ -101,8 +101,8 @@ do {
         write-host "On which frame do you want to eFuse a component?"
         write-host ""
         write-host "1 - $whosframe1"
-        write-host "2 - $whosframe2"
-        write-host "3 - $whosframe3"
+        if ($numberofframes -gt 1) {write-host "2 - $whosframe2"}
+        if ($numberofframes -gt 2) {write-host "3 - $whosframe3"}
         write-host ""
         write-host "X - Exit"
         write-host ""
