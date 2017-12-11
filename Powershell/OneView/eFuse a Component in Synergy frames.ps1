@@ -8,6 +8,10 @@
 # Script created for up to 3 frames
 # 
 # --------------------------------------------------------------------------------------------------------
+
+
+
+
 #IP address of OneView
 $IP = "192.168.1.110" 
 
@@ -22,6 +26,9 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$fals
 if (-not (get-module HPOneview.310)) {  
     Import-module HPOneview.310
 }
+
+   
+  
 
 # Connection to the Synergy Composer
 
@@ -38,7 +45,11 @@ Else {
     }
 }
 
+
+
+
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
+
 
 # Creation of the header
 

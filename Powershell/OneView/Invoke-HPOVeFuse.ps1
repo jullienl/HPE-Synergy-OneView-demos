@@ -101,324 +101,302 @@
 #>
 Function Invoke-HPOVefuse {
 
-[CmdletBinding( DefaultParameterSetName=’Compute’, 
-                SupportsShouldProcess=$True,
-                ConfirmImpact='High'
-               )]
+    [CmdletBinding( DefaultParameterSetName = "Compute", 
+        SupportsShouldProcess = $True,
+        ConfirmImpact = 'High'
+    )]
     Param 
     (
-        [parameter(ParameterSetName="Compute")]
-        [parameter(ParameterSetName="Interconnect")]
-        [parameter(ParameterSetName="Appliance")]
-        [parameter(ParameterSetName="FLM")]
+        [parameter(ParameterSetName = "Compute")]
+        [parameter(ParameterSetName = "Interconnect")]
+        [parameter(ParameterSetName = "Appliance")]
+        [parameter(ParameterSetName = "FLM")]
         [string]$composer = "192.168.1.110", 
 
-        [parameter(ParameterSetName="Compute")]
-        [parameter(ParameterSetName="Interconnect")]
-        [parameter(ParameterSetName="Appliance")]
-        [parameter(ParameterSetName="FLM")]
+        [parameter(ParameterSetName = "Compute")]
+        [parameter(ParameterSetName = "Interconnect")]
+        [parameter(ParameterSetName = "Appliance")]
+        [parameter(ParameterSetName = "FLM")]
         [string]$composerusername = "Administrator", 
 
-        [parameter(ParameterSetName="Compute")]
-        [parameter(ParameterSetName="Interconnect")]
-        [parameter(ParameterSetName="Appliance")]
-        [parameter(ParameterSetName="FLM")]
+        [parameter(ParameterSetName = "Compute")]
+        [parameter(ParameterSetName = "Interconnect")]
+        [parameter(ParameterSetName = "Appliance")]
+        [parameter(ParameterSetName = "FLM")]
         [string]$composerpassword = "password",
 
-        [parameter(Mandatory=$true, Valuefrompipeline=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName="Compute")]
+        [parameter(Mandatory = $true, Valuefrompipeline = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = "Compute")]
         [Alias('name')]
         [Object]$compute,
     
-        [parameter(Mandatory=$true, ParameterSetName="Interconnect")]
+        [parameter(Mandatory = $true, ParameterSetName = "Interconnect")]
         [string]$interconnect,
 
-        [parameter(Mandatory=$true, ParameterSetName="Appliance")]
+        [parameter(Mandatory = $true, ParameterSetName = "Appliance")]
         [string]$appliance,
 
-        [parameter(Mandatory=$true, ParameterSetName="FLM")]
+        [parameter(Mandatory = $true, ParameterSetName = "FLM")]
         [string]$FLM
             
     )
 
-Begin
-{
+    Begin {
 
-#region Global Variables
+        #region Global Variables
    
-[string]$HPOVMinimumVersion = "3.0.1264.2772"
+        [string]$HPOVMinimumVersion = "3.0.1264.2772"
 
-#endregion
+        #endregion
 
 
-#region Functions
-Function Get-HPOVTaskError ($Taskresult)
-{
-        if ($Taskresult.TaskState -eq "Error")
-        {
-            $ErrorCode     = $Taskresult.TaskErrors.errorCode
-            $ErrorMessage  = $Taskresult.TaskErrors.Message
-            $TaskStatus    = $Taskresult.TaskStatus
+        #region Functions
+        Function Get-HPOVTaskError ($Taskresult) {
+            if ($Taskresult.TaskState -eq "Error") {
+                $ErrorCode = $Taskresult.TaskErrors.errorCode
+                $ErrorMessage = $Taskresult.TaskErrors.Message
+                $TaskStatus = $Taskresult.TaskStatus
 
-            write-host -foreground Yellow $TaskStatus
-            write-host -foreground Yellow "Error Code --> $ErrorCode"
-            write-host -foreground Yellow "Error Message --> $ErrorMessage"
+                write-host -foreground Yellow $TaskStatus
+                write-host -foreground Yellow "Error Code --> $ErrorCode"
+                write-host -foreground Yellow "Error Message --> $ErrorMessage"
         
-           # To be used like:
-           #   $result = Wait-HPOVTaskComplete $taskNetwork.Details.uri
-           #   Get-HPOVTaskError -Taskresult $result
+                # To be used like:
+                #   $result = Wait-HPOVTaskComplete $taskNetwork.Details.uri
+                #   Get-HPOVTaskError -Taskresult $result
         
         
+            }
         }
-}
 
-function Check-HPOVVersion {
-    #Check HPOV version
-    #Encourge people to run the latest version
-    $arrMinVersion = $HPOVMinimumVersion.split(".")
-    $arrHPOVVersion=((Get-HPOVVersion ).LibraryVersion)
-    if ( ($arrHPOVVersion.Major -gt $arrMinVersion[0]) -or
-        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -gt $arrMinVersion[1])) -or
-        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -gt $arrMinVersion[2])) -or
-        (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -eq $arrMinVersion[2]) -and ($arrHPOVVersion.Revision -ge $arrMinVersion[3])) )
-        {
-        #HPOVVersion the same or newer than the minimum required
-        }
-    else {
-        Write-Error "You are running a version of POSH-HPOneView that do not support this script. Please update your HPOneView POSH from: https://github.com/HewlettPackard/POSH-HPOneView/releases"
+        function Check-HPOVVersion {
+            #Check HPOV version
+            #Encourge people to run the latest version
+            $arrMinVersion = $HPOVMinimumVersion.split(".")
+            $arrHPOVVersion = ((Get-HPOVVersion ).LibraryVersion)
+            if ( ($arrHPOVVersion.Major -gt $arrMinVersion[0]) -or
+                (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -gt $arrMinVersion[1])) -or
+                (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -gt $arrMinVersion[2])) -or
+                (($arrHPOVVersion.Major -eq $arrMinVersion[0]) -and ($arrHPOVVersion.Minor -eq $arrMinVersion[1]) -and ($arrHPOVVersion.Build -eq $arrMinVersion[2]) -and ($arrHPOVVersion.Revision -ge $arrMinVersion[3])) ) {
+                #HPOVVersion the same or newer than the minimum required
+            }
+            else {
+                Write-Error "You are running a version of POSH-HPOneView that do not support this script. Please update your HPOneView POSH from: https://github.com/HewlettPackard/POSH-HPOneView/releases"
         
-        exit
+                exit
+            }
         }
-    }
-#endregion
+        #endregion
 
 
-#region Import the OneView 3.10 library
+        #region Import the OneView 3.10 library
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+        Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.310)) 
-    {  
-    Import-module HPOneview.310
-    }
-#endregion
+        if (-not (get-module HPOneview.310)) {  
+            Import-module HPOneview.310
+        }
+        #endregion
 
 
-#region Check oneview version
+        #region Check oneview version
 
-Check-HPOVVersion
-#endregion
+        Check-HPOVVersion
+        #endregion
       
        
-#region Connection to the Synergy Composer
+        #region Connection to the Synergy Composer
 
-    if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
-        Write-Host -ForegroundColor red "`n`tDisconnect all existing HPOV / Composer sessions and before running script"
-        pause 
-        exit 1
+        if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
+            Write-Host -ForegroundColor red "`n`tDisconnect all existing HPOV / Composer sessions and before running script"
+            pause 
+            exit 1
         }
-    elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
-        Write-Host -ForegroundColor gray "`n`tReusing Existing Composer session"
+        elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
+            Write-Host -ForegroundColor gray "`n`tReusing Existing Composer session"
         }
-    else {
-        #Make a clean connection
-        Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
-        $Appplianceconnection = Connect-HPOVMgmt -appliance $composer -UserName $composerusername -Password $composerpassword
+        else {
+            #Make a clean connection
+            Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
+            $Appplianceconnection = Connect-HPOVMgmt -appliance $composer -UserName $composerusername -Password $composerpassword
         }
 
                 
                 
-    import-HPOVSSLCertificate
-#endregion
+        import-HPOVSSLCertificate
+        #endregion
 
-}
+    }
 
 
-Process
-{
+    Process {
 
-#region Creation of the header
+        #region Creation of the header
 
-    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-    $headers = @{} 
-    #$headers["Accept"] = "application/json" 
-    $headers["X-API-Version"] = "300"
+        $postParams = @{userName = $username; password = $password} | ConvertTo-Json 
+        $headers = @{} 
+        #$headers["Accept"] = "application/json" 
+        $headers["X-API-Version"] = "300"
 
-    # Capturing the OneView Session ID and adding it to the header
+        # Capturing the OneView Session ID and adding it to the header
     
-    $key = $ConnectedSessions[0].SessionID 
+        $key = $ConnectedSessions[0].SessionID 
 
-    $headers["auth"] = $key
-#endregion
+        $headers["auth"] = $key
+        #endregion
 
-<# eFusing component
+        <# eFusing component
      Get-HPOVServer | ? {$_.name -match "Frame2"} | Invoke-HPOVefuse -whatif
      $compute = "Frame3-CN7515049C, bay 5"
      $compute = Get-HPOVServer | select -First 1
      $compute = Get-HPOVServer | ? {$_.name -match "Frame2"} 
      #>
 
-#region Preparation for efusing Compute            
- if ($compute)  
+        #region Preparation for efusing Compute            
+        if ($compute)  
+        {    
+            Foreach ($singlecompute in $compute) {
 
- {    
-    Foreach ($singlecompute in $compute)
-    {
-
-        switch($singlecompute.GetType().Name)
-        {
-            'String'
-
-            {          
-                Write-Verbose "`$Compute is a string"
-                $baynb = (Get-HPOVServer | where {$_.name -eq $singlecompute} | % {$_.position })
-                $body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
-                $frameUri = (Get-HPOVServer | where {$_.name -eq $singlecompute}).locationUri 
-                $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name
+                switch ($singlecompute.GetType().Name) {
+                    'String'
+                    {          
+                        Write-Verbose "`$Compute is a string"
+                        $baynb = (Get-HPOVServer | where {$_.name -eq $singlecompute} | % {$_.position })
+                        $body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
+                        $frameUri = (Get-HPOVServer | where {$_.name -eq $singlecompute}).locationUri 
+                        $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name
                             
-            }
+                    }
 
-            'PSCustomObject'
-
-            {
-                Write-Verbose "`$Compute is a PSCustomObject"
-                $singlecompute = $singlecompute.name
-                $baynb = (Get-HPOVServer | where {$_.name -eq $singlecompute} | % {$_.position })
-                $body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
-                $frameUri = (Get-HPOVServer | where {$_.name -eq $singlecompute}).locationUri 
-                $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name
+                    'PSCustomObject'
+                    {
+                        Write-Verbose "`$Compute is a PSCustomObject"
+                        $singlecompute = $singlecompute.name
+                        $baynb = (Get-HPOVServer | where {$_.name -eq $singlecompute} | % {$_.position })
+                        $body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
+                        $frameUri = (Get-HPOVServer | where {$_.name -eq $singlecompute}).locationUri 
+                        $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name
                 
-            } 
+                    } 
 
-        }
+                }
         
-        $ressource = $singlecompute
-        $component = "compute"
-        write-verbose "`$singlecompute = $singlecompute"
-        write-verbose "`$baynb = $baynb"
-        write-verbose "`$frame = $frame"
+                $ressource = $singlecompute
+                $component = "compute"
+                write-verbose "`$singlecompute = $singlecompute"
+                write-verbose "`$baynb = $baynb"
+                write-verbose "`$frame = $frame"
         
-        if ($pscmdlet.ShouldProcess($frame,"eFusing the $component $ressource"))  
-        {   
-            Try
-            {
-                Write-verbose "
+                if ($pscmdlet.ShouldProcess($frame, "eFusing the $component $ressource")) {   
+                    Try {
+                        Write-verbose "
                     REST request destination:    https://$composer$frameUri 
                     Header:                      $headers 
                     Body:                        $body"
         
-                $efusecomponent = Invoke-WebRequest -Uri "https://$composer$frameUri" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body -ErrorAction Stop
-                sleep 15
-                Write-host -ForegroundColor Cyan "`n`tThe $component in Frame $frame in Bay $baynb is efusing!"
-             }
+                        $efusecomponent = Invoke-WebRequest -Uri "https://$composer$frameUri" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body -ErrorAction Stop
+                        sleep 15
+                        Write-host -ForegroundColor Cyan "`n`tThe $component in Frame $frame in Bay $baynb is efusing!"
+                    }
                 
-             catch [System.Net.WebException]
-                
-             {
-                write-warning "`tThe component $ressource cannot be found ! "
-             }
+                    catch [System.Net.WebException]
+                    {
+                        write-warning "`tThe component $ressource cannot be found ! "
+                    }
         
-        }
+                }
         
-    }
-#endregion
-}
-
-#region Preparation for efusing Interconnect
- else
- {
-
-    if ($PSboundParameters['interconnect'])
-
-    {   $baynb = ((Get-HPOVInterconnect | where {$_.name -eq $interconnect} | % {$_.interconnectLocation }).locationEntries | where {$_.type -eq "Bay"}).value
-
-        if ($baynb -eq $Null) 
-            { 
-            write-warning  "`tThe interconnect $interconnect cannot be found ! " 
-            return
             }
-        
-        $body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'  
-        $frameUri = (Get-HPOVInterconnect | where {$_.name -eq $interconnect}).enclosureUri 
-        $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name 
-        $component = "interconnect"
-        $ressource = $interconnect
-}
-#endregion
-
-#region Preparation for efusing Appliance
-    if ($PSboundParameters['appliance'])
-  
-    {   # $appliance = "CN751704ZD"
-        $baynb = ((Get-HPOVEnclosure).applianceBays | where  {$_.serialNumber -Match $appliance}).bayNumber
-
-        if ($baynb -eq $Null) 
-            { 
-            write-warning  "`tThe appliance $appliance cannot be found ! " 
-            return
-            }
-
-        $body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
-        $frameUri = (Get-HPOVEnclosure | where  {$_.applianceBays.serialNumber -Match $appliance}).uri
-        $frame = (Get-HPOVEnclosure | where  {$_.applianceBays.serialNumber -Match $appliance}).name
-        $component = "appliance"
-        $ressource = $appliance
-    }
-#endregion
-
-#region Preparation for efusing FLM
-    if ($PSboundParameters['FLM'])  
-
-    {   # $FLM = "CN7514V012"
-    $baynb = ((Get-HPOVEnclosure).managerbays | where  {$_.serialNumber -Match $FLM}).bayNumber
-
-    if ($baynb -eq $Null) 
-        { 
-        write-warning  "`tThe FLM $FLM cannot be found ! " 
-        return
+            #endregion
         }
 
-    $body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-    $frameUri = ((Get-HPOVEnclosure) | where  {$_.managerbays.serialNumber -Match $FLM}).uri
-    $frame = ((Get-HPOVEnclosure) | where  {$_.managerbays.serialNumber -Match $FLM}).name
-    $component = "FLM"
-    $ressource = $FLM
-}
-#endregion
+        #region Preparation for efusing Interconnect
+        else {
 
-    write-verbose "`$baynb = $baynb"
-    write-verbose "`$frame = $frame"
-    Write-verbose "   REST request destination:    https://$composer$frameUri 
+            if ($PSboundParameters['interconnect'])
+            {
+                $baynb = ((Get-HPOVInterconnect | where {$_.name -eq $interconnect} | % {$_.interconnectLocation }).locationEntries | where {$_.type -eq "Bay"}).value
+
+                if ($baynb -eq $Null) { 
+                    write-warning  "`tThe interconnect $interconnect cannot be found ! " 
+                    return
+                }
+        
+                $body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'  
+                $frameUri = (Get-HPOVInterconnect | where {$_.name -eq $interconnect}).enclosureUri 
+                $frame = (Get-HPOVEnclosure | where {$_.uri -eq $frameuri}).name 
+                $component = "interconnect"
+                $ressource = $interconnect
+            }
+            #endregion
+
+            #region Preparation for efusing Appliance
+            if ($PSboundParameters['appliance'])
+            {
+                # $appliance = "CN751704ZD"
+                $baynb = ((Get-HPOVEnclosure).applianceBays | where {$_.serialNumber -Match $appliance}).bayNumber
+
+                if ($baynb -eq $Null) { 
+                    write-warning  "`tThe appliance $appliance cannot be found ! " 
+                    return
+                }
+
+                $body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
+                $frameUri = (Get-HPOVEnclosure | where {$_.applianceBays.serialNumber -Match $appliance}).uri
+                $frame = (Get-HPOVEnclosure | where {$_.applianceBays.serialNumber -Match $appliance}).name
+                $component = "appliance"
+                $ressource = $appliance
+            }
+            #endregion
+
+            #region Preparation for efusing FLM
+            if ($PSboundParameters['FLM'])  
+            {
+                # $FLM = "CN7514V012"
+                $baynb = ((Get-HPOVEnclosure).managerbays | where {$_.serialNumber -Match $FLM}).bayNumber
+
+                if ($baynb -eq $Null) { 
+                    write-warning  "`tThe FLM $FLM cannot be found ! " 
+                    return
+                }
+
+                $body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+                $frameUri = ((Get-HPOVEnclosure) | where {$_.managerbays.serialNumber -Match $FLM}).uri
+                $frame = ((Get-HPOVEnclosure) | where {$_.managerbays.serialNumber -Match $FLM}).name
+                $component = "FLM"
+                $ressource = $FLM
+            }
+            #endregion
+
+            write-verbose "`$baynb = $baynb"
+            write-verbose "`$frame = $frame"
+            Write-verbose "   REST request destination:    https://$composer$frameUri 
             Body:                        $body"
 
-#region efusing Component
-    if ($pscmdlet.ShouldProcess($frame,"eFusing the $component $ressource"))   
-    {   
-        Try
-            {
-            $efusecomponent = Invoke-WebRequest -Uri "https://$composer$frameUri" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body -ErrorAction Stop
-            sleep 15
-            Write-host -ForegroundColor Cyan "`n`tThe $component in Frame $frame in Bay $baynb is efusing!"
-            }
+            #region efusing Component
+            if ($pscmdlet.ShouldProcess($frame, "eFusing the $component $ressource")) {   
+                Try {
+                    $efusecomponent = Invoke-WebRequest -Uri "https://$composer$frameUri" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body -ErrorAction Stop
+                    sleep 15
+                    Write-host -ForegroundColor Cyan "`n`tThe $component in Frame $frame in Bay $baynb is efusing!"
+                }
         
-        catch [System.Net.WebException]
-            {
-            write-warning "`tThe component $ressource cannot be found ! "
-            }
-    } 
-}
-#endregion
+                catch [System.Net.WebException] {
+                    write-warning "`tThe component $ressource cannot be found ! "
+                }
+            } 
+        }
+        #endregion
 
-}
+    }
 
 
-End
-{
+    End {
 
-#region Clean up
-# Disconnect-HPOVMgmt
-#endregion
+        #region Clean up
+        # Disconnect-HPOVMgmt
+        #endregion
 
-}
+    }
 
 }
 
