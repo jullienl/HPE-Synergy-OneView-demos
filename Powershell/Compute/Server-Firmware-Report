@@ -1,0 +1,16 @@
+
+### Generates a Server Firmware report 
+
+$servers = Get-HPOVserver | Sort-Object locationuri, {[int]$_.position}
+$NewServer = "###################################################################### "
+Foreach ($server in $servers)
+{
+echo $NewServer >> Server_FW_Report.txt
+echo "              $($server.name)" >> Server_FW_Report.txt
+echo $NewServer >> Server_FW_Report.txt
+Get-HPOVServer -Name $server.name | Format-List position, name, mpModel, mpFirmwareVersion, model, serialNumber, processorType, memoryMb, romVersion, intelligentProvisioningVersion, state, powerState | Sort-Object -Property position | Out-File Server_FW_Report.txt -Append
+(Send-HPOVRequest -Uri ($server.uri + "/firmware")).components | Format-Table componentName, componentLocation, componentVersion | Out-File Server_FW_Report.txt -Append
+}
+
+
+Get-Content .\Server_FW_Report.txt
