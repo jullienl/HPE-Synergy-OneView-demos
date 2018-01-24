@@ -35,3 +35,13 @@
 ## Component
   This script makes use of the PowerShell language bindings library for HPE OneView   
   https://github.com/HewlettPackard/POSH-HPOneView/releases
+  
+  
+  
+ # Server-Firmware-Report
+   This PowerShell script generates a firmware report of all Compute Modules managed by HPE OneView. 
+     
+   _Example of the generated report output:_   
+   
+   ![](https://user-images.githubusercontent.com/13134334/35335609-50ca1920-0116-11e8-9827-30dc9927d780.png)   
+   
