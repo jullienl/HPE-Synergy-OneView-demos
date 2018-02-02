@@ -1,3 +1,29 @@
+
+  
+ # Synergy-Inventory
+   This PowerShell script generates a Synergy inventory report of all components managed by HPE OneView. 
+   (Created by DAVIDMARTINEZROBLES)
+     
+   _Example of the generated report output:_   
+   
+   ![](https://user-images.githubusercontent.com/13134334/35727681-3dde836a-0809-11e8-9010-a59de28edbc8.png)   
+   
+
+
+
+  <br />
+  <br />
+  
+ # Server-Firmware-Report
+   This PowerShell script generates a firmware report of all Compute Modules managed by HPE OneView. 
+     
+   _Example of the generated report output:_   
+   
+   ![](https://user-images.githubusercontent.com/13134334/35335609-50ca1920-0116-11e8-9827-30dc9927d780.png)   
+   
+  <br />
+  <br />
+
 # Get-HPOVservertelemetry
    This PowerShell function provides average power consumption, CPU utilization and Temperature report from a Compute Module. 
      
@@ -36,26 +62,3 @@
   This script makes use of the PowerShell language bindings library for HPE OneView   
   https://github.com/HewlettPackard/POSH-HPOneView/releases
   
-  <br />
-  <br />
-  
- # Synergy-Inventory
-   This PowerShell script generates a Synergy inventory report of all components managed by HPE OneView. 
-     
-   _Example of the generated report output:_   
-   
-   ![](https://user-images.githubusercontent.com/13134334/35727681-3dde836a-0809-11e8-9010-a59de28edbc8.png)   
-   
-
-
-
-  <br />
-  <br />
-  
- # Server-Firmware-Report
-   This PowerShell script generates a firmware report of all Compute Modules managed by HPE OneView. 
-     
-   _Example of the generated report output:_   
-   
-   ![](https://user-images.githubusercontent.com/13134334/35335609-50ca1920-0116-11e8-9827-30dc9927d780.png)   
-   
