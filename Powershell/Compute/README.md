@@ -39,6 +39,19 @@
   <br />
   <br />
   
+ # Synergy-Inventory
+   This PowerShell script generates a Synergy inventory report of all components managed by HPE OneView. 
+     
+   _Example of the generated report output:_   
+   
+   ![](https://user-images.githubusercontent.com/13134334/35727681-3dde836a-0809-11e8-9010-a59de28edbc8.png)   
+   
+
+
+
+  <br />
+  <br />
+  
  # Server-Firmware-Report
    This PowerShell script generates a firmware report of all Compute Modules managed by HPE OneView. 
      
