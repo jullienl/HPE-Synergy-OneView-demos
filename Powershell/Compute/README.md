@@ -2,7 +2,7 @@
   
  # Synergy-Inventory
    This PowerShell script generates a Synergy inventory report of all components managed by HPE OneView. 
-   (Created by DAVIDMARTINEZROBLES)
+   (created by DAVIDMARTINEZROBLES)
      
    _Example of the generated report output:_   
    
