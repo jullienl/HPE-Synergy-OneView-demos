@@ -1,6 +1,42 @@
+### Generates a Synergy inventory report 
+
 # Created by DAVIDMARTINEZROBLES
 # https://github.com/DAVIDMARTINEZROBLES 
 
+
+
+#IP address of OneView
+$IP = "192.168.1.110" 
+
+# OneView Credentials
+$username = "Administrator" 
+$password = "password" 
+
+# Import the OneView 3.10 library
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false
+
+if (-not (get-module HPOneview.310)) {  
+    Import-module HPOneview.310
+}
+
+
+# Connection to the Synergy Composer
+
+If ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
+    Write-Verbose "Already connected to $IP."
+}
+
+Else {
+    Try {
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
+    }
+    Catch {
+        throw $_
+    }
+}
+
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
 
 $file = "Synergy_inventory.txt"
 
