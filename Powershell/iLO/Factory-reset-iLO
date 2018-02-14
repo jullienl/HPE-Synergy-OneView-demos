@@ -21,27 +21,25 @@ $IP = "192.168.1.110"
 
 
 #Loading HPiLOCmdlets module
-$InstalledModule = Get-Module
-$ModuleNames = $InstalledModule.Name
-
-if(-not($ModuleNames -like "HPiLOCmdlets"))
+Try
 {
-    Write-Host "Loading module :  HPiLOCmdlets"
-    Import-Module HPiLOCmdlets
-    if(($(Get-Module -Name "HPiLOCmdlets")  -eq $null))
-    {
-        Write-Host "`nHPiLOCmdlets module cannot be loaded. Please fix the problem and try again"
-        write-host "It is necessary to install the HP iLO Cmdlets for Windows PowerShell (HPiLOCmdlets library)"
-        write-host "See https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html" 
-        Write-Host "Exit..."
-        exit
-    }
+    Import-Module HPiLOCmdlets -ErrorAction stop
 }
-else
+
+Catch 
+
 {
+    Write-Host "`nHPiLOCmdlets module cannot be loaded"
+    write-host "It is necessary to install the HPE iLO Cmdlets for Windows PowerShell (HPiLOCmdlets library)"
+    write-host "See http://www.hpe.com/servers/powershell" 
+    Write-Host "Exit..."
+    exit
+    }
+
+
     $InstallediLOModule  =  Get-Module -Name "HPiLOCmdlets"
     Write-Host "`nHPiLOCmdlets Module Version : $($InstallediLOModule.Version) is installed on your machine."
-}
+
 
 
 
