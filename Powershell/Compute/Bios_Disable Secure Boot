@@ -1,0 +1,154 @@
+# Script to disable Bios secure boot on HPE Gen9 and Gen10 server
+#
+# Requires the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library), see https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html 
+#
+
+
+  function check-Module {
+
+    param ( 
+        $module, 
+        [switch]$update 
+           )
+   
+   if (get-module $module)
+
+        {
+        if ($update.IsPresent) 
+            {
+            # Update module if not using the latest version
+            [string]$Moduleinstalled = (Get-Module -Name $module).version
+            [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction SilentlyContinue).version
+
+            $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
+
+            If (-not $Compare.SideIndicator -eq '==')
+                {
+                Update-Module -Name $module
+           
+                }
+            Else
+                {
+                Write-host "You are using the latest version of $module" 
+                }
+            }
+            
+        Import-module $module
+            
+        }
+
+    Else
+
+        {
+        Write-Warning "$Module is not present, let's install it" 
+
+        Try
+            {
+                Install-Module –Name $module –Force -AllowClobber -ErrorAction Stop -SkipPublisherCheck
+            }
+        Catch
+            {
+                Write-Warning "$Module cannot be installed" 
+            }
+        }
+
+}
+
+Check-Module PowerShellGet
+Check-Module FormatPX
+Check-Module SnippetPX
+Check-Module HPOneview.400 -update
+
+# OneView Credentials and IP
+$username = "Administrator" 
+$password = "password" 
+$IP = "192.168.1.110" 
+
+# iLO Credentials
+$ilousername = "demopaq" 
+$ilopassword = "password" 
+
+
+Try
+{
+    Import-Module HPEBIOSCmdlets -ErrorAction stop
+}
+
+Catch 
+
+{
+    Write-Host "`nHPEBIOSCmdlets module cannot be loaded"
+    write-host "It is necessary to install the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library)"
+    write-host "See http://www.hpe.com/servers/powershell" 
+    Write-Host "Exit..."
+    exit
+    }
+
+
+$InstalledBiosModule  =  Get-Module -Name "HPEBIOSCmdlets"
+Write-Host "`nHPiLOCmdlets Module Version : $($InstalledBiosModule.Version) is installed on your machine."
+
+
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+$PWord = ConvertTo-SecureString –String $ilopassword –AsPlainText -Force
+$cred = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $ilousername, $PWord
+
+
+#Connecting to the Synergy Composer
+
+if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
+{
+    Write-Verbose "Already connected to $IP."
+}
+
+else
+{
+    Try 
+    {
+        Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
+    }
+    Catch 
+    {
+        throw $_
+    }
+}
+
+               
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+
+
+
+#Capturing iLO IP adresses managed by OneView
+$iloIPs = Get-HPOVServer |  where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+
+
+#Checking Secure Boot on all iLOst
+Foreach ($iloIP in $iLOIPs)
+{
+   Try 
+   { 
+        $connection = Connect-HPEBIOS -IP $iloIP -Username demopaq -Password password -DisableCertificateAuthentication -ErrorAction Stop
+    
+        $sbs = get-HPEBIOSSecureBootState -Connection $connection  -ErrorAction Stop
+        
+        if ($sbs -eq 'Enabled') 
+        {
+            Set-HPEBIOSSecureBootState -Connection $connection -SecureBootState Disabled -ErrorAction Stop
+            write-host "Secure Boot on iLO: $iloIP has been disabled" 
+
+        }
+        else
+        {
+            write-host "Secure Boot on iLO: $iloIP is already disabled" 
+        }
+   
+    }
+   Catch
+   {
+        write-host "Error disabling Secure boot on iLO: $iloIP"
+   }
+
+}
+
