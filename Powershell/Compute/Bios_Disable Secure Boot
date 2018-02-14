@@ -69,6 +69,7 @@ $ilousername = "demopaq"
 $ilopassword = "password" 
 
 
+#Loading HPEBIOSCmdlets module
 Try
 {
     Import-Module HPEBIOSCmdlets -ErrorAction stop
