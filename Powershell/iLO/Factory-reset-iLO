@@ -1,3 +1,5 @@
+
+```PowerShell
 # Script to fix OneView expired certificate msg: "Delete the expired certificate from OneView, regenerate a new certificate and add the new certificate to OneView with the same alias name."
 #
 # Useful to generate a new certificate in iLO4 v2.55 when the iLO certificate is expired
