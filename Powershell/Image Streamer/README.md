@@ -29,7 +29,7 @@
   existing local folder to save the backup bundle ZIP file 
      
 ## Example
-  ```sh
+  ```Powershell
   PS C:\> Invoke-HPOVOSdeploymentServerBackup -IP 192.168.5.1 -username administrator -password HPEinvent -name "Backup-0617" -destination "c:/temp" 
   ```
   Creates a backup bundle of the Image Streamer 192.168.1.5 and uploads that backup file named "Backup-0617.zip" to "c:/temp" 
@@ -85,31 +85,31 @@
   Deletes artifact bundle
   
 ## Example
-```sh
+```Powershell
   PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-Foundation - create empty OS Volume" -OSbuildplan -Confirm 
 ```
   Removes the OS build plan "HPE-Foundation - create empty OS Volume" and provides a prompt requesting confirmation of the deletion 
   
 ## Example
-```sh
+```Powershell
   PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-ESXi-simple host configuration with NIC HA" -deploymentplan 
 ```
 Removes without confirmation the deployment plan "HPE-ESXi-simple host configuration with NIC HA" 
   
 ## Example
-```sh
+```Powershell
   PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.5.1 -username administrator -password paswword -name "HPE-ESXi-simple host configuration with NIC HA" -deploymentplan -OSbuildplan
 ```
 Removes without confirmation the deployment plan and OS Build plan "HPE-ESXi-simple host configuration with NIC HA" 
   
 ## Example
-```sh
+```Powershell
 PS C:\> Remove-HPOVOSdeploymentartifacts -allartifacts -name "ESX" -Confirm -partialsearch
 ```
 Removes all artifacts (deployment plans, golden images, build plans, plan scripts and artifact bundles) containing the string "ESX" and provides a prompt requesting confirmation of the deletion 
   
 ## Example
-```sh
+```Powershell
 PS C:\> Get-HPOVOSDeploymentPlan | where {$_.name -match "ESX"} | Remove-HPOVOSdeploymentartifacts -deploymentplan 
 ```
 Search for OS Deployment plans matching with the name "ESX" and remove them from the Image Streamer appliance 
