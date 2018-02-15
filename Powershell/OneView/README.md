@@ -34,7 +34,7 @@ This script makes use of:
 https://github.com/HewlettPackard/POSH-HPOneView/releases
 
 ## Example 1
-```sh
+```PowerShell
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-1 -hostpassword HPEinvent -poweron 
 ```  
 Deploy an ESXi server named ESX6-1 using the Image Streamer default OS Deployment plan, and assign the password HPEinvent to the ESXi root user account 
@@ -45,7 +45,7 @@ Turn on the server once the server profile is created in OneView
 
 
 ## Example 2
-```sh
+```PowerShell
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-2 -ManagementNIC 192.168.2.22  
 ```  
 Deploy an ESXi server named ESX6-2 using the Image Streamer default OS Deployment plan
@@ -57,7 +57,7 @@ Leave the server off once the profile is created in OneView
 
 
 ## Example 3
-```sh
+```PowerShell
   PS C:\> New-ESXserver -composer 192.168.1.110 -composerusername Administrator -composerpassword password -hostname ESX6-3 -hostpassword HPEinvent -vcenterserver "vcenter.hpe.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "HPEinvent" -vcenterlocation Synergy  
 ```  
 Deploy an ESXi server using the Image Streamer default OS Deployment plan  
@@ -70,7 +70,7 @@ Add the server to be managed by a vCenter server "vcenter.hpe.net" and import th
 ![](https://user-images.githubusercontent.com/13134334/33219178-37549498-d141-11e7-9c41-39a2d377342c.png)
 
 ## Example 4
-```sh
+```PowerShell
   PS C:\> "Frame1-CN7516060D, bay 3", "Frame1-CN7516060D, bay 4"  | New-ESXserver -HostnamePattern "ESX" -SSHEnabled -datastore "vsphere-datastore" -vCenterServer "vcenter.lj.mougins.net" -vcenterusername "Administrator@vsphere.local" -vcenterpassword "P@ssw0rd1" -vcentercluster Synergy-Cluster   
 ```  
 Deploy two ESXi Hosts using the Image Streamer default OS Deployment plan in "Frame1-CN7516060D, bay 3" and "Frame1-CN7516060D, bay 4"    
@@ -86,7 +86,7 @@ Add the ESXi Hosts to the "Synergy-Cluster" vSphere cluster, if not present, the
 ![](https://user-images.githubusercontent.com/13134334/33218293-5dc95078-d13c-11e7-8b76-2db5415e3a91.png)
 
 ## Example 5
-```sh
+```PowerShell
   PS C:\> Get-HPOVServer -noprofile |  ? {$_.name -match "Bay 5" -and $_.status -eq "ok"} | New-ESXserver -HostnamePattern "ESX" -SSHEnabled -PowerON   
 ```  
 Deploy ESXi server using the Image Streamer default OS Deployment plan on every compute module located in a "bay 5" with no server profile assigned and with an "ok" status   
@@ -139,37 +139,37 @@ Turn on the ESXi Hosts once their server profiles are created in OneView
   This is normally retrieved with a `(Get-HPOVEnclosure).managerbays.serialnumber` call.
   
 ## Example
-```sh
+```PowerShell
   PS C:\> Invoke-HPOVefuse -composer 192.168.1.110 -composerusername Administrator -composerpassword password -compute "CN7515049C, bay 5" 
 ```  
 Efuses the compute module in frame CN7515049C in bay 5. 
   
 ## Example
-```sh
+```PowerShell
   PS C:\> Invoke-HPOVefuse -composer 192.168.1.110 -composerusername Administrator -composerpassword password -interconnect "CN7516060D, interconnect 3"
 ```  
   Efuses the interconnect module in frame CN7516060D in interconnect bay 3. 
   
 ## Example
-```sh
+```PowerShell
   PS C:\> Invoke-HPOVefuse -composer 192.168.1.110 -composerusername Administrator -composerpassword password -appliance "UH53CP0509"
 ```  
   Efuses the composable infrastructure appliance with the serial number UH53CP0509.
   
 ## Example
-```sh
+```PowerShell
   PS C:\> Invoke-HPOVefuse -composer 192.168.1.110 -composerusername Administrator -composerpassword password -FLM "CN7514V012"
 ```  
   Efuses the frame link module with the serial number CN7514V012.
 
 ## Example
-```sh
+```PowerShell
   PS C:\> Get-HPOVServer | ? {$_.name -match "Frame2"} | Invoke-HPOVefuse
 ```
 Efuses all servers in the frame whose name matches with "Frame2" and provides a prompt requesting efuse confirmation for each server.
 
 ## Example
-```sh
+```PowerShell
   PS C:\> (Get-HPOVServer).portmap.deviceslots | ? {$_.slotnumber -eq 1 -and $_.devicename -eq "" } | Invoke-HPOVefuse
 ```
 Efuses all servers managed by OneView that have mezzanine slot 1 empty and provides a prompt requesting efuse confirmation for each server found.
