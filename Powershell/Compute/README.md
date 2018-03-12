@@ -1,4 +1,11 @@
+ # Server FW Inventory in rows
+  
+  Generates a Synergy FW inventory report of all managed compute modules using the following output CSV format:
 
+   ![image](https://user-images.githubusercontent.com/13134334/37279490-42793032-25eb-11e8-88bc-3d8b9856d461.png)
+  
+   <br />
+  <br /> 
   
  # Synergy-Inventory
    This PowerShell script generates a Synergy inventory report of all components managed by HPE OneView. 
