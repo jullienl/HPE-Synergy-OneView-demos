@@ -1,4 +1,4 @@
-# Script to disable Bios secure boot on HPE Gen9 and Gen10 server
+<# Script to disable Bios secure boot on HPE Gen9 and Gen10 server
 #
 # Requires the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library), see https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html 
 # 
@@ -7,6 +7,37 @@
 # This script only turns on servers that are powered-off to disable Secure Boot but it does not restart servers that are running. 
 #
 # Script requires the iLO credentials
+
+
+  Author: lionel.jullien@hpe.com
+  Date:   March 2018
+    
+#################################################################################
+#                         Server FW Inventory in rows.ps1                       #
+#                                                                               #
+#        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
+#################################################################################
+#                                                                               #
+# Permission is hereby granted, free of charge, to any person obtaining a copy  #
+# of this software and associated documentation files (the "Software"), to deal #
+# in the Software without restriction, including without limitation the rights  #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     #
+# copies of the Software, and to permit persons to whom the Software is         #
+# furnished to do so, subject to the following conditions:                      #
+#                                                                               #
+# The above copyright notice and this permission notice shall be included in    #
+# all copies or substantial portions of the Software.                           #
+#                                                                               #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN     #
+# THE SOFTWARE.                                                                 #
+#                                                                               #
+#################################################################################
+#>
 
 
 Function MyImport-Module {
@@ -70,7 +101,7 @@ Function MyImport-Module {
 MyImport-Module PowerShellGet
 MyImport-Module FormatPX
 MyImport-Module SnippetPX
-MyImport-Module HPOneview.400 -update
+MyImport-Module HPOneview.400 #-update
 
 # MyImport-Module HPRESTCmdlets
 
@@ -106,12 +137,7 @@ $InstalledBiosModule  =  Get-Module -Name "HPEBIOSCmdlets"
 Write-Host "`nHPiLOCmdlets Module Version : $($InstalledBiosModule.Version) is installed on your machine."
 
 
-
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-$PWord = ConvertTo-SecureString –String $ilopassword –AsPlainText -Force
-$cred = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $ilousername, $PWord
-
 
 #Connecting to the Synergy Composer
 
@@ -124,7 +150,7 @@ else
 {
     Try 
     {
-        Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
     }
     Catch 
     {
