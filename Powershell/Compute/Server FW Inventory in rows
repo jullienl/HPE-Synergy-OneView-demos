@@ -1,5 +1,5 @@
 <# 
-  Generates a Synergy inventory report using the following output format:
+  Generates a Synergy FW inventory report of all managed compute modules using the following output CSV format:
 
   Server Name   Rom Version              Component Name                         Component FirmWare Version
   Server1       P89 v2.42 (04/25/2017)   HPE Smart Storage Battery 1 Firmware   1.1
