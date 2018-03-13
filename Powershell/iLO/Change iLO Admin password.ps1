@@ -79,28 +79,12 @@ $cred = New-Object –TypeName System.Management.Automation.PSCredential –Argu
 import-HPOVSSLCertificate
 
 
-# Creation of the header
-
-    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-    $headers = @{} 
-    #$headers["Accept"] = "application/json" 
-    $headers["X-API-Version"] = "300"
-
-    # Capturing the OneView Session ID and adding it to the header
-    
-    $key = $ConnectedSessions[0].SessionID 
-
-    $headers["auth"] = $key
-
-
 # Capture iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-HPOVServer |  where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
 
 # Capture and display iLO IP adresses not supporting REST
 $unsupportediLO = Get-HPOVServer | where mpModel -ne iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
 
-
-$iloIPs
 clear
 
 if ($iloIPs) {
@@ -154,7 +138,7 @@ $ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[1].address
 # Creation of the header using the SSO Session Key 
 $headerilo = @{} 
 $headerilo["Accept"] = "application/json" 
-$headerilo["X-API-Version"] = "3"
+$headerilo["X-API-Version"] = "300"
 $headerilo["X-Auth-Token"] = $ilosessionkey 
 
 
