@@ -111,12 +111,6 @@ $password = "password"
 $IP = "composer.etss.lab" 
 
 
-# iLO Credentials
-$ilousername = "Administrator" 
-$ilopassword = "password" 
-
-
-
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #Connecting to the Synergy Composer
