@@ -147,23 +147,25 @@ Get-HPOVServer | Update-HPOVServer -Async | Out-Null
 Write-host "`nRefreshing all Servers to detect iLO Self-Signed certificate issues, please wait..." -ForegroundColor Yellow
 
 # Waiting for the refresh to end
-Do {$refreshstate = Get-HPOVServer | % refreshState | select -Unique
+Do {
+$refreshstate = Get-HPOVServer | % refreshState | select -Unique
 sleep 7
 }
-until ($refreshstate -eq "NotRefreshing" -or $refreshstate -eq "RefreshFailed"  )
+until (-not ($refreshstate | ? {$_ -eq "Refreshing"})  )
 
 # Displaying a message if iLO certificate issue is found or not
-If ($refreshstate -ne "RefreshFailed" ) 
+If ($refreshstate | ? {$_ -eq "RefreshFailed"}  ) 
+{
+Write-host "`nSome iLO Self-Signed certificate issues has been found ! Generating new self-signed certificates, please wait..." -ForegroundColor Yellow
+}
+Else
 {
 Write-host "`nNo iLO Self-Signed certificate issue found !" -ForegroundColor Green
 Read-Host -Prompt "`nOperation done ! Hit return to close" 
 exit
 }
 
-If ($refreshstate -eq "RefreshFailed" ) 
-{
-Write-host "`nSome iLO Self-Signed certificate issues has been found ! Generating new self-signed certificates, please wait..." -ForegroundColor Yellow
-}
+
 
 #Capturing iLO IP adresses of servers managed by OneView that have a RefreshFailed status
 $iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
