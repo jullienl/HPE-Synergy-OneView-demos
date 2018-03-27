@@ -108,7 +108,7 @@ MyImport-Module HPOneview.400 -update
 # OneView Credentials and IP
 $username = "Administrator" 
 $password = "password" 
-$IP = "192.168.1.110" 
+$IP = "composer.etss.lab" 
 
 
 # iLO Credentials
@@ -168,8 +168,8 @@ exit
 
 
 #Capturing iLO IP adresses of servers managed by OneView that have a RefreshFailed status
-$iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
-# $iloIPs = Get-HPOVServer -Name "Frame3-CN7515049C, bay 12"  | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[-1].address }
+# $iloIPs = Get-HPOVServer -Name "Frame3-CN7515049C, bay 12"  | % {$_.mpHostInfo.mpIpAddresses[-1].address }
 
 #Capturing iLO IP adresses of servers managed by OneView that have a Warning status
 #$iloIPs = Get-HPOVServer | ? status -Match "Critical" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
