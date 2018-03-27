@@ -64,7 +64,8 @@ Function MyImport-Module {
 
             If (-not ($Compare.SideIndicator -eq '=='))
                 {
-                Update-Module -Name $module -Confirm -Force | Out-Null
+                Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
+                Update-Module -Name $module -confirm:$false | Out-Null
            
                 }
             Else
