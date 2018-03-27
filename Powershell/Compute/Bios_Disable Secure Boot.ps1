@@ -63,7 +63,7 @@ Function MyImport-Module {
 
             $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not $Compare.SideIndicator -eq '==')
+            If (-not ($Compare.SideIndicator -eq '=='))
                 {
                 Update-Module -Name $module -Confirm -Force | Out-Null
            
