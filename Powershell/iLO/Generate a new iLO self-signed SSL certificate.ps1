@@ -152,6 +152,7 @@ sleep 7
 }
 until ($refreshstate -eq "NotRefreshing" -or $refreshstate -eq "RefreshFailed"  )
 
+# Displaying a message if iLO certificate issue is found or not
 If ($refreshstate -ne "RefreshFailed" ) 
 {
 Write-host "No iLO Self-Signed certificate issue found !" -ForegroundColor Green
