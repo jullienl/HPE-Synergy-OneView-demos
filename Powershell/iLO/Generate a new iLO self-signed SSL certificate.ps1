@@ -144,9 +144,23 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
 #Refreshing all Compute modules managed by OneVIew
 Get-HPOVServer | Update-HPOVServer -Async
 
+Write-host "`nRefreshing all Servers to detect iLO Self-Signed certificate issues, please wait..." -ForegroundColor Yellow
+
 # Waiting for the refresh to end
-Do {$refreshstate = Get-HPOVServer | select -last 1 | % refreshState}
-until ( $refreshstate =  "NotRefreshing" -or "RefreshFailed")
+Do {$refreshstate = Get-HPOVServer | % refreshState | select -Unique
+sleep 7
+}
+until ($refreshstate -eq "NotRefreshing" -or $refreshstate -eq "RefreshFailed"  )
+
+If ($refreshstate -ne "RefreshFailed" ) 
+{
+Write-host "No iLO Self-Signed certificate issue found !" -ForegroundColor Green
+}
+
+If ($refreshstate -eq "RefreshFailed" ) 
+{
+Write-host "Some iLO Self-Signed certificate issues has been found ! Generating new self-signed certificates, please wait..." -ForegroundColor Yellow
+}
 
 #Capturing iLO IP adresses of servers managed by OneView that have a RefreshFailed status
 $iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
