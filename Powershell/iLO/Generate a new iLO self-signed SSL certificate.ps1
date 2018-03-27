@@ -62,7 +62,7 @@ Function MyImport-Module {
 
             $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not $Compare.SideIndicator -eq '==')
+            If (-not ($Compare.SideIndicator -eq '=='))
                 {
                 Update-Module -Name $module -Confirm -Force | Out-Null
            
@@ -109,7 +109,6 @@ MyImport-Module HPOneview.400 -update
 $username = "Administrator" 
 $password = "password" 
 $IP = "composer.etss.lab" 
-
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -224,6 +223,8 @@ Catch [System.Net.WebException]
 
     #Error returned if iLO FW is not supported
     $Error[0] | fl *
+    pause
+    exit
     
     }
 
