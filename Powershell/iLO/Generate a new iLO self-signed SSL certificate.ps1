@@ -194,7 +194,7 @@ Foreach($iloIP in $iloIPs)
 #[HPOneView.PKI.SslValidation]::EnableDebug = $true
 
  
-$ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+$ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[-1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
  
 # Creation of the header using the SSO Session Key 
 $headerilo = @{} 
