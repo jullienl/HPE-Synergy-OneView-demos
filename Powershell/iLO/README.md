@@ -1,3 +1,30 @@
+# Generate new iLO Self-signed SSL certificate 
+
+ Script to generates a new self-signed SSL certificate on iLO 4 firmware 2.55 (or later)
+
+Using a REST command that was added in iLO 4 firmware 2.55 (or later) to generate the new self-signed certificate
+
+This script does not require the iLO credentials
+
+The latest HPOneView 400 library is required
+  
+  >iLO modification is done through OneView and iLO SSOsession key using REST POST method
+  
+  OneView administrator account is required. 
+  
+## Download
+
+### [Click here to download the function (right click to save)](https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/iLO/Generate%20a%20new%20iLO%20self-signed%20SSL%20certificate.ps1)
+
+## Components
+  This script makes use of the PowerShell language bindings library for HPE OneView.   
+  https://github.com/HewlettPackard/POSH-HPOneView/releases
+  
+<br />
+<br />
+
+
+
 # Add user to iLO
 
   This PowerShell Script creates a User account in all iLOs managed by HPE OneView without using the iLO Administrator local account.
