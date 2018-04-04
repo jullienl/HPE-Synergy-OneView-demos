@@ -39,6 +39,8 @@ The latest HPOneView 400 library is required
 #################################################################################
 #>
 
+
+
 Function MyImport-Module {
     
     # Import a module that can be imported
@@ -46,6 +48,8 @@ Function MyImport-Module {
     # When -update parameter is used, the module is updated 
     # to the latest version available on the PowerShell library
     
+    # $module = "HPOneview.400"
+
     param ( 
         $module, 
         [switch]$update 
@@ -104,12 +108,15 @@ Function MyImport-Module {
 #MyImport-Module SnippetPX
 MyImport-Module HPOneview.400 -update
 #MyImport-Module PoshRSJob
+MyImport-Module HPRESTCmdlets
+
+
 
 
 # OneView Credentials and IP
 $username = "Administrator" 
 $password = "password" 
-$IP = "composer.etss.lab" 
+$IP = "192.168.1.110" 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -135,40 +142,6 @@ else
                
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
 
-#Refreshing all Compute modules managed by OneVIew
-Get-HPOVServer | Update-HPOVServer -Async | Out-Null
-
-Write-host "`nRefreshing all Servers to detect iLO Self-Signed certificate issues, please wait..." -ForegroundColor Yellow
-
-# Waiting for the refresh to end
-Do {
-$refreshstate = Get-HPOVServer | % refreshState | select -Unique
-sleep 7
-}
-until (-not ($refreshstate | ? {$_ -eq "Refreshing"})  )
-
-# Displaying a message if iLO certificate issue is found or not
-If ($refreshstate | ? {$_ -eq "RefreshFailed"}  ) 
-{
-Write-host "`nSome iLO Self-Signed certificate issues has been found ! Generating new self-signed certificates, please wait..." -ForegroundColor Yellow
-}
-Else
-{
-Write-host "`nNo iLO Self-Signed certificate issue found !" -ForegroundColor Green
-Read-Host -Prompt "`nOperation done ! Hit return to close" 
-exit
-}
-
-
-
-#Capturing iLO IP adresses of servers managed by OneView that have a RefreshFailed status
-$iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[-1].address }
-# $iloIPs = Get-HPOVServer -Name "Frame3-CN7515049C, bay 12"  | % {$_.mpHostInfo.mpIpAddresses[-1].address }
-
-#Capturing iLO IP adresses of servers managed by OneView that have a Warning status
-#$iloIPs = Get-HPOVServer | ? status -Match "Critical" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
-
-
 add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
@@ -180,67 +153,112 @@ add-type -TypeDefinition  @"
             }
         }
 "@
-    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
 
-#Generating a new self-signed certificate
+$servers = Get-HPOVServer
+#$servers = Get-HPOVServer | select -first 1
 
-Foreach($iloIP in $iloIPs)
+$serverstoimport = New-Object System.Collections.ArrayList
+
+ForEach($s in $servers) 
+
 {
-# Capture of the SSO Session Key
+    $iloSession = $s | Get-HPOVIloSso -IloRestSession
 
-#[HPOneView.PKI.SslValidation]::EnableVerbose = $true
-#[HPOneView.PKI.SslValidation]::EnableDebug = $true
+    $cert = Get-HPRESTDataRaw -href 'rest/v1/Managers/1/SecurityService/HttpsCert' -session $iLOsession
 
- 
-$ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[-1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
- 
-# Creation of the header using the SSO Session Key 
-$headerilo = @{} 
-$headerilo["Accept"] = "application/json" 
-$headerilo["X-Auth-Token"] = $ilosessionkey 
+    $validnotafter = $cert.X509CertificateInformation.ValidNotAfter
+    $ValidNotBefore = $cert.X509CertificateInformation.ValidNotBefore
 
-Try {
+    If ( ([DateTime]$validnotafter - [DateTime]$ValidNotBefore).days -gt 1 ) 
+    {
+        Write-host "`nNo iLO4 Self-Signed certificate issue found on $($s.name) !" -ForegroundColor Green
+    }
 
-    $error.clear()
-
-    # # Send the request to generate a now iLO Self-signed Certificate
-
-    $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo  -Method Delete  -UseBasicParsing -ErrorAction Stop -Verbose
-    
-    if ($Error[0] -eq $Null) 
-
-        { 
-            write-host ""
-            Write-Host "`nSelf-signed SSL certificate on iLo $iloIP has been regenerated. iLO is reseting..."}
+    Else
+    {
+        
+         If ($s.mpFirmwareVersion -lt "2.55") 
+        {
+                Write-host "`nThe iLO4 on $($s.name) is running a too old FW version to support REDFish web request to generate a new self-signed certificates ! " -ForegroundColor Red
+                
 
         }
+        Else
+        {        
+            Write-host "`nThe iLO4 Self-Signed certificate issues on $($s.name) has been found ! Generating new self-signed certificates, please wait..." -ForegroundColor Yellow
 
-    
-Catch [System.Net.WebException] 
+            $serverstoimport.Add($s)
+
+            $iloIP = Get-HPOVServer -Name $s.name | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[-1].address }
+
+       
+
+        $ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[-1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
  
-    { 
+        # Creation of the header using the SSO Session Key 
+        $headerilo = @{} 
+        $headerilo["Accept"] = "application/json" 
+        $headerilo["X-Auth-Token"] = $ilosessionkey 
 
-    #Error returned if iLO FW is not supported
-    $Error[0] | fl *
-    pause
-    exit
+        Try {
+
+            $error.clear()
+
+            # # Send the request to generate a now iLO Self-signed Certificate
+
+            $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo  -Method Delete  -UseBasicParsing -ErrorAction Stop #-Verbose 
     
-    }
+            if ($Error[0] -eq $Null) 
+
+            { 
+                Write-Host "`nSelf-signed SSL certificate on iLo $iloIP has been regenerated. iLO is reseting..."}
+
+            }
+
+    
+        Catch [System.Net.WebException] 
+ 
+            { 
+
+            #Error returned if iLO FW is not supported
+            $Error[0] | fl *
+            pause
+            exit
+    
+            }
+
+        }
+     
+     }
+
+       
+
 
 }
 
 
-sleep 120
-
-#Importing the new iLO certificates
-
-Foreach($iloIP in $iloIPs)
+If ($serverstoimport)
 {
-    Add-HPOVApplianceTrustedCertificate -ComputerName $iloIP
-    write-host "`nThe new generated iLO Self-signed certificate of $iloIP has been imported in OneView"
+Sleep 60
+}
 
+
+ForEach($server in $serverstoimport) 
+
+{
+        #Importing the new iLO certificates
+        $iloIP = Get-HPOVServer -Name $server.name | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[-1].address }
+        Add-HPOVApplianceTrustedCertificate -ComputerName $iloIP
+        write-host "`nThe new generated iLO Self-signed certificate of $($server.name) using iLO $iloIP has been imported in OneView "
+        
+        #Refreshing Compute module 
+        Get-HPOVServer -Name $server.name | Update-HPOVServer -Async | Out-Null
+
+        Write-host "`nRefreshing Servers $($server.name)..." -ForegroundColor Yellow
 }
 
 
