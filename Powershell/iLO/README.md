@@ -8,7 +8,8 @@ This script does not require the iLO credentials
 
 >Requirements: The latest HPOneView 400 library and OneView administrator account are required. 
   
-   ![image](https://user-images.githubusercontent.com/13134334/38307772-1f494692-3815-11e8-8d0c-a2b731810b4f.png)
+  ![image](https://user-images.githubusercontent.com/13134334/38314288-1e8c8f82-3826-11e8-9b90-568bcda11175.png)
+
   
 ## Download
 
