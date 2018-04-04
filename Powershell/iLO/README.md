@@ -12,6 +12,8 @@ The latest HPOneView 400 library is required
   
   OneView administrator account is required. 
   
+   ![image](https://user-images.githubusercontent.com/13134334/38307382-da58cdd8-3813-11e8-820c-cb2f101a63df.png)
+  
 ## Download
 
 ### [Click here to download the function (right click to save)](https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/iLO/Generate%20a%20new%20iLO%20self-signed%20SSL%20certificate.ps1)
