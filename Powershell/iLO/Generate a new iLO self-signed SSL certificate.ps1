@@ -1,5 +1,6 @@
 <# 
 
+<# 
 This PowerShell script generates a new self-signed SSL certificate on iLO 4 firmware 2.55 (or later) on every server having some certificate issue
 related to the advisory http://h41302.www4.hp.com/km/saw/view.do?docId=emr_na-a00042194en_us : HP Integrated Lights-Out (iLO) - 
 iLO 3 and iLO 4 Self-Signed SSL Certificate May Have an Expiration Date Earlier Than the Issued Date.
@@ -18,8 +19,6 @@ The latest HPOneView 400 library is required
   Date:   March 2018
     
 #################################################################################
-#                         Server FW Inventory in rows.ps1                       #
-#                                                                               #
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
 #################################################################################
 #                                                                               #
@@ -121,7 +120,7 @@ MyImport-Module HPRESTCmdlets
 # OneView Credentials and IP
 $username = "Administrator" 
 $password = "password" 
-$IP = "composer.etss.lab" 
+$IP = "192.168.1.110" 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
