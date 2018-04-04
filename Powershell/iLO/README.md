@@ -12,7 +12,7 @@ The latest HPOneView 400 library is required
   
   OneView administrator account is required. 
   
-   ![image](https://user-images.githubusercontent.com/13134334/38307382-da58cdd8-3813-11e8-820c-cb2f101a63df.png)
+   ![image](https://user-images.githubusercontent.com/13134334/38307772-1f494692-3815-11e8-8d0c-a2b731810b4f.png)
   
 ## Download
 
