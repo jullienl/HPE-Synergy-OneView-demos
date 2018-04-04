@@ -2,7 +2,7 @@
 
 Script to generates a new self-signed SSL certificate on iLO 4 firmware 2.55 (or later)
 
-Using a REST command that was added in iLO 4 firmware 2.55 (or later) to generate the new self-signed certificate
+Using a Redfish REST command that was added in iLO 4 firmware 2.55 (or later) to generate the new self-signed certificate
 
 This script does not require the iLO credentials
 
