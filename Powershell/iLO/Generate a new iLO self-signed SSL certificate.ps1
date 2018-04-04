@@ -175,7 +175,7 @@ ForEach($s in $servers)
 
     If ( ([DateTime]$validnotafter - [DateTime]$ValidNotBefore).days -gt 1 ) 
     {
-        Write-host "`nNo iLO4 Self-Signed certificate issue found on $($s.name) !" -ForegroundColor Green
+        Write-host "`nNo iLO4 Self-Signed SSL certificate issue found on $($s.name) !" -ForegroundColor Green
     }
 
     Else
@@ -183,13 +183,13 @@ ForEach($s in $servers)
         
          If ($s.mpFirmwareVersion -lt "2.55") 
         {
-                Write-host "`nThe iLO4 on $($s.name) is running a too old FW version to support REDFish web request to generate a new self-signed certificates ! " -ForegroundColor Red
+                Write-host "`niLO4 Self-Signed SSL certificate issues on $($s.name) has been found but the iLO is running a too old FW version to support RedFish web request to generate a new Self-Signed certificates ! " -ForegroundColor Red
                 
 
         }
         Else
         {        
-            Write-host "`nThe iLO4 Self-Signed certificate issues on $($s.name) has been found ! Generating new self-signed certificates, please wait..." -ForegroundColor Yellow
+            Write-host "`niLO4 Self-Signed SSL certificate issues on $($s.name) has been found ! Generating new Self-Signed certificates, please wait..." -ForegroundColor Yellow
 
             $serverstoimport.Add($s)
 
@@ -215,7 +215,7 @@ ForEach($s in $servers)
             if ($Error[0] -eq $Null) 
 
             { 
-                Write-Host "`nSelf-signed SSL certificate on iLo $iloIP has been regenerated. iLO is reseting..."}
+                Write-Host "`nSelf-Signed SSL certificate on iLo $iloIP has been regenerated. iLO is reseting..."}
 
             }
 
@@ -253,12 +253,12 @@ ForEach($server in $serverstoimport)
         #Importing the new iLO certificates
         $iloIP = Get-HPOVServer -Name $server.name | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[-1].address }
         Add-HPOVApplianceTrustedCertificate -ComputerName $iloIP
-        write-host "`nThe new generated iLO Self-signed certificate of $($server.name) using iLO $iloIP has been imported in OneView "
+        write-host "`nThe new generated iLO Self-Signed SSL certificate of $($server.name) using iLO $iloIP has been imported in OneView "
         
         #Refreshing Compute module 
         Get-HPOVServer -Name $server.name | Update-HPOVServer -Async | Out-Null
 
-        Write-host "`nRefreshing Servers $($server.name)..." -ForegroundColor Yellow
+        Write-host "`nOneView is refreshing $($server.name) to update the status of the server using a new certificate..." -ForegroundColor Yellow
 }
 
 
