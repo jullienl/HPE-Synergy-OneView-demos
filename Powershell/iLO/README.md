@@ -6,9 +6,7 @@ Using a REST command that was added in iLO 4 firmware 2.55 (or later) to generat
 
 This script does not require the iLO credentials
 
-The latest HPOneView 400 library is required
-  
-OneView administrator account is required. 
+>Requirements: The latest HPOneView 400 library and OneView administrator account are required. 
   
    ![image](https://user-images.githubusercontent.com/13134334/38307772-1f494692-3815-11e8-8d0c-a2b731810b4f.png)
   
