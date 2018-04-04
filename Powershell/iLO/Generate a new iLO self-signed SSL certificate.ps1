@@ -2,7 +2,7 @@
 
 Script to generates a new self-signed SSL certificate on iLO 4 firmware 2.55 (or later)
 
-Using a Redfish REST command that was added in iLO 4 firmware 2.55 (or later) to generate the new self-signed certificate
+Using a RedFish REST command that was added in iLO 4 firmware 2.55 (or later) to generate the new self-signed certificate
 
 This script does not require the iLO credentials
 
@@ -116,7 +116,7 @@ MyImport-Module HPRESTCmdlets
 # OneView Credentials and IP
 $username = "Administrator" 
 $password = "password" 
-$IP = "192.168.1.110" 
+$IP = "composer.etss.lab" 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -183,13 +183,13 @@ ForEach($s in $servers)
         
          If ($s.mpFirmwareVersion -lt "2.55") 
         {
-                Write-host "`niLO4 Self-Signed SSL certificate issues on $($s.name) has been found but the iLO is running a too old FW version to support RedFish web request to generate a new Self-Signed certificates ! " -ForegroundColor Red
+                Write-host "`niLO4 Self-Signed SSL certificate issue on $($s.name) has been found but the iLO is running a FW version < 2.55 that does not support RedFish web request to generate a new Self-Signed certificate!" -ForegroundColor Red
                 
 
         }
         Else
         {        
-            Write-host "`niLO4 Self-Signed SSL certificate issues on $($s.name) has been found ! Generating new Self-Signed certificates, please wait..." -ForegroundColor Yellow
+            Write-host "`niLO4 Self-Signed SSL certificate issue on $($s.name) has been found ! Generating a new Self-Signed certificate, please wait..." -ForegroundColor Yellow
 
             $serverstoimport.Add($s)
 
@@ -215,7 +215,7 @@ ForEach($s in $servers)
             if ($Error[0] -eq $Null) 
 
             { 
-                Write-Host "`nSelf-Signed SSL certificate on iLo $iloIP has been regenerated. iLO is reseting..."}
+                Write-Host "`nThe Self-Signed SSL certificate on iLo $iloIP has been regenerated. iLO is reseting..."}
 
             }
 
@@ -258,7 +258,7 @@ ForEach($server in $serverstoimport)
         #Refreshing Compute module 
         Get-HPOVServer -Name $server.name | Update-HPOVServer -Async | Out-Null
 
-        Write-host "`nOneView is refreshing $($server.name) to update the status of the server using a new certificate..." -ForegroundColor Yellow
+        Write-host "`nOneView is refreshing $($server.name) to update the status of the server using the new certificate..." -ForegroundColor Yellow
 }
 
 
