@@ -1,6 +1,6 @@
 # Generate new iLO Self-signed SSL certificate 
 
- Script to generates a new self-signed SSL certificate on iLO 4 firmware 2.55 (or later)
+Script to generates a new self-signed SSL certificate on iLO 4 firmware 2.55 (or later)
 
 Using a REST command that was added in iLO 4 firmware 2.55 (or later) to generate the new self-signed certificate
 
@@ -8,9 +8,7 @@ This script does not require the iLO credentials
 
 The latest HPOneView 400 library is required
   
-  >iLO modification is done through OneView and iLO SSOsession key using REST POST method
-  
-  OneView administrator account is required. 
+OneView administrator account is required. 
   
    ![image](https://user-images.githubusercontent.com/13134334/38307772-1f494692-3815-11e8-8d0c-a2b731810b4f.png)
   
