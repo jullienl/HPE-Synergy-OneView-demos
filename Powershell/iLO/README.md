@@ -6,7 +6,10 @@ After a new iLO certificate is generated, the iLO restarts then the new certific
 
 A RedFish REST command that was added in iLO 4 firmware 2.55 (or later) is used by this script to generate the new self-signed SSL certificate.
 
->Requirements: iLO 4 firmware 2.55 (or later) - Latest HPOneView 400 and HPRESTCmdlets libraries - OneView administrator account. 
+>Requirements: 
+>iLO 4 firmware 2.55 (or later) 
+>Latest HPOneView 400 and HPRESTCmdlets libraries
+>OneView administrator account. 
   
   ![image](https://user-images.githubusercontent.com/13134334/38316523-38c262d2-382b-11e8-94ed-f68c1852d240.png)
 
