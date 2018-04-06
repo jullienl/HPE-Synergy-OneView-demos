@@ -41,6 +41,14 @@ A RedFish REST command that was added in iLO 4 firmware 2.55 (or later) is used 
 #>
 
 
+# OneView Credentials and IP
+
+$username = "Administrator" 
+$password = "password" 
+$IP = "192.168.1.110" 
+
+
+
 
 Function MyImport-Module {
     
@@ -104,20 +112,18 @@ Function MyImport-Module {
 
 }
 
-#MyImport-Module PowerShellGet
-#MyImport-Module FormatPX
-#MyImport-Module SnippetPX
+
+# Modules to import
+
 MyImport-Module HPOneview.400 -update
-#MyImport-Module PoshRSJob
 MyImport-Module HPRESTCmdlets
+    #MyImport-Module PowerShellGet
+    #MyImport-Module FormatPX
+    #MyImport-Module SnippetPX
+    #MyImport-Module PoshRSJob
 
 
 
-
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -209,7 +215,7 @@ ForEach($s in $servers)
 
             $error.clear()
 
-            # # Send the request to generate a now iLO Self-signed Certificate
+            # # Send the request to generate a now iLO4 Self-signed Certificate
 
             $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo  -Method Delete  -UseBasicParsing -ErrorAction Stop #-Verbose 
     
@@ -256,7 +262,7 @@ ForEach($server in $serverstoimport)
         Add-HPOVApplianceTrustedCertificate -ComputerName $iloIP
         write-host "`nThe new generated iLO Self-Signed SSL certificate of $($server.name) using iLO $iloIP has been imported in OneView "
         
-        #Refreshing Compute module 
+        #Refreshing Compute modules 
         Get-HPOVServer -Name $server.name | Update-HPOVServer -Async | Out-Null
 
         Write-host "`nOneView is refreshing $($server.name) to update the status of the server using the new certificate..." -ForegroundColor Yellow
