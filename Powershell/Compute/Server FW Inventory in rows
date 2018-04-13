@@ -85,6 +85,7 @@ Function MyImport-Module {
                 If ( !(get-PSRepository).name -eq "PSGallery" )
                 {Register-PSRepository -Default}
                 Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+                Import-Module $module
             }
         Catch
             {
