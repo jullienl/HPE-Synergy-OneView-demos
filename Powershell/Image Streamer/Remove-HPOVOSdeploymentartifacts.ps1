@@ -156,15 +156,7 @@ function Remove-HPOVOSdeploymentartifacts {
    
    
   
-
-## -------------------------------------------------------------------------------------------------------------
-##
-##                     Function Get-OVTaskError
-##
-## -------------------------------------------------------------------------------------------------------------
-
-Function Get-HPOVTaskError ($Taskresult)
-{
+Function Get-HPOVTaskError ($Taskresult) {
         if ($Taskresult.TaskState -eq "Error")
         {
             $ErrorCode     = $Taskresult.TaskErrors.errorCode
