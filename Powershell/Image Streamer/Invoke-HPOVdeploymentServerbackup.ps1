@@ -275,6 +275,9 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
     $getbackups = Invoke-WebRequest -Uri "https://$I3SIP/rest/artifact-bundles/backups" -ContentType "application/json" -Headers $headers -Method GET -UseBasicParsing 
     $downloadURI = (($getbackups.Content | ConvertFrom-Json).members).downloadURI
 
+    $backupsize =  [math]::Round(((($getbackups.Content | ConvertFrom-Json).members).size /1GB),2)
+    write-host "`nThe $($backupsize)GB Backup file is getting downloaded, please wait..." -for Green
+
     $OutFile = $destination + "\"+ $name + '.zip'
     $downloadbackup = Invoke-WebRequest -Uri "https://$I3SIP$downloadURI" -ContentType "application/json" -Headers $headers -Method GET -UseBasicParsing  -OutFile $OutFile
     
