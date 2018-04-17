@@ -281,7 +281,8 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
     $OutFile = $destination + "\"+ $name + '.zip'
     $downloadbackup = Invoke-WebRequest -Uri "https://$I3SIP$downloadURI" -ContentType "application/json" -Headers $headers -Method GET -UseBasicParsing  -OutFile $OutFile
     
-    write-host "`nThe Image Streamer backup bundle $name has been succseefully uploaded in $destination" -back Green
+        write-host "`nThe Image Streamer backup file $name.zip has been succseefully uploaded in $destination" -back Green
+
 
 
 }
