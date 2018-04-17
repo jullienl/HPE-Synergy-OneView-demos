@@ -183,47 +183,103 @@ Function Get-HPOVTaskError ($Taskresult)
         }
 }
 
-
-
-
-
-# Import the OneView 3.10 library
-
-# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-    if (-not (get-module HPOneview.310)) 
-    {  
-    Import-module HPOneview.310
-    }
-
+Function MyImport-Module {
+    
+    # Import a module that can be imported
+    # If it cannot, the module is installed
+    # When -update parameter is used, the module is updated 
+    # to the latest version available on the PowerShell library
+    
+    param ( 
+        $module, 
+        [switch]$update 
+           )
    
-  
+   if (get-module $module -ListAvailable)
 
-    # Connection to the Synergy Composer
-    if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
-        Write-Host -ForegroundColor red "Disconnect all existing HPOV / Composer sessions and before running script"
-        exit 1
-        }
-    elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
-        Write-Host -ForegroundColor gray "Reusing Existing Composer session"
-        }
-    else {
-        #Make a clean connection
-        Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
-        $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password
+        {
+        if ($update.IsPresent) 
+            {
+            # Updates the module to the latest version
+            [string]$Moduleinstalled = (Get-Module -Name $module).version
+            [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction SilentlyContinue).version
+
+            $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
+
+            If (-not $Compare.SideIndicator -eq '==')
+                {
+                Update-Module -Name $module -Confirm -Force | Out-Null
+           
+                }
+            Else
+                {
+                Write-host "You are using the latest version of $module" 
+                }
+            }
+            
+        Import-module $module
+            
         }
 
+    Else
 
-                
-                
+        {
+        Write-Warning "$Module is not present"
+        Write-host "`nInstalling $Module ..." 
+
+        Try
+            {
+                If ( !(get-PSRepository).name -eq "PSGallery" )
+                {Register-PSRepository -Default}
+                Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+                Import-Module $module
+            }
+        Catch
+            {
+                Write-Warning "$Module cannot be installed" 
+            }
+        }
+
+}
+
+
+# Import the OneView 4.00 library
+MyImport-Module HPOneview.400 #-update
+
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+
+#Connecting to the Synergy Composer
+
+if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
+{
+    Write-Verbose "Already connected to $IP."
+}
+
+else
+{
+    Try 
+    {
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
+    }
+    Catch 
+    {
+        throw $_
+    }
+}
+
+               
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+
+
 
 # Creation of the header
 
     $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
     $headers = @{} 
     #$headers["Accept"] = "application/json" 
-    $headers["X-API-Version"] = "300"
+    $headers["X-API-Version"] = "600"
 
     # Capturing the OneView Session ID and adding it to the header
     
@@ -239,8 +295,7 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
 #####################################################################################
 
 
-Do {$I3sIP = (Get-HPOVImageStreamerAppliance).clusterIpv4Address[0]} until ($I3sIP)
-
+$I3sIP = (Get-HPOVOSDeploymentServer).primaryipv4
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
 # due to an invalid Remote Certificate
