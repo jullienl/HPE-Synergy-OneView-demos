@@ -97,17 +97,10 @@ function Invoke-HPOVOSdeploymentServerBackup {
     )
    
    
-  
+Function Get-HPOVTaskError ($Taskresult) {
 
-## -------------------------------------------------------------------------------------------------------------
-##
-##                     Function Get-OVTaskError
-##
-## -------------------------------------------------------------------------------------------------------------
-
-Function Get-HPOVTaskError ($Taskresult)
-{
         if ($Taskresult.TaskState -eq "Error")
+
         {
             $ErrorCode     = $Taskresult.TaskErrors.errorCode
             $ErrorMessage  = $Taskresult.TaskErrors.Message
@@ -120,8 +113,7 @@ Function Get-HPOVTaskError ($Taskresult)
            # To be used like:
            #   $result = Wait-HPOVTaskComplete $taskNetwork.Details.uri
            #   Get-HPOVTaskError -Taskresult $result
-        
-        
+                
         }
 }
 
@@ -281,8 +273,7 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
     $OutFile = $destination + "\"+ $name + '.zip'
     $downloadbackup = Invoke-WebRequest -Uri "https://$I3SIP$downloadURI" -ContentType "application/json" -Headers $headers -Method GET -UseBasicParsing  -OutFile $OutFile
     
-        write-host "`nThe Image Streamer backup file $name.zip has been succseefully uploaded in $destination" -back Green
-
+    write-host "`nThe Image Streamer backup file $name.zip has been succseefully uploaded in $destination" -back Green
 
 
 }
