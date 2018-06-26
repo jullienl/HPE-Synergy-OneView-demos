@@ -6,6 +6,9 @@
 #
 # OneView administrator account is required. 
 # iLO modification is done through OneView and iLO SSOsession key using REST POST method
+
+# Note: For iLO5, this script must be modified with ilo5 whenever ilo4 is used and all URI must be changed from /rest/v1/... 
+# to /redfish/v1/...
 # --------------------------------------------------------------------------------------------------------
 
 #################################################################################
