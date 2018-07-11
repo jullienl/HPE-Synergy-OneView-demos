@@ -111,9 +111,13 @@ Else {
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
 
 
+Get-HPOVServer | ? model -match Gen10 | Out-Host
+
+$servername = read-host "Please enter the server hardware name where you want to create a RAID1 Logical volume"
 
 
-$sh = Get-HPOVServer | ? model -match Gen10
+$sh = Get-HPOVServer -Name $servername
+
 
 "Server Hardware: {0}" -f $sh.name
 
