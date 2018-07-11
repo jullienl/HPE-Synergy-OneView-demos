@@ -1,3 +1,17 @@
+# -------------------------------------------------------------------------------------------------------
+# by lionel.jullien@hpe.com
+# July 2018
+#
+# This is a POSH script example on how to create a Logical Drive using hpeRedFishcmdlets
+# First two drives found are used to create a RAID1 Logical volume 
+# 
+# 
+# OneView administrator account is required. 
+# An iLO user account is not required, the authentication is done through OneView iLO SSO REST session
+# 
+# --------------------------------------------------------------------------------------------------------
+
+
 #IP address of OneView
 $IP = "192.168.1.110" 
 
