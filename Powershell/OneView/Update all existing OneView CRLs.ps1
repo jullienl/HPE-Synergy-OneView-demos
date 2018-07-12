@@ -2,12 +2,15 @@
 # by lionel.jullien@hpe.com
 # July 2018
 #
-# This POSH script updates all existing CRLs present in Oneview identified as expired
+# This POSH script updates all existing CRLs (Certificate Revocation List) present in Oneview identified as expired
 #   
 # 
 # OneView administrator account is required. 
 # An internet connection is required by the script to download the CRLs
 # 
+# Note: Note that the CRL file takes effect immediately, although it can take up to an hour for the manage 
+# certificates page to show an OK state rather than CRL Expired.
+#
 # --------------------------------------------------------------------------------------------------------
 
 
@@ -197,15 +200,15 @@ Foreach ($certificate in $certificates)
     $CRL = "$certificate.crl"
     
     # Downloading the CRL
-    Invoke-WebRequest -Uri $CRLdistributionpoint -OutFile $CRL 
+    Invoke-WebRequest -Uri $CRLdistributionpoint -OutFile $env:USERPROFILE\$CRL 
     $currentPath = Convert-Path .
-    $filePath="$currentPath\$CRL" # -replace '\\', '/'
+    $filePath="$env:USERPROFILE\$CRL" # -replace '\\', '/'
     
    
     #Creating the body
 
     $fileBin = [IO.File]::ReadAllBytes($filePath)
-        $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+    $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
     $fileEnc = $enc.GetString($fileBin)
                   
     $boundary = [System.Guid]::NewGuid().ToString()
