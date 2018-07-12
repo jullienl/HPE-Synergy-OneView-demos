@@ -9,7 +9,7 @@
 #   This script can be used in conjunction with 'Remove a network.ps1". See https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/Virtual Connect/Remove a network.ps1
 #
 #   With this script, you can demonstrate that with a single line of code, you can present easily and quickly a network VLAN to all Compute Modules present in the Synergy frames managed by HPE OneView. 
-#        
+#          
 #   OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
 # 
 # --------------------------------------------------------------------------------------------------------
@@ -39,16 +39,14 @@
 #################################################################################
 
 
-
 #################################################################################
 #                                Global Variables                               #
 #################################################################################
 
-$LIG="LIG-MLAG"
-$Uplinkset="M-LAG-Comware"
-$Networkprefix="Production-"
-$NetworkSet="Production Networks"
-
+$LIG = "LIG-MLAG"
+$Uplinkset = "M-LAG-Comware"
+$Networkprefix = "Production-"
+$NetworkSet = "Production Networks"
 
 # OneView Credentials and IP
 $username = "Administrator" 
@@ -60,10 +58,9 @@ $IP = "192.168.1.110"
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.310)) 
-    {  
+if (-not (get-module HPOneview.310)) {  
     Import-module HPOneview.310
-    }
+}
 
    
 $PWord = ConvertTo-SecureString –String $password –AsPlainText -Force
@@ -72,25 +69,21 @@ $cred = New-Object –TypeName System.Management.Automation.PSCredential –Argu
 
 # Connection to the Synergy Composer
 
-if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
-{
+if ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
     Write-Verbose "Already connected to $IP."
 }
 
-else
-{
-    Try 
-    {
+else {
+    Try {
         Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
     }
-    Catch 
-    {
+    Catch {
         throw $_
     }
 }
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
 clear-host
 
 
@@ -103,36 +96,33 @@ clear-host
 $networks = Get-HPOVNetwork -type Ethernet | where {$_.Name -match $Networkprefix} | % {$_.name}
 
 if ($networks -eq $Null)
-
 {
 
-write-host "`nThere is no network using the prefix: " -NoNewline
-Write-host -f Cyan $networkprefix -NoNewline
-Write-host "* available in Oneview"
+    write-host "`nThere is no network using the prefix: " -NoNewline
+    Write-host -f Cyan $networkprefix -NoNewline
+    Write-host "* available in Oneview"
 
 }
 
 if ($networks.count -lt 2)
-
 {
 
-write-host "`nThe following: " -NoNewline
-Write-host -f Cyan $networkprefix -NoNewline
-Write-host "* network is available in OneView:`n"
+    write-host "`nThe following: " -NoNewline
+    Write-host -f Cyan $networkprefix -NoNewline
+    Write-host "* network is available in OneView:`n"
 
-Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name="Network name";Expression={$_.Name}}, @{Name="VLAN ID";Expression={$_.vlanid}} | Out-Host
+    Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name = "Network name"; Expression = {$_.Name}}, @{Name = "VLAN ID"; Expression = {$_.vlanid}} | Out-Host
 
 }
 
 if ($networks.count -gt 1)
-
 {
 
-write-host "`nThe following: " -NoNewline
-Write-host -f Cyan $networkprefix -NoNewline
-Write-host "* networks are available in OneView:`n"
+    write-host "`nThe following: " -NoNewline
+    Write-host -f Cyan $networkprefix -NoNewline
+    Write-host "* networks are available in OneView:`n"
 
-Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name="Network name";Expression={$_.Name}}, @{Name="VLAN ID";Expression={$_.vlanid}}  | Out-Host
+    Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name = "Network name"; Expression = {$_.Name}}, @{Name = "VLAN ID"; Expression = {$_.vlanid}}  | Out-Host
 
 }
 
@@ -145,12 +135,11 @@ Write-host " in OneView"
 
 try {
     New-HPOVNetwork -Name ($networkprefix + $VLAN) -type Ethernet -vlanID "$VLAN" -VLANType "Tagged" -purpose General -typicalBandwidth 2500 -maximumBandwidth 10000 -ErrorAction Stop | Out-Null
-    }
-catch [exception]
-    { 
+}
+catch [exception] { 
     echo $_
     return
-    }
+}
 
 
 #################################################################################
@@ -174,11 +163,10 @@ $uplink_Set.networkUris += (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
 
 try {
     Set-HPOVResource $MyLIG -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
-    }
-catch
-    {
+}
+catch {
     echo $_ #.Exception
-    }
+}
 
 
 #################################################################################
@@ -190,38 +178,34 @@ $Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the
 
 $vlanuri = (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
 
-if ($Updating -eq "y")
-    {
+if ($Updating -eq "y") {
           
-        # Making sure the LI is not in updating state before we run a LI Update
-        $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state  
-        if ($Interconnectstate -notcontains "Configured")
-        {
-            Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
-        }
+    # Making sure the LI is not in updating state before we run a LI Update
+    $Interconnectstate = (((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state  
+    if ($Interconnectstate -notcontains "Configured") {
+        Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
+    }
         
-        do { $Interconnectstate=(((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state }
+    do { $Interconnectstate = (((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state }
 
-        until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains  "Imported" -and $Interconnectstate -notcontains "Configuring")
-
-
-        Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
-        Write-host -f Cyan $LIG
-        Write-host "`nPlease wait..." 
+    until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains "Imported" -and $Interconnectstate -notcontains "Configuring")
 
 
-        try {
-            Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop| Wait-HPOVTaskComplete | Out-Null
-            }
-        catch
-            {
-            echo $_ #.Exception
-            }
+    Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
+    Write-host -f Cyan $LIG
+    Write-host "`nPlease wait..." 
+
+
+    try {
+        Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop| Wait-HPOVTaskComplete | Out-Null
     }
-else
-    {
+    catch {
+        echo $_ #.Exception
+    }
+}
+else {
     write-warning "The Logical Interconnects will be marked in OneView as inconsistent with the logical interconnect group: $LIG"
-    }
+}
 
 
 #################################################################################
@@ -241,38 +225,33 @@ $netset = Get-HPOVNetworkSet -Name $NetworkSet
 $netset.networkUris += (Get-HPOVNetwork -Name Production-$VLAN).uri
 
 
-try
-    {
+try {
     Set-HPOVNetworkSet $netset -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
-    }
-catch
-    {
+}
+catch {
     echo $_
-    }
+}
 
 
-if  ((Get-HPOVLogicalInterconnect).consistencyStatus -eq "consistent" -and $Updating -eq "y")   # Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
-
-    {
+if ((Get-HPOVLogicalInterconnect).consistencyStatus -eq "consistent" -and $Updating -eq "y")   # Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
+{
     Write-host "`nThe network VLAN ID: " -NoNewline
     Write-host -f Cyan $vlan -NoNewline
     Write-host " has been successfully added and presented to all server profiles that are using the Network Set: " -NoNewline
     Write-host -f Cyan $networkset 
     Write-host ""
     return
-    }
+}
 
-if ($Updating -eq "n" -and ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri))
-    {
+if ($Updating -eq "n" -and ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris -ccontains $vlanuri)) {
     Write-host "`nThe network VLAN ID: " -NoNewline
     Write-host -f Cyan $vlan -NoNewline
     Write-host " has been added successfully to all Server Profiles that are using the Network Set: " -NoNewline
     Write-host -f Cyan $networkset 
     Write-host "but the Virtual Connect Module(s) have not been configured yet`n" -NoNewline
     return
-    }
+}
 
-if ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -notcontains $vlanuri)
-    {
+if ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris -notcontains $vlanuri) {
     Write-Warning "`nThe network VLAN ID: $vlan has NOT been added successfully, check the status of your Logical Interconnect resource`n" 
-    }
+}
