@@ -8,7 +8,7 @@
 # OneView administrator account is required. 
 # An internet connection is required by the script to download the CRLs
 # 
-# Note: Note that the CRL file takes effect immediately, although it can take up to an hour for the manage 
+# Note: Note that the CRL updates takes effect immediately, although it can take up to an hour for the manage 
 # certificates page to show an OK state rather than CRL Expired.
 #
 # --------------------------------------------------------------------------------------------------------
