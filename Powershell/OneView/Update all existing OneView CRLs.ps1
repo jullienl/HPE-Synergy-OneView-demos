@@ -8,8 +8,8 @@
 # OneView administrator account is required. 
 # An internet connection is required by the script to download the CRLs
 # 
-# Note: Note that the CRL updates takes effect immediately, although it can take up to an hour for the manage 
-# certificates page to show an OK state rather than CRL Expired.
+# Note: CRLs update takes effect immediately, but it can take up to an hour for the manage 
+# certificates dialog box to show an OK state rather than CRL Expired.
 #
 # --------------------------------------------------------------------------------------------------------
 
@@ -163,19 +163,12 @@ add-type -TypeDefinition  @"
     $headers["Auth"] = $key
 
 
-# List of CA Certificates
+# List of CA Certificates available in OneView
 <#
-
 $certVeriSign1 = "VeriSign Class 3 Public Primary Certification Authority - G5"
 $certVeriSign2 = "VeriSign Universal Root Certification Authority"
 $certSymantec1 = "Symantec Class 3 Secure Server CA - G4"
 $certSymantec2 = "Symantec Class 3 Secure Server SHA256 SSL CA"
-
-$certificates = @($certVeriSign1,$certVeriSign2,$certSymantec1,$certSymantec2)
-
-#$certificate = "Symantec Class 3 Secure Server SHA256 SSL CA"
-#$certificate = "Symantec Class 3 Secure Server CA - G4"
-
 #>
 
 $certificates = ((get-HPOVApplianceTrustedCertificate).certificateDetails | ? keyusage -eq "keyCertSign,cRLSign").aliasname
