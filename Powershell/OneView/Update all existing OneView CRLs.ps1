@@ -194,7 +194,6 @@ Foreach ($certificate in $certificates)
     
     # Downloading the CRL
     Invoke-WebRequest -Uri $CRLdistributionpoint -OutFile $env:USERPROFILE\$CRL 
-    $currentPath = Convert-Path .
     $filePath="$env:USERPROFILE\$CRL" # -replace '\\', '/'
     
    
