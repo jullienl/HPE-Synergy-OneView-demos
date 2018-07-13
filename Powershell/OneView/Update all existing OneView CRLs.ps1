@@ -35,54 +35,47 @@ Function MyImport-Module {
     param ( 
         $module, 
         [switch]$update 
-           )
+    )
    
-   if (get-module $module -ListAvailable)
-
-        {
-        if ($update.IsPresent) 
-            {
+    if (get-module $module -ListAvailable)
+    {
+        if ($update.IsPresent) {
             # Updates the module to the latest version
             [string]$Moduleinstalled = (Get-Module -Name $module).version
             [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction SilentlyContinue).version
 
             $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not ($Compare.SideIndicator -eq '=='))
-                {
+            If (-not ($Compare.SideIndicator -eq '==')) {
                 Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
                 Update-Module -Name $module -confirm:$false | Out-Null
            
-                }
-            Else
-                {
-                Write-host "You are using the latest version of $module" 
-                }
             }
+            Else {
+                Write-host "You are using the latest version of $module" 
+            }
+        }
             
         Import-module $module
             
-        }
+    }
 
     Else
-
-        {
+    {
         Write-Warning "$Module is not present"
         Write-host "`nInstalling $Module ..." 
 
-        Try
-            {
-                If ( !(get-PSRepository).name -eq "PSGallery" )
-                {Register-PSRepository -Default}
-                Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
-                Import-Module $module
-            }
-        Catch
-            {
-                Write-Warning "$Module cannot be installed" 
-                $error[0] | FL * -force
-            }
+        Try {
+            If ( !(get-PSRepository).name -eq "PSGallery" )
+            {Register-PSRepository -Default}
+            Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+            Import-Module $module
         }
+        Catch {
+            Write-Warning "$Module cannot be installed" 
+            $error[0] | FL * -force
+        }
+    }
 
 }
 
@@ -96,7 +89,7 @@ function Failure {
     Write-Host -BackgroundColor:Black -ForegroundColor:Red $global:responsebody
     Write-Host -BackgroundColor:Black -ForegroundColor:Red "The request body has been saved to `$global:helpme"
     #break
-    }
+}
 
 
 
@@ -104,10 +97,10 @@ function Failure {
 
 MyImport-Module HPOneview.400 # -update
 MyImport-Module PSPKI
-    #MyImport-Module PowerShellGet
-    #MyImport-Module FormatPX
-    #MyImport-Module SnippetPX
-    #MyImport-Module PoshRSJob
+#MyImport-Module PowerShellGet
+#MyImport-Module FormatPX
+#MyImport-Module SnippetPX
+#MyImport-Module PoshRSJob
 
 
 
@@ -116,25 +109,21 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #Connecting to the Synergy Composer
 
-if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
-{
+if ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
     Write-Verbose "Already connected to $IP."
 }
 
-else
-{
-    Try 
-    {
+else {
+    Try {
         Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
     }
-    Catch 
-    {
+    Catch {
         throw $_
     }
 }
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
 
 <#
 add-type -TypeDefinition  @"
@@ -156,11 +145,11 @@ add-type -TypeDefinition  @"
 
 # Creation of the header
   
-    $headers = @{} 
-    $headers["Accept"] = "application/json" 
-    $headers["X-API-Version"] = "600"
-    $key = $ConnectedSessions[0].SessionID 
-    $headers["Auth"] = $key
+$headers = @{} 
+$headers["Accept"] = "application/json" 
+$headers["X-API-Version"] = "600"
+$key = $ConnectedSessions[0].SessionID 
+$headers["Auth"] = $key
 
 
 # List of CA Certificates available in OneView
@@ -173,70 +162,67 @@ $certSymantec2 = "Symantec Class 3 Secure Server SHA256 SSL CA"
 
 $certificates = ((get-HPOVApplianceTrustedCertificate).certificateDetails | ? keyusage -eq "keyCertSign,cRLSign").aliasname
 
-Foreach ($certificate in $certificates)
-{
+Foreach ($certificate in $certificates) {
 
     $uri = (Get-HPOVApplianceTrustedCertificate).certificateDetails | ? aliasname -match $certificate | % uri
-    [DateTime]$CRLexpirationdate =  ( Get-HPOVApplianceTrustedCertificate | ? {$_.certificateDetails.aliasname -match $certificate} ).certRevocationConfInfo.crlExpiry
+    [DateTime]$CRLexpirationdate = ( Get-HPOVApplianceTrustedCertificate | ? {$_.certificateDetails.aliasname -match $certificate} ).certRevocationConfInfo.crlExpiry
     $date = Get-Date
     
     If (($CRLexpirationdate - $date).days -lt 0  )
-    
     {
     
-    $expiration = -($CRLexpirationdate - $date).days
+        $expiration = - ($CRLexpirationdate - $date).days
     
-    Write-host "`n'$certificate' CRL expired $expiration days ago, let's upload the new CRL !" -ForegroundColor Green
-    # Finding the URL of the CRL 
-    $CRLdistributionpoint =  ( Get-HPOVApplianceTrustedCertificate | ? {$_.certificateDetails.aliasname -match $certificate} ).certRevocationConfInfo.crlconf.crldplist
-    $CRLdistributionpoint = $CRLdistributionpoint -join ''
-    $CRL = "$certificate.crl"
+        Write-host "`n'$certificate' CRL expired $expiration days ago, let's upload the new CRL !" -ForegroundColor Green
+        # Finding the URL of the CRL 
+        $CRLdistributionpoint = ( Get-HPOVApplianceTrustedCertificate | ? {$_.certificateDetails.aliasname -match $certificate} ).certRevocationConfInfo.crlconf.crldplist
+        $CRLdistributionpoint = $CRLdistributionpoint -join ''
+        $CRL = "$certificate.crl"
     
-    # Downloading the CRL
-    Invoke-WebRequest -Uri $CRLdistributionpoint -OutFile $env:USERPROFILE\$CRL 
-    $filePath="$env:USERPROFILE\$CRL" # -replace '\\', '/'
+        # Downloading the CRL
+        Invoke-WebRequest -Uri $CRLdistributionpoint -OutFile $env:USERPROFILE\$CRL 
+        $filePath = "$env:USERPROFILE\$CRL" # -replace '\\', '/'
     
    
-    #Creating the body
+        #Creating the body
 
-    $fileBin = [IO.File]::ReadAllBytes($filePath)
-    $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
-    $fileEnc = $enc.GetString($fileBin)
+        $fileBin = [IO.File]::ReadAllBytes($filePath)
+        $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+        $fileEnc = $enc.GetString($fileBin)
                   
-    $boundary = [System.Guid]::NewGuid().ToString()
-    $LF = "`r`n"
+        $boundary = [System.Guid]::NewGuid().ToString()
+        $LF = "`r`n"
 
     
-    $bodyLines = (
+        $bodyLines = (
             "--$boundary",
             "Content-Disposition: form-data; name=`"File`"$LF",
             $fileEnc,
             "Content-Type: application/pkix-crl$LF",
             #$CRLContents,
             "--$boundary--$LF"
-     ) -join $LF
+        ) -join $LF
 
-    try {
+        try {
 
-       $result = Invoke-RestMethod -Uri "https://$IP$uri/crl" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method PUT # -Verbose  
-       write-host "`n'$certificate' has been uploaded successfully !" -ForegroundColor Green
-    }
+            $result = Invoke-RestMethod -Uri "https://$IP$uri/crl" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method PUT # -Verbose  
+            write-host "`n'$certificate' has been uploaded successfully !" -ForegroundColor Green
+        }
 
-    catch  {
+        catch {
         
-        write-host "`nError - '$certificate' cannot be uploaded !" -ForegroundColor Red
-        write-host "`n$_"
-        failure
-    }   
+            write-host "`nError - '$certificate' cannot be uploaded !" -ForegroundColor Red
+            write-host "`n$_"
+            failure
+        }   
 
     
     
-    Remove-Item $filePath -Confirm:$false
+        Remove-Item $filePath -Confirm:$false
 
-  }
-    Else
-    {
-    Write-Host "`nThe CRL for '$certificate' is valid until $CRLexpirationdate - No change will be made!" -ForegroundColor Green
+    }
+    Else {
+        Write-Host "`nThe CRL for '$certificate' is valid until $CRLexpirationdate - No change will be made!" -ForegroundColor Green
     }
 
 }
