@@ -37,8 +37,7 @@ Function MyImport-Module {
         [switch]$update 
     )
    
-    if (get-module $module -ListAvailable)
-    {
+    if (get-module $module -ListAvailable) {
         if ($update.IsPresent) {
             # Updates the module to the latest version
             [string]$Moduleinstalled = (Get-Module -Name $module).version
@@ -60,8 +59,7 @@ Function MyImport-Module {
             
     }
 
-    Else
-    {
+    Else {
         Write-Warning "$Module is not present"
         Write-host "`nInstalling $Module ..." 
 
@@ -168,8 +166,7 @@ Foreach ($certificate in $certificates) {
     [DateTime]$CRLexpirationdate = ( Get-HPOVApplianceTrustedCertificate | ? {$_.certificateDetails.aliasname -match $certificate} ).certRevocationConfInfo.crlExpiry
     $date = Get-Date
     
-    If (($CRLexpirationdate - $date).days -lt 0  )
-    {
+    If (($CRLexpirationdate - $date).days -lt 0  ) {
     
         $expiration = - ($CRLexpirationdate - $date).days
     
