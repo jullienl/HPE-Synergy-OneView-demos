@@ -11,6 +11,7 @@
 # Note: CRLs update takes effect immediately, but it can take up to an hour for the manage 
 # certificates dialog box to show an OK state rather than CRL Expired.
 #
+# This script is supported with the OneView PowerShell library 4.00 
 # --------------------------------------------------------------------------------------------------------
 
 
