@@ -11,7 +11,8 @@
 # Note: CRLs update takes effect immediately, but it can take up to an hour for the manage 
 # certificates dialog box to show an OK state rather than CRL Expired.
 #
-# This script is only supported with the HPE OneView PowerShell library version 4.00  
+# This script is only supported with the HPE OneView PowerShell library version 4.00
+# The 4.10 library will natively provide cmdlets to update the OneView CRLs  
 # --------------------------------------------------------------------------------------------------------
 
 
