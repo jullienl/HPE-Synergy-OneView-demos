@@ -1,13 +1,13 @@
 <#
 # In OneView 4.1, adding LAG configuration in a Server Profile Template, does not turn the associated Server profile(s) 
 # as inconsistent therefore it is required to update all Server Profiles manually with LAG. To avoid that, this script can be used to 
-# deploy automatically the LAG configuration on all server profiles associated with a Server Profile Template.
+# deploy automatically the LAG configuration present in the Server Profile Template to all associated server profiles.
 #
 # During the execution, the script displays a list of Server Profile Templates available in OneView and then ask the name of 
 # the Server Profile Template that you want to use to propagate the LACP configuration across all associated server profiles.  
 # 
-# Notice: it is recommended to make each server profile consistent with its server profile template before running this script
-#
+# Notice: the script verifies that the same network connections present in Server profile template are also available in the server profiles 
+# 
 #  Author: lionel.jullien@hpe.com
 #  Date:   November 2018
 #    
