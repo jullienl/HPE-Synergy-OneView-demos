@@ -125,7 +125,7 @@ Foreach ($connection in ($uniqueconnections)) {
 
 # Exiting if no LAG configured in SPT    
 If (-not $_Connections.Count -gt 0) {
-    write-warning "No LAG connections can be detected in your SPT ! Exiting..."
+    write-warning "No LAG connections can be detected in your Server Profile Template ! Exiting..."
     return
 }
 
