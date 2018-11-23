@@ -12,7 +12,7 @@
 #  Date:   November 2018
 #    
 #################################################################################
-#                         Server FW Inventory in rows.ps1                       #
+#                         SPT LACP Deployment.ps1                       #
 #                                                                               #
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
 #################################################################################
