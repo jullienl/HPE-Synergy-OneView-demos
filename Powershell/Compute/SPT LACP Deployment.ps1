@@ -1,5 +1,5 @@
 <#
-# In OneView 4.1, adding LAG configuration in a Server Profile Template, does not change the associated Server profile(s) 
+# In OneView 4.1, adding LAG configuration in a Server Profile Template, does not turn the associated Server profile(s) 
 # as inconsistent therefore it is required to update all Server Profiles manually with LAG. To avoid that, this script can be used to 
 # deploy automatically the LAG configuration on all server profiles associated with a Server Profile Template.
 #
