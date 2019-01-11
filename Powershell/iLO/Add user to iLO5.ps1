@@ -35,8 +35,8 @@
 
 # OneView Credentials and IP
 $username = "Administrator" 
-$password = "Legacy2018" 
-$IP = "16.107.20.29"
+$password = "password" 
+$IP = "192.168.1.110"
 
 
 # iLO5 User/password to create 
@@ -125,7 +125,7 @@ Function MyImport-Module {
 
 # Modules to import
 
-MyImport-Module HPOneview.400 #-update
+MyImport-Module HPOneview.410 #-update
 #MyImport-Module HPESmartArrayCmdlets
 #MyImport-Module HPERedfishCmdlets
     
