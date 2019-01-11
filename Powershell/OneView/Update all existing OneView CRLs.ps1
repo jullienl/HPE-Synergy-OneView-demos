@@ -24,7 +24,6 @@ $password = "password"
 $IP = "192.168.1.110" 
 
 
-
 Function MyImport-Module {
     
     # Import a module that can be imported
@@ -32,8 +31,6 @@ Function MyImport-Module {
     # When -update parameter is used, the module is updated 
     # to the latest version available on the PowerShell library
     
-    # $module = "HPOneview.400"
-
     param ( 
         $module, 
         [switch]$update 
@@ -41,19 +38,33 @@ Function MyImport-Module {
    
     if (get-module $module -ListAvailable) {
         if ($update.IsPresent) {
+            
             # Updates the module to the latest version
             [string]$Moduleinstalled = (Get-Module -Name $module).version
-            [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction SilentlyContinue).version
+            
+            Try {
+                [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction Stop).version
+            }
+            Catch {
+                Write-Warning "Error: No internet connection to update $module ! `
+                `nCheck your network connection, you might need to configure a proxy if you are connected to a corporate network!"
+                return 
+            }
 
             $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not ($Compare.SideIndicator -eq '==')) {
-                Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
-                Update-Module -Name $module -confirm:$false | Out-Null
+            If (-not $Compare.SideIndicator -eq '==') {
+                Try {
+                    Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
+                }
+                Catch {
+                    write-warning "Error: $module cannot be updated !"
+                    return
+                }
            
             }
             Else {
-                Write-host "You are using the latest version of $module" 
+                Write-host "You are using the latest version of $module !" 
             }
         }
             
@@ -62,22 +73,36 @@ Function MyImport-Module {
     }
 
     Else {
-        Write-Warning "$Module is not present"
-        Write-host "`nInstalling $Module ..." 
+        Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
 
+        
+        If ( !(get-PSRepository).name -eq "PSGallery" )
+        {Register-PSRepository -Default}
+                
         Try {
-            If ( !(get-PSRepository).name -eq "PSGallery" )
-            {Register-PSRepository -Default}
-            Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
-            Import-Module $module
+            find-module -Name $module -ErrorAction Stop | out-Null
+                
+            Try {
+                Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+                Write-host "`nInstalling $Module ..." 
+            }
+            catch {
+                Write-Warning "$Module cannot be installed!" 
+                $error[0] | FL * -force
+                pause
+                exit
+            }
+
         }
-        Catch {
-            Write-Warning "$Module cannot be installed" 
-            $error[0] | FL * -force
+        catch {
+            write-warning "Error: $module cannot be found in the online PSGallery !"
+            return
         }
+            
     }
 
 }
+
 
 function Failure {
     $global:helpme = $bodyLines
@@ -90,7 +115,6 @@ function Failure {
     Write-Host -BackgroundColor:Black -ForegroundColor:Red "The request body has been saved to `$global:helpme"
     #break
 }
-
 
 
 # Modules to import
