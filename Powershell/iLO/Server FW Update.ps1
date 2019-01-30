@@ -59,7 +59,7 @@ $ilopassword = "password"
 
 #$serverFWlocation = "D:\Kits\_Scripts\_PowerShell\Compute\I37_2.64_10_17_2018.signed.flash"
 $serverFWlocation = "D:\Kits\_Scripts\_PowerShell\Compute\I42_1.46_10_05_2018.signed.flash"
-$iloFWlocation = "D:\Kits\_Scripts\_PowerShell\Compute\ilo4_261.bin"
+# $iloFWlocation = "D:\Kits\_Scripts\_PowerShell\Compute\ilo4_261.bin"
 
 
 
