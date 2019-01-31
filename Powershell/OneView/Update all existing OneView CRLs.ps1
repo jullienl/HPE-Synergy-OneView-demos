@@ -12,7 +12,9 @@
 # certificates dialog box to show an OK state rather than CRL Expired.
 #
 # This script is only supported with the HPE OneView PowerShell library version 4.00
-# The 4.10 library will natively provide cmdlets to update the OneView CRLs  
+# The 4.10 library will natively provide cmdlets to update the OneView CRLs
+# To learn how to proceed with 4.10 : help Update-HPOVApplianceTrustedAuthorityCrl -Examples
+#
 # --------------------------------------------------------------------------------------------------------
 
 
