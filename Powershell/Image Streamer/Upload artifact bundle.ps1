@@ -2,7 +2,7 @@
 # by lionel.jullien@hpe.com
 # Feb 2019
 #
-# This POSH script upload an artifact bundles in HPE Image Streamer  
+# This POSH script uploads an artifact bundles in HPE Image Streamer  
 #   
 # 
 # OneView administrator account is required. 
