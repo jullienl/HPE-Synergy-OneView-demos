@@ -32,7 +32,7 @@ function Failure {
 }
 
 
-Import-Module HPOneview.410 #-update
+Import-Module HPOneview.410 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -53,7 +53,6 @@ else {
 
                
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
-
 
 
 # Capturing OS Deployment Server IP address managed by OneViews     
@@ -107,7 +106,6 @@ $bodyLines = (
 Try {
     $result = Invoke-RestMethod -Uri "https://$I3sIP/rest/artifact-bundles" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method POST # -Verbose  
     write-host "`nArtifact bundle '$filepath' has been uploaded successfully !" -ForegroundColor Green
-
 }
 catch {
     failure
