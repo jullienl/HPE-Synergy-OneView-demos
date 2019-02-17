@@ -12,8 +12,8 @@
 
 # OneView Credentials and IP
 $username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
+$password = "XxXxXxXxX" 
+$IP = "x.x.x.x" 
 
 # Path of the Artifact bundle ZIP FILE
 $filePath = 'D:\Kits\HPE-Windows-2018-08-28.zip'
