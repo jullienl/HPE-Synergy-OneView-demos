@@ -84,32 +84,32 @@ $key = $ConnectedSessions[0].SessionID
 $headers["Auth"] = $key
 
 
+# Creation of the body
+$fileBin = [IO.File]::ReadAllBytes($filePath)
+$enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+$fileEnc = $enc.GetString($fileBin)
 
-        $fileBin = [IO.File]::ReadAllBytes($filePath)
-        $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
-        $fileEnc = $enc.GetString($fileBin)
-                  
-        $boundary = [System.Guid]::NewGuid().ToString()
-        $LF = "`r`n"
+$boundary = [System.Guid]::NewGuid().ToString()
+$LF = "`r`n"
 
     
-        $bodyLines = (
-            "--$boundary",
-            "Content-Disposition: form-data; name=`"file`"; filename=$filepath$LF",
-            "Content-Type: application/zip$LF",
-            "--$boundary--$LF"
-        ) -join $LF
+$bodyLines = (
+    "--$boundary",
+    "Content-Disposition: form-data; name=`"file`"; filename=$filepath$LF",
+    $fileEnc,
+    "Content-Type: application/zip$LF",
+    "--$boundary--$LF"
+) -join $LF
 
 
-       
+# Creation of the webrequest       
 
 Try {
-$result = Invoke-RestMethod -Uri "https://$I3sIP/rest/artifact-bundles" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method POST # -Verbose  
-write-host "`nArtifact bundle '$filepath' has been uploaded successfully !" -ForegroundColor Green
+    $result = Invoke-RestMethod -Uri "https://$I3sIP/rest/artifact-bundles" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method POST # -Verbose  
+    write-host "`nArtifact bundle '$filepath' has been uploaded successfully !" -ForegroundColor Green
 
 }
-catch
-{
-failure
+catch {
+    failure
 }
 
