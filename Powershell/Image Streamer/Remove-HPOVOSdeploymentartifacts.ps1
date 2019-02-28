@@ -255,8 +255,8 @@ Function MyImport-Module {
     }
 
 
-# Import the OneView 4.00 library
-MyImport-Module HPOneview.400 #-update
+# Import the OneView 4.10 library
+MyImport-Module HPOneview.410 #-update
 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
