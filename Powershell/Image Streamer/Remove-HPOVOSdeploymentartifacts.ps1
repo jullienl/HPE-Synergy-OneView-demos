@@ -42,7 +42,7 @@
   deletes artifact bundle
   
 .EXAMPLE
-  PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.1.110 -username administrator -password paswword -name "HPE-Foundation - create empty OS Volume" -OSbuildplan -Confirm 
+  PS C:\> Remove-HPOVOSdeploymentartifacts -IP 192.168.1.110 -username administrator -password password -name "HPE-Foundation - create empty OS Volume" -OSbuildplan -Confirm 
   Removes the OS build plan "HPE-Foundation - create empty OS Volume" and provides a prompt requesting confirmation of the deletion 
   
 .EXAMPLE
