@@ -30,7 +30,7 @@ $headers["content-type"] = "application/json"
 $headers["X-API-Version"] = "1000"
 
 #Creation of the body
-$Body = @{userName=$username;password=$password;authLoginDomain="Local";loginMsgAck="true"} | ConvertTo-Json 
+$Body = @{userName = $username; password = $password; authLoginDomain = "Local"; loginMsgAck = "true"} | ConvertTo-Json 
 
 #Opening a login session with Composer
 $session = invoke-webrequest -Uri "https://$composer/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
@@ -42,13 +42,13 @@ $headers["auth"] = $key
 
 #Retrieving interconnect URI information for all VC 40G modules
 $interconnects = (invoke-webrequest -Uri "https://$composer/rest/interconnects" -Headers $headers -Method Get ).content | ConvertFrom-Json
-$interconnecturis = ($interconnects.members | where model -match "Virtual Connect SE 40Gb F8 Module for Synergy").uri
+$interconnecturis = ($interconnects.members | Where-Object model -match "Virtual Connect SE 40Gb F8 Module for Synergy").uri
 
 
-#Setting up the netop user with the $password variable
+#Setting up the netop user with the $netoppwd variable
 Foreach ($interconnecturi in $interconnecturis) {
 
-    $payload = @{op='replace';path="/netOpPasswd";value=$password} | ConvertTo-Json 
+    $payload = @{op = 'replace'; path = "/netOpPasswd"; value = $netoppwd} | ConvertTo-Json 
     
     $link = $composer + $interconnecturi
 
