@@ -44,11 +44,11 @@ $headers["auth"] = $key
 $interconnects = (invoke-webrequest -Uri "https://$composer/rest/interconnects" -Headers $headers -Method Get ).content | ConvertFrom-Json
 $interconnecturis = ($interconnects.members | Where-Object model -match "Virtual Connect SE 40Gb F8 Module for Synergy").uri
 
+#Preparing body to change the netop password
+$payload = @{op = 'replace'; path = "/netOpPasswd"; value = $netoppwd} | ConvertTo-Json 
 
 #Setting up the netop user with the $netoppwd variable
 Foreach ($interconnecturi in $interconnecturis) {
-
-    $payload = @{op = 'replace'; path = "/netOpPasswd"; value = $netoppwd} | ConvertTo-Json 
     
     $link = $composer + $interconnecturi
 
