@@ -4,7 +4,7 @@ This repository holds my postman collection demonstrating use cases for the [One
 
 I provide a few REST call examples for use with the Postman utility. 
 
-Postman is a testing framework for REST APIs. The tool can be downloaded from [www.getpostman.com](www.getpostman.com).
+Postman is a testing framework for REST APIs. The tool can be downloaded from [www.getpostman.com](https://www.getpostman.com/).
 
 To import the collection, first clone this repository, then open the Postman utility and select the Import option. Select the Folder tab from the dialog and drag and drop the cloned repository folder into the target.
 
