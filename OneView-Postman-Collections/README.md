@@ -8,4 +8,4 @@ Postman is a testing framework for REST APIs. The tool can be downloaded from [w
 
 To import the collection, first clone this repository, then open the Postman utility and select the Import option. Select the Folder tab from the dialog and drag and drop the cloned repository folder into the target.
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/collections/cdc462c4e04038b45e7b)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://www.getpostman.com/run-collections/cdc462c4e04038b45e7b)
