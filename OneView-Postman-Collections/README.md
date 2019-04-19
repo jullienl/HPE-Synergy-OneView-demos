@@ -1,8 +1,11 @@
 # OneView API Postman Collection
 
-This repository holds my Postman collection demonstrating use cases for the [OneView REST API](http://h17007.www1.hpe.com/docs/enterprise/servers/oneview4.2/cicf-api/en/index.html). More information about the API can be found on www.hpe.com/info/OneView/ and https://www.hpe.com/us/en/solutions/developers/composable.html.
+This repository holds my Postman collection demonstrating use cases for the [OneView REST API](http://h17007.www1.hpe.com/docs/enterprise/servers/oneview4.2/cicf-api/en/index.html). More information about the API can be found on www.hpe.com/info/OneView and https://www.hpe.com/us/en/solutions/developers/composable.html.
 
-I provide a few REST call examples for use with the Postman utility. 
+I provide a few REST call examples for use with the Postman utility. You will see also how to simplify the REST calls using Javascripts test scripts [[more info here](https://learning.getpostman.com/docs/postman/scripts/test_scripts/)] to generate automatically environment variables like SessionID, X-API-Version but also how to manipulate the JSON body response to generate variables that can be used for the next REST call.
+
+The only Postman environment variable [[more info here](https://learning.getpostman.com/docs/postman/environments_and_globals/variables/)] that needs to be defined is `composer` sets with your OneView FQDN or IP address. 
+
 
 Postman is a testing framework for REST APIs. The tool can be downloaded from [www.getpostman.com](https://www.getpostman.com/).
 
