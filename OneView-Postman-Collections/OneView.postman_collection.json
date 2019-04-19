@@ -1,0 +1,1731 @@
+{
+	"info": {
+		"_postman_id": "525f7596-a659-556e-ea26-332682d540d2",
+		"name": "OneView",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Reserved VLAN range",
+			"item": [
+				{
+					"name": "1- Login-sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bf44f65d-7d55-4e11-aa4b-59b89f65e0d0",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "300"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/login-sessions",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"login-sessions"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "2- Get-X-API-Version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get Fabric URI",
+									"var xapiversion =  jsonData.currentVersion;",
+									"",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+									"",
+									"//Display X-API-version in test results",
+									"tests[\"X API version = \" + xapiversion ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "300"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/version",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"version"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Reserved-VLAN-range",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5a866002-8b87-42af-9a1d-cceb1f3cb4af",
+								"exec": [
+									"// see https://{{composer}}/api-docs/current/#rest/fabrics",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get Fabric URI",
+									"var fabricid =  jsonData.members[0].uri;",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"fabricid\", fabricid);",
+									"//Display Fabrci URI in test results",
+									"tests[\"Fabric URI = \" + fabricid + \" saved in 'fabricid' environment variable\"] = true; ",
+									"",
+									"//Set variables",
+									"var Fabricname =  jsonData.members;",
+									"var reservedVlanRange =  jsonData.members[0].reservedVlanRange;",
+									"",
+									"//Display content of variables in test results",
+									"tests[\"Fabric Name = \" + Fabricname[0].name] = true; ",
+									"tests[\"Reserved Vlan Range starts at VLAN \" + reservedVlanRange.start] = true; ",
+									"tests[\"Reserved Vlan Range length = \" + reservedVlanRange.length + \" VLANs\"] = true; ",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/fabrics/",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"fabrics",
+								""
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "4- Put-Change-Reserved-VLAN-range",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bb9f6672-b936-4307-80b6-28e6ac81f076",
+								"exec": [
+									"var locationhttpheader = postman.getResponseHeader(\"Location\");",
+									"",
+									"",
+									"//Display Location value in test results",
+									"tests[\"Location task result can be seen here: \" + locationhttpheader ] = true; ",
+									"",
+									"postman.setEnvironmentVariable(\"taskresult\", locationhttpheader);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n   \"start\": 3968,\r\n\t\"length\": 127,\r\n    \"type\": \"vlan-pool\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/{{fabricid}}/reserved-vlan-range",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"{{fabricid}}",
+								"reserved-vlan-range"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "5- Get-Task-object-Result",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b095cca7-ccbe-47d5-8969-f8534f7cfead",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{taskresult}}",
+							"host": [
+								"{{taskresult}}"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "6- Get-New-Reserved-VLAN-range",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b095cca7-ccbe-47d5-8969-f8534f7cfead",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/{{fabricid}}/reserved-vlan-range",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"{{fabricid}}",
+								"reserved-vlan-range"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "eFuse",
+			"item": [
+				{
+					"name": "1- Login-sessions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "300"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/login-sessions",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"login-sessions"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "2- Get-X-API-Version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get Fabric URI",
+									"var xapiversion =  jsonData.currentVersion;",
+									"",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+									"",
+									"//Display X-API-version in test results",
+									"tests[\"X API version = \" + xapiversion ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "300"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/version",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"version"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Enclosures",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e2d749dc-e95d-4265-9614-14dc410a2d28",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"var enclosure = jsonData.members;",
+									"var enclosurenumber = jsonData.total;",
+									"",
+									"//Get Enclosure URIs",
+									"var encl = [];",
+									"for (i = 0; i < enclosurenumber; ++i) {",
+									"    //tests[\"Enclosure uri = \" + enclosure[i].uri] = true; ",
+									"    var enclname = \"encl\" + (i+1);",
+									"    //Set environment variable",
+									"    postman.setEnvironmentVariable(enclname, enclosure[i].uri );",
+									"    tests[enclname + \"= \" + enclosure[i].uri] = true; ",
+									"    ",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "auth",
+								"type": "text",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/enclosures",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"enclosures"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl1-Compute-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/deviceBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl1-Interconnect-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/interconnectBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl1-Appliance-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/applianceBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl1-Manager-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/managerBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl2-Compute-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/deviceBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl2}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl2-Interconnect-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/interconnectBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl2}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl2-Appliance-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/applianceBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl2}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl2-Manager-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/managerBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl2}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl3-Compute-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/deviceBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl3}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl3}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl3-Interconnect-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/interconnectBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl3}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl3}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl3-Appliance-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/applianceBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl3}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl3}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Efuse-Encl3-Manager-Bay1",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\"op\":\"replace\",\"path\":\"/managerBays/1/bayPowerState\",\"value\":\"E-Fuse\"}] \r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{encl3}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{encl3}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Associations",
+			"item": [
+				{
+					"name": "1- Login-sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f6c80625-7557-46fd-ab15-faa964b348b9",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "300"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/login-sessions",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"login-sessions"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "2- Get-X-API-Version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get Fabric URI",
+									"var xapiversion =  jsonData.currentVersion;",
+									"",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+									"",
+									"//Display X-API-version in test results",
+									"tests[\"X API version = \" + xapiversion ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "300"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/version",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"version"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-SPT",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d4092448-b7a5-446f-9304-6eef8b9b8e0d",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get SPT URI",
+									"var spturi =  jsonData.members[0].uri;",
+									"",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"spturi\", spturi);",
+									"",
+									"//Display X-API-version in test results",
+									"tests[\"SPT uri = \" + spturi ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name matches 'Template for Prod-ESX servers'\"",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profile-templates"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "\"name matches 'Template for Prod-ESX servers'\""
+								}
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "4- Get-Enclosures",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e2d749dc-e95d-4265-9614-14dc410a2d28",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"var enclosure = jsonData.members;",
+									"var enclosurenumber = jsonData.total;",
+									"",
+									"//Get Enclosure URIs",
+									"var encl = [];",
+									"for (i = 0; i < enclosurenumber; ++i) {",
+									"    //tests[\"Enclosure uri = \" + enclosure[i].uri] = true; ",
+									"    var enclname = \"encl\" + (i+1);",
+									"    //Set environment variable",
+									"    postman.setEnvironmentVariable(enclname, enclosure[i].uri );",
+									"    tests[enclname + \"= \" + enclosure[i].uri] = true; ",
+									"    ",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "auth",
+								"type": "text",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/enclosures",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"enclosures"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "5- GET-SPTtoSP-association",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"type": "text",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "auth",
+								"type": "text",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"index",
+								"associations"
+							],
+							"query": [
+								{
+									"key": "parentUri",
+									"value": "{{encl1}}"
+								},
+								{
+									"key": "name",
+									"value": "ENCLOSURE_TO_BLADE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5- GET-SPTtoSP-association Ressource",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"type": "text",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "auth",
+								"type": "text",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/index/associations?parentUri={{spturi}}&name=server_profile_template_to_server_profiles",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"index",
+								"associations"
+							],
+							"query": [
+								{
+									"key": "parentUri",
+									"value": "{{spturi}}"
+								},
+								{
+									"key": "name",
+									"value": "server_profile_template_to_server_profiles"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6- GET-EnclosuretoServerhardware-association",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"type": "text",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "auth",
+								"type": "text",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"index",
+								"associations"
+							],
+							"query": [
+								{
+									"key": "parentUri",
+									"value": "{{encl1}}"
+								},
+								{
+									"key": "name",
+									"value": "ENCLOSURE_TO_BLADE"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1- Login-sessions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f6c80625-7557-46fd-ab15-faa964b348b9",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "300"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/login-sessions",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"login-sessions"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "2- Get-X-API-Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"//Get Fabric URI",
+							"var xapiversion =  jsonData.currentVersion;",
+							"",
+							"//Set environment variable",
+							"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+							"",
+							"//Display X-API-version in test results",
+							"tests[\"X API version = \" + xapiversion ] = true; "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "300"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/version",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"version"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Profile Templates",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"disabled": false,
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"disabled": false,
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/server-profile-templates",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"server-profile-templates"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Ethernet-Networks",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/ethernet-networks",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"ethernet-networks"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Audit-Logs",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/audit-logs?start=0&count=150&filter=\"date>='2019-04-01'\"",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"audit-logs"
+					],
+					"query": [
+						{
+							"key": "start",
+							"value": "0"
+						},
+						{
+							"key": "count",
+							"value": "150"
+						},
+						{
+							"key": "filter",
+							"value": "\"date>='2019-04-01'\""
+						}
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Datacenters",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/datacenters",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"datacenters"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get the OS Deployment plans from OneView",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/os-deployment-plans/",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"os-deployment-plans",
+						""
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get the Hypervisor Managers from OneView",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/hypervisor-managers",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"hypervisor-managers"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get the Hypervisor Cluster Profiles from OneView",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/hypervisor-cluster-profiles",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"hypervisor-cluster-profiles"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Upload CRL",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "42b0947f-cfd9-4dbb-96da-fe96304cfdfe",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "File",
+							"type": "file",
+							"src": ""
+						}
+					]
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/certificates/ca/Symantec Class 3 Secure Server SHA256 SSL CA/crl",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"certificates",
+						"ca",
+						"Symantec Class 3 Secure Server SHA256 SSL CA",
+						"crl"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Interconnect FC logins",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/interconnects/06aa031d-436c-44fb-b078-f6b883bed280/ports/06aa031d-436c-44fb-b078-f6b883bed280:Q4:1",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"interconnects",
+						"06aa031d-436c-44fb-b078-f6b883bed280",
+						"ports",
+						"06aa031d-436c-44fb-b078-f6b883bed280:Q4:1"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Metrics-capability",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/metrics/capability",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"metrics",
+						"capability"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		}
+	]
+}
