@@ -77,5 +77,3 @@ Foreach ($interconnecturi in $interconnecturis) {
     }
 
 }
-
-
