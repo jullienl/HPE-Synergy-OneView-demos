@@ -21,16 +21,16 @@ $netoppwd = "mypassword"
 # Composer information
 $username = "Administrator"
 $password = "password"
-$composer = "dcs-1.lj.lab"
+$composer = "composer.lj.lab"
  
 
 #Creation of the header
-$headers = @{} 
+$headers = @{ } 
 $headers["content-type"] = "application/json" 
 $headers["X-API-Version"] = "1000"
 
 #Creation of the body
-$Body = @{userName = $username; password = $password; authLoginDomain = "Local"; loginMsgAck = "true"} | ConvertTo-Json 
+$Body = @{userName = $username; password = $password; authLoginDomain = "Local"; loginMsgAck = "true" } | ConvertTo-Json 
 
 #Opening a login session with Composer
 $session = invoke-webrequest -Uri "https://$composer/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
@@ -45,7 +45,8 @@ $interconnects = (invoke-webrequest -Uri "https://$composer/rest/interconnects" 
 $interconnecturis = ($interconnects.members | Where-Object model -match "Virtual Connect SE 40Gb F8 Module for Synergy").uri
 
 #Preparing body to change the netop password
-$payload = @{op = 'replace'; path = "/netOpPasswd"; value = $netoppwd} | ConvertTo-Json 
+$operation = '   { "op" : "replace", "path" : "/netOpPasswd", "value" : "' + $netoppwd + '" }'
+$payload = "[`n" + $operation + "`n]"
 
 #Setting up the netop user with the $netoppwd variable
 Foreach ($interconnecturi in $interconnecturis) {
