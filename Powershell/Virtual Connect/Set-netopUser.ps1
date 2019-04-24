@@ -24,6 +24,19 @@ $password = "password"
 $composer = "composer.lj.lab"
  
 
+function Failure {
+    $global:helpme = $bodyLines
+    $global:helpmoref = $moref
+    $global:result = $_.Exception.Response.GetResponseStream()
+    $global:reader = New-Object System.IO.StreamReader($global:result)
+    $global:responseBody = $global:reader.ReadToEnd();
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "`nStatus: A system exception was caught."
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red `n$global:responsebody
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "`nThe request body has been saved to `$global:helpme"
+    #break
+}
+
+
 #Creation of the header
 $headers = @{ } 
 $headers["content-type"] = "application/json" 
@@ -53,7 +66,15 @@ Foreach ($interconnecturi in $interconnecturis) {
     
     $link = $composer + $interconnecturi
 
-    invoke-webrequest -Uri "https://$link/" -Headers $headers -Body $payload -Method Patch
+    try {
+    
+        invoke-webrequest -Uri "https://$link/" -Headers $headers -Body $payload -Method Patch
+    }
+    catch {
+
+        failure
+
+    }
 
 }
 
