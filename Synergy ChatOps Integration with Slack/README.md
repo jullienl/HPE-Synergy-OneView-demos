@@ -23,7 +23,7 @@ You will need to a have a few things ready to get a Hubot setup with Slack:
 * A Windows Machine with PowerShell 4.0+. 
 * Administrative access in your Slack group to create a Hubot integration
 
-> You may get connection issues between Slack and your Hubot if your server is located behind a corporate proxy server.
+> You may get connection issues between Slack and your Hubot if your Windows Machine is located behind a corporate proxy server.
 
 
 ## Hubot Installation
