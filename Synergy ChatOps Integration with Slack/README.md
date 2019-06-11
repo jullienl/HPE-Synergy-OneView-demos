@@ -59,8 +59,12 @@ Hubot logs can be found in the **Logs** folder of your Hubot (e.g. C:\myhubot\Lo
 > Remember the Hubot Windows service needs to be restarted after a modification to activate the change in Slack
 
 ## Cleaning up the Hubot help content
-If you want to clean up the content of the ``help`` and keep only the ops-related tasks, you can modify **help.coffee** in **\node_modules\hubot-help\src** folder using the ``HUBOT_HELP_HIDDEN_COMMANDS``. Any help command you list here will be hidden from the Slack channel
+If you want to clean up the content of the ``help`` and keep only the ops-related tasks, you can modify **help.coffee** in **\node_modules\hubot-help\src** folder using the ``HUBOT_HELP_HIDDEN_COMMANDS``.   
 
-``hiddenCommandsPattern = -> HUBOT_HELP_HIDDEN_COMMANDS="ping,adapter,echo,pug me,map me <query>,list assigned roles,the rules,pug bomb N,echo <text>,<user> doesn't have <role> role,<user> has <role> role,what roles do I have,what roles does <user> have,who has <role> role"``
-``hiddenCommands = HUBOT_HELP_HIDDEN_COMMANDS?.split ','``
-``new RegExp "^hubot (?:#{hiddenCommands?.join '|'}) - " if hiddenCommands``
+Any help command you list here will be hidden from the Slack channel:
+
+```
+hiddenCommandsPattern = -> HUBOT_HELP_HIDDEN_COMMANDS="ping,adapter,echo,pug me,map me <query>,list assigned roles,the rules,pug bomb N,echo <text>,<user> doesn't have <role> role,<user> has <role> role,what roles do I have,what roles does <user> have,who has <role> role"
+hiddenCommands = HUBOT_HELP_HIDDEN_COMMANDS?.split ','
+new RegExp "^hubot (?:#{hiddenCommands?.join '|'}) - " if hiddenCommands
+```
