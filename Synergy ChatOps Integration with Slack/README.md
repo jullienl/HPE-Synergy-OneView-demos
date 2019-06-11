@@ -32,7 +32,7 @@ I have followed this [article](https://hodgkins.io/chatops-on-windows-with-hubot
 
 ## Scripts Installation
 This repository provides **coffeescripts** and **PowerShell** scripts for a full integration with the HPE Synergy Composer. 
-The full content of the **scripts** folder must be copied to your Hubot (e.g. in c:\myhubot\scripts).  
+All **scripts** must be copied to your Hubot **scripts** folder (e.g. in c:\myhubot\scripts).  
 
 ## Environment Variables
 It is required to define the OneView credentials and IP address. This can be done directly from the Slack channel using the Hubot commands: 
@@ -43,7 +43,7 @@ It is required to define the OneView credentials and IP address. This can be don
 * `set username <name>` - Sets the username of a OneView user with Infrastructure administrator role
 
 ## Available commands
-
+![image](https://user-images.githubusercontent.com/13134334/59289144-aa6f6480-8c75-11e9-80f4-1e3341990573.png)
 * `delete <name>` - Turns off and unprovisions a server
 * `deploy centos <name>` - Deploys a CentOS 7.5 server using Image Streamer and turn it on (Note: IP is set after a reboot)
 * `deploy esx <name>` - Deploys an ESXi 6.5U2 server using Image Streamer and turn it on
@@ -52,6 +52,9 @@ It is required to define the OneView credentials and IP address. This can be don
 * `deploy win <name>` - Deploys a Windows 2016 server using Image Streamer and turn it on
 * `deploy xen <name>` - Deploys a XenServer 7.1 server using Image Streamer and turn it on
 * `get <name>` - Lists the resource avalaible in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
+
+![image](https://user-images.githubusercontent.com/13134334/59289341-1f429e80-8c76-11e9-85bc-f3850812c78c.png)
+
 
 ## Troubleshooting
 Hubot logs can be found in the **Logs** folder of your Hubot (e.g. C:\myhubot\Logs). This is where you usually find all you need for troubleshooting.
