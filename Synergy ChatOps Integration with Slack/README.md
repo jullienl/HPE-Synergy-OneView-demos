@@ -30,7 +30,7 @@ You will need to a have a few things ready to get a Hubot setup with Slack:
 
 ## Hubot Installation
 I have followed this [article](https://hodgkins.io/chatops-on-windows-with-hubot-and-powershell) and use the PowerShell DSC resource from Matthew Hodgkins to install Hubot on a Windows 2016 Server as a service, very convenient. 
-> More information can be found on this [video](https://www.youtube.com/watch?v=Gh-vYprIo7c).
+> Detailed installation steps are described in this [video](https://www.youtube.com/watch?v=Gh-vYprIo7c).
 
 ## Scripts Installation
 This repository provides **coffeescripts** and **PowerShell** scripts for a full integration with the HPE Synergy Composer. 
