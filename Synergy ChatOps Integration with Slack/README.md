@@ -13,9 +13,9 @@ Integration is what makes Slack a really interesting chat client. There are tons
 
 > Information about the Hubot integration can be found [here](https://slack.com/apps/A0F7XDU93-hubot)
  
-Hubot is an open source chat robot that's easy to program using simple scripts written in CoffeeScript. 
+**Hubot**is an open source chat robot that's easy to program using simple scripts written in [CoffeeScript](https://en.wikipedia.org/wiki/CoffeeScript). 
 
-These Hubot CoffeeScripts are simply calling in the background PowerShell scripts build upon the PowerShell OneView library to interact with OneView. 
+These Hubot CoffeeScripts are simply calling in the background PowerShell scripts that are using the PowerShell OneView library to interact with OneView. 
 
 So you can use Hubot to call these scripts from inside the Slack channel to automate parts of your ops-related tasks, like getting some information from OneView, deleting a server profile or provisioning a new server with an OS using the Image Streamer. All these actions can be found using the Hubot ``help`` command.
 
