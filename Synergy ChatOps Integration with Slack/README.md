@@ -3,7 +3,7 @@
 
 ChatOps is an approach to automate many ops-related tasks with a chat bot. 
 
-A popular toolset for ChatOps is Slack as the chat client, and Hubot as the bot.
+A popular toolset for ChatOps is **Slack** as the chat client, and **Hubot** as the bot.
 
 ![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
 
