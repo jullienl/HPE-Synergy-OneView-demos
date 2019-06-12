@@ -61,7 +61,7 @@ It is required to define the OneView credentials and IP address. This can be don
 ## Troubleshooting
 Hubot logs can be found in the **Logs** folder of your Hubot (e.g. C:\myhubot\Logs). This is where you usually find all you need for troubleshooting.
 
-> Remember to restart the Hubot Windows service after each modification that you make in Hubot in order to activate the change in Slack
+> Remember to restart the Hubot Windows service after each modification you make in Hubot in order to activate the change in Slack
 
 ## Cleaning up the Hubot help content
 If you want to clean up the content of the ``help`` and keep only the ops-related tasks, you can modify **help.coffee** in **\node_modules\hubot-help\src** folder using the ``HUBOT_HELP_HIDDEN_COMMANDS``.   
