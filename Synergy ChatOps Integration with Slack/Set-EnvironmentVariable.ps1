@@ -4,32 +4,31 @@
 #
 # --------------------------------------------------------------------------------------------------------
 
-function Set-EnvironmentVariable
-{
+function Set-EnvironmentVariable {
     [CmdletBinding()]
     Param
     (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [String]
         $Name,
     
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [String]
         $Value
     
-  )
+    )
         
     
     # Create a hashtable for the results
-    $result = @{}
+    $result = @{ }
 
     Try {
         [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
-        $result.output =  "``$value`` is now set" 
+        $result.output = "``$value`` is now set" 
         $result.success = $true
     }
     Catch {
-        $result.output =  "``$value`` cannot be set !" 
+        $result.output = "``$value`` cannot be set !" 
         $result.success = $false
     }
 

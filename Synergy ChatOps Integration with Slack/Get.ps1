@@ -45,8 +45,21 @@ function get {
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+    # Create a hashtable for the results
+    $result = @{ }
+
     #Connecting to the Synergy Composer
-    $ApplianceConnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+    Try {
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+    }
+    Catch {
+        $env = "I cannot connect to OneView ! Check my OneView connection settings using ``find env``" 
+        $result.output = "$($env)" 
+        $result.success = $false
+        
+        return $result | ConvertTo-Json
+    }
+
     #import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP}) 
 
     # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
@@ -66,10 +79,6 @@ function get {
     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
        
-
-    # Create a hashtable for the results
-    $result = @{ }
-
     if ($name -eq "profile") {    
         
         $splist = Get-HPOVServerProfile | % { "`n*$($_.Name)* : ``$($_.Status)``" } 

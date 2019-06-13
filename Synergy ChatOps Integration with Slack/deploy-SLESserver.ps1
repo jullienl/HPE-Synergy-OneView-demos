@@ -23,8 +23,20 @@ function deploy-slesserver {
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+    # Create a hashtable for the results
+    $result = @{ }
+
     #Connecting to the Synergy Composer
-    $ApplianceConnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+    Try {
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+    }
+    Catch {
+        $env = "I cannot connect to OneView ! Check my OneView connection settings using ``find env``" 
+        $result.output = "$($env)" 
+        $result.success = $false
+        
+        return $result | ConvertTo-Json
+    }
 
 
     # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
@@ -43,11 +55,8 @@ function deploy-slesserver {
 
     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-    # Create a hashtable for the results       
-    $result = @{ }
-
     # Verifying the SPT is present
-     Try {
+    Try {
         $spt = Get-HPOVServerProfileTemplate -Name $serverprofiletemplate  -ErrorAction Stop
 
     }      
@@ -66,8 +75,7 @@ function deploy-slesserver {
     }
  
     # Verifying the SP is not already present
-    If (  (Get-HPOVServerProfile -Name $name -ErrorAction Ignore) )
-    {
+    If (  (Get-HPOVServerProfile -Name $name -ErrorAction Ignore) ) {
         $result.output = "Deployment error ! A Server Profile *$($name)* already exists in OneView !"
         # Set a failed result
         $result.success = $false

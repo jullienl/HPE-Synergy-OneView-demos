@@ -1,13 +1,12 @@
 ﻿# -------------------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------------------
 
-function delete-server
-{
+function delete-server {
     [CmdletBinding()]
     Param
     (
         # Server name
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         $name #="win-1"
     )
 
@@ -21,8 +20,21 @@ function delete-server
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+    # Create a hashtable for the results
+    $result = @{ }
+
     #Connecting to the Synergy Composer
-    $ApplianceConnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+    Try {
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+    }
+    Catch {
+        $env = "I cannot connect to OneView ! Check my OneView connection settings using ``find env``" 
+        $result.output = "$($env)" 
+        $result.success = $false
+        
+        return $result | ConvertTo-Json
+    }
+
     #import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP}) 
 
     # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
@@ -41,10 +53,6 @@ function delete-server
 
     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-       
-
-    # Create a hashtable for the results
-    $result = @{}
 
     # Verifying the SP is present
     Try { 
@@ -72,7 +80,7 @@ function delete-server
                     
         $server = Get-HPOVServer -ErrorAction stop | ? serverProfileUri -eq $serverprofileuri
          
-        $server | Stop-HPOVServer -Force -Confirm:$false -ErrorAction Stop |  out-null
+        $server | Stop-HPOVServer -Force -Confirm:$false -ErrorAction Stop | out-null
 
         Do { sleep 2 } until ( (Get-HPOVServer | ? serverProfileUri -eq $serverprofileuri ).powerstate -eq "Off")
         
@@ -81,23 +89,23 @@ function delete-server
         Remove-HPOVServerProfile -ServerProfile $name -force -Confirm:$false -ErrorAction stop | Out-Null
              
             
-        $result.output =  "*$($name)* is being deleted" 
+        $result.output = "*$($name)* is being deleted" 
             
         # Set a successful result
         $result.success = $true
     
     }
 
-catch{
-    $result.output =  "*$($name)* cannot be deleted, please check the OneView UI for further information"
-    # Set a failed result
-    $result.success = $false
+    catch {
+        $result.output = "*$($name)* cannot be deleted, please check the OneView UI for further information"
+        # Set a failed result
+        $result.success = $false
     }
 
-# Return the result deleting SP and conver it to json
-#$script:resultsp = $result
-Disconnect-HPOVMgmt
-return $result | ConvertTo-Json
+    # Return the result deleting SP and conver it to json
+    #$script:resultsp = $result
+    Disconnect-HPOVMgmt
+    return $result | ConvertTo-Json
 
 
 }
