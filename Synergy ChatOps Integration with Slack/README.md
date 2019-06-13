@@ -22,11 +22,12 @@ So you can use Hubot to call these scripts from inside the Slack channel to auto
 ## Requirements
 You will need to a have a few things ready to get a Hubot setup with Slack:
 
-* A Windows Machine with PowerShell 4.0+. 
+* A Windows Machine with PowerShell 4.0+ and with administrative access
+* [HPE OneView 4.20 PowerShell library](https://github.com/HewlettPackard/POSH-HPOneView) must be installed on the Windows Machine
 * Administrative access in your Slack group to create a Hubot integration
+* Hubot commands for automated server provisioning and deployment require the creation of Server Profile Templates using HPE Image Streamer OS Deployment plans in HPE OneView
 
 > You may get connection issues between Slack and your Hubot if your Windows Machine is located behind a corporate proxy server.
-
 
 ## Hubot Installation
 I have followed this [article](https://hodgkins.io/chatops-on-windows-with-hubot-and-powershell) and use the PowerShell DSC resource from Matthew Hodgkins to install Hubot on a Windows 2016 Server as a service, very convenient. 
@@ -35,6 +36,25 @@ I have followed this [article](https://hodgkins.io/chatops-on-windows-with-hubot
 ## Scripts Installation
 This repository provides **coffeescripts** and **PowerShell** scripts for a full integration with the HPE Synergy Composer. 
 All **scripts** must be copied to your Hubot **scripts** folder (e.g. in c:\myhubot\scripts).  
+
+## Scripts personalization
+Each `deploy-<OS>server.ps1` PowerShell script must be modified with the corresponding Server Profile Template name present in OneView. 
+ 
+```
+ function deploy-rhelserver {
+    [CmdletBinding()]
+    Param
+    (
+        # Server name
+        [Parameter(Mandatory = $true)]
+        $name 
+    )
+ 
+ 
+    # Server Profile Template name to use for the deployment
+    $serverprofiletemplate = "RHEL7.3 deployment with Streamer"
+
+```
 
 ## Environment Variables
 It is required to define the OneView credentials and IP address. This can be done directly from the Slack channel using the Hubot commands: 
@@ -47,15 +67,18 @@ It is required to define the OneView credentials and IP address. This can be don
 ## Available commands
 ![image](https://user-images.githubusercontent.com/13134334/59289144-aa6f6480-8c75-11e9-80f4-1e3341990573.png)
 * `delete <name>` - Turns off and unprovisions a server
-* `deploy centos <name>` - Deploys a CentOS 7.5 server using Image Streamer and turn it on (Note: IP is set after a reboot)
+* `deploy centos <name>` - Deploys a CentOS 7.5 server using Image Streamer and turn it on 
 * `deploy esx <name>` - Deploys an ESXi 6.5U2 server using Image Streamer and turn it on
 * `deploy rhel <name>` - Deploys a RHEL7.3 server using Image Streamer and turn it on
-* `deploy sles <name>` - Deploys an SLES12 server using Image Streamer and turn it on (Note: Boot requires manual launch of grubx64.efi)
+* `deploy sles <name>` - Deploys an SLES12 server using Image Streamer and turn it on
 * `deploy win <name>` - Deploys a Windows 2016 server using Image Streamer and turn it on
 * `deploy xen <name>` - Deploys a XenServer 7.1 server using Image Streamer and turn it on
-* `get <name>` - Lists the resource avalaible in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
+* `get <name>` - Lists the resource available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
+
+> Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
 
 ![image](https://user-images.githubusercontent.com/13134334/59289341-1f429e80-8c76-11e9-85bc-f3850812c78c.png)
+
 
 
 ## Troubleshooting
