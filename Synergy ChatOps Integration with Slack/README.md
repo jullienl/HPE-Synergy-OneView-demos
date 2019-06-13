@@ -23,6 +23,11 @@ The scripts I provide in this repo can enable the ChatBot **Hubot** to provide i
 
 ![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
 
+### In the background: 
+* Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
+* Hubot CoffeeScripts are simply calling PowerShell scripts in the background to interact with HPE OneView. 
+* The PowerShell scripts use the HPE OneView PowerShell library to control the HPE Synergy Composer 
+* For the workload composition, the Servers are provisioned automatically via Synergy Server Profile Templates and HPE Image Streamer 
 
 
 ## Requirements
@@ -34,12 +39,6 @@ You will need to a have a few things ready to get a Hubot setup with Slack:
 * Hubot commands for automated server provisioning and deployment require the creation of Server Profile Templates using HPE Image Streamer OS Deployment plans in HPE OneView
 
 > You may get connection issues between Slack and your Hubot if your Windows Machine is located behind a corporate proxy server.
-
-### In the background: 
-* Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
-* Hubot CoffeeScripts are simply calling PowerShell scripts in the background to interact with HPE OneView. 
-* The PowerShell scripts use the HPE OneView PowerShell library to control the HPE Synergy Composer 
-* For the workload composition, the Servers are provisioned automatically via Synergy Server Profile Templates and HPE Image Streamer 
 
 
 ## Hubot Installation
