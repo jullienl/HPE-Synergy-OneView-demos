@@ -59,7 +59,7 @@ Each `deploy-<OS>server.ps1` PowerShell script must be modified with the corresp
 ## Available commands
 To show the available hubot commands, you just need to enter `help` or `help <command>`:
 
-![image](https://user-images.githubusercontent.com/13134334/59417999-8a03ef00-8dc8-11e9-9ec1-db0ccd53ff12.png)
+![image](https://user-images.githubusercontent.com/13134334/59419033-62158b00-8dca-11e9-8954-63ea7ea4cc28.png)
 
 * `delete <name>` - Turns off and unprovisions a server
 * `deploy centos <name>` - Deploys CentOS 7.5 on a free server resource using Image Streamer and turn it on 
