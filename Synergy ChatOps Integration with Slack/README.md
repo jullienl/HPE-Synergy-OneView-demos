@@ -59,14 +59,15 @@ Each `deploy-<OS>server.ps1` PowerShell script must be modified with the corresp
 ## Available commands
 To show the available hubot commands, you just need to enter `help` or `help <command>`:
 
-![image](https://user-images.githubusercontent.com/13134334/59289144-aa6f6480-8c75-11e9-80f4-1e3341990573.png)
+![image](https://user-images.githubusercontent.com/13134334/59417999-8a03ef00-8dc8-11e9-9ec1-db0ccd53ff12.png)
+
 * `delete <name>` - Turns off and unprovisions a server
-* `deploy centos <name>` - Deploys a CentOS 7.5 server using Image Streamer and turn it on 
-* `deploy esx <name>` - Deploys an ESXi 6.5U2 server using Image Streamer and turn it on
-* `deploy rhel <name>` - Deploys a RHEL7.3 server using Image Streamer and turn it on
-* `deploy sles <name>` - Deploys an SLES12 server using Image Streamer and turn it on
-* `deploy win <name>` - Deploys a Windows 2016 server using Image Streamer and turn it on
-* `deploy xen <name>` - Deploys a XenServer 7.1 server using Image Streamer and turn it on
+* `deploy centos <name>` - Deploys CentOS 7.5 on a free server resource using Image Streamer and turn it on 
+* `deploy esx <name>` - Deploys ESXi 6.5U2 on a free server resource using Image Streamer and turn it on
+* `deploy rhel <name>` - Deploys RHEL7.3 on a free server resource using Image Streamer and turn it on
+* `deploy sles <name>` - Deploys SLES12 on a free server resource using Image Streamer and turn it on 
+* `deploy win <name>` - Deploys Windows 2016 server on a free server resource using Image Streamer and turn it on
+* `deploy xen <name>` - Deploys XenServer 7.1 on a free server resource using Image Streamer and turn it on
 * `get <name>` - Lists the resource available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
 
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
