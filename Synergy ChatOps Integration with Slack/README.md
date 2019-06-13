@@ -7,11 +7,11 @@ ChatOps is an approach to automate many ops-related tasks with a chat bot.
 
 Interaction from smartphone with a Synergy environment using a chatbot easy to program and interact with via a popular chat client for ChatOps: **Slack**
 
-A Slack bot (**Hubot**) can provide information about many resources in OneView but can also provision Synergy modules with an OS fully configured.
+The Slack bot (**Hubot**) can provide information about many resources in OneView but can also provision Synergy modules with an OS fully configured.
 
 ### In the background: 
-* Slack is securely connected to the Hubot engine located in the Synergy datacenter
-* The Slack bot leverages the HPE OneView PowerShell library to control the Synergy infrastructure 
+* Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
+* The Slack bot leverages the HPE OneView PowerShell library to control the HPE Synergy Composer 
 * For the workload composition, the Servers are provisioned automatically via Synergy Server Profile Templates and HPE Image Streamer 
 
 
