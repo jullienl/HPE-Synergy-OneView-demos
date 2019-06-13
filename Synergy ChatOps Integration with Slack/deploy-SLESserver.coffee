@@ -2,7 +2,7 @@
 #   Deploys an SLES12 server using SPT
 #
 # Commands:
-#   `deploy sles <name>` - Deploys an SLES12 server using Image Streamer and turn it on (Note: Boot requires manual launch of grubx64.efi)
+#   `deploy sles <name>` - Deploys SLES12 on a free server resource using Image Streamer and turn it on 
 
 # Require the edge module we installed
 edge = require("edge")

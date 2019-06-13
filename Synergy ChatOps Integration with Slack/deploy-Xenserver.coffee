@@ -2,7 +2,7 @@
 #   Deploys a XenServer 7.1 server using SPT
 #
 # Commands:
-#   `deploy xen <name>` - Deploys a XenServer 7.1 server using Image Streamer and turn it on
+#   `deploy xen <name>` - Deploys XenServer 7.1 on a free server resource using Image Streamer and turn it on
 
 # Require the edge module we installed
 edge = require("edge")

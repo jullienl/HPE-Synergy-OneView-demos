@@ -2,7 +2,7 @@
 #   Deploys an ESXi server using SPT
 #
 # Commands:
-#   `deploy esx <name>` - Deploys an ESXi 6.5U2 server using Image Streamer and turn it on
+#   `deploy esx <name>` - Deploys ESXi 6.5U2 on a free server resource using Image Streamer and turn it on
 
 # Require the edge module we installed
 edge = require("edge")

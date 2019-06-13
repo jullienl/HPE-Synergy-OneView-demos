@@ -2,7 +2,7 @@
 #   Deploys an Windows server using SPT
 #
 # Commands:
-#   `deploy win <name>` - Deploys a Windows 2016 server using Image Streamer and turn it on
+#   `deploy win <name>` - Deploys Windows 2016 server on a free server resource using Image Streamer and turn it on
 
 # Require the edge module we installed
 edge = require("edge")

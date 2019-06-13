@@ -2,7 +2,7 @@
 #   Deploys an RHEL server using SPT
 #
 # Commands:
-#   `deploy rhel <name>` - Deploys a RHEL7.3 server using Image Streamer and turn it on
+#   `deploy rhel <name>` - Deploys RHEL7.3 on a free server resource using Image Streamer and turn it on
 
 # Require the edge module we installed
 edge = require("edge")
