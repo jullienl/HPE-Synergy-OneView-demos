@@ -56,15 +56,9 @@ Each `deploy-<OS>server.ps1` PowerShell script must be modified with the corresp
 
 ```
 
-## Environment Variables
-It is required to define the OneView credentials and IP address. This can be done directly from the Slack channel using the Hubot commands: 
- 
-* `find env` - Provides the IP address of the HPE Synergy Composer and the OneView username currently set  
-* `set IP <IP>` - Sets the IP address of the HPE Synergy Composer (OneView)
-* `set password <password>` - Sets the password of the OneView user with Infrastructure administrator role  
-* `set username <name>` - Sets the username of a OneView user with Infrastructure administrator role
-
 ## Available commands
+To show the available hubot commands, you just need to enter `help` or `help <command>`:
+
 ![image](https://user-images.githubusercontent.com/13134334/59289144-aa6f6480-8c75-11e9-80f4-1e3341990573.png)
 * `delete <name>` - Turns off and unprovisions a server
 * `deploy centos <name>` - Deploys a CentOS 7.5 server using Image Streamer and turn it on 
@@ -80,6 +74,13 @@ It is required to define the OneView credentials and IP address. This can be don
 ![image](https://user-images.githubusercontent.com/13134334/59289341-1f429e80-8c76-11e9-85bc-f3850812c78c.png)
 
 
+## Environment Variables
+It is required to define the OneView credentials and IP address. This can be done directly from the Slack channel using the Hubot commands: 
+ 
+* `find env` - Provides the IP address of the HPE Synergy Composer and the OneView username currently set  
+* `set IP <IP>` - Sets the IP address of the HPE Synergy Composer (OneView)
+* `set password <password>` - Sets the password of the OneView user with Infrastructure administrator role  
+* `set username <name>` - Sets the username of a OneView user with Infrastructure administrator role
 
 ## Troubleshooting
 Hubot logs can be found in the **Logs** folder of your Hubot (e.g. C:\myhubot\Logs). This is where you usually find all you need for troubleshooting.
