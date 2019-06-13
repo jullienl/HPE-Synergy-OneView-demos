@@ -73,7 +73,7 @@ To show the available hubot commands, you just need to enter `help` or `help <co
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
 
 
-![image](https://user-images.githubusercontent.com/13134334/59416969-abfc7200-8dc6-11e9-8f6a-089bad7fc8d3.png)
+![image](https://user-images.githubusercontent.com/13134334/59421884-abb4a480-8dcf-11e9-953e-8f86187d0dfb.png)
 
 
 ## Environment Variables
