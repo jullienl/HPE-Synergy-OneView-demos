@@ -5,27 +5,24 @@ ChatOps is an approach to automate many ops-related tasks with a chat bot.
 
 ## Description
 
-Interaction from smartphone with a HPE Synergy environment using a chatbot easy to program and interact with via **Slack**, a popular chat client for ChatOps. 
+The purpose of this integration is to provide ChatOps operation with a HPE Synergy environment from a mobile app (= possibility to use a smartphone/tablet) using a [chatbot]( https://www.expertsystem.com/chatbot/).
 
-**Hubot**, the Slack bot can provide information about many resources in HPE OneView but can also provision HPE Synergy modules with an OS fully configured.
+A Chatbot is often described as a computer program or an artificial intelligence software that can simulate a conversation (or a chat) with a user. In this integration, we are going to use a ChatBot engine to interact directly with HPE OneView using chat messages from a **Slack** workspace (the mobile app).  
 
-### In the background: 
-* Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
-* The Slack bot leverages the HPE OneView PowerShell library to control the HPE Synergy Composer 
-* For the workload composition, the Servers are provisioned automatically via Synergy Server Profile Templates and HPE Image Streamer 
+> **Slack** is a messaging app for team collaboration. More information can be found from [https://slack.com/](https://get.slack.help/hc/en-us/categories/360000049043)   
+> Integration is what makes Slack a really interesting chat client. There are tons of integrations including bots that users can install that provide access to features from
+> directly within the Slack interface.
+
+Using simple chat messages sent to the Chatbot, the robot assistant will analyze the request, identify and run the action and then return the response. 
+
+The scripts I provide in this repo can enable the ChatBot **Hubot** to provide information about many resources in HPE OneView but can also enable the ChatBot to fully compose/decompose the Synergy infrastructure automatically by provisioning/un-provisioning HPE Synergy servers with an OS fully configured.
+
+> **Hubot** is an open source chatbot that's easy to program and interact with using scripts written in [CoffeeScript](https://en.wikipedia.org/wiki/CoffeeScript).  
+> Information about the Hubot integration can be found [here](https://slack.com/apps/A0F7XDU93-hubot)
 
 
 ![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
 
-**Slack** is a messaging app for team collaboration. 
-
-> More information can be found from [https://slack.com/](https://get.slack.help/hc/en-us/categories/360000049043)
-
-Integration is what makes Slack a really interesting chat client. There are tons of integrations including bots that users can install that provide access to features from directly within the Slack interface. The selected bot **Hubot** is an open source chat bot that's easy to program using simple scripts written in [CoffeeScript](https://en.wikipedia.org/wiki/CoffeeScript). 
-
-> Information about the Hubot integration can be found [here](https://slack.com/apps/A0F7XDU93-hubot)
- 
-These Hubot CoffeeScripts are simply calling in the background PowerShell scripts that are using the PowerShell OneView library to interact with OneView. 
 
 
 ## Requirements
@@ -37,6 +34,13 @@ You will need to a have a few things ready to get a Hubot setup with Slack:
 * Hubot commands for automated server provisioning and deployment require the creation of Server Profile Templates using HPE Image Streamer OS Deployment plans in HPE OneView
 
 > You may get connection issues between Slack and your Hubot if your Windows Machine is located behind a corporate proxy server.
+
+### In the background: 
+* Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
+* Hubot CoffeeScripts are simply calling PowerShell scripts in the background to interact with HPE OneView. 
+* The PowerShell scripts use the HPE OneView PowerShell library to control the HPE Synergy Composer 
+* For the workload composition, the Servers are provisioned automatically via Synergy Server Profile Templates and HPE Image Streamer 
+
 
 ## Hubot Installation
 I have followed this [article](https://hodgkins.io/chatops-on-windows-with-hubot-and-powershell) and use the PowerShell DSC resource from Matthew Hodgkins to install Hubot on a Windows 2016 Server as a service, very convenient. 
@@ -83,7 +87,9 @@ From the Slack channel, you can automate parts of your ops-related tasks, like g
 * `deploy xen <name>` - Deploys XenServer 7.1 on a free server resource using Image Streamer and turn it on
 * `get <name>` - Lists the resource available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
 
+
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
+
 
 
 ![image](https://user-images.githubusercontent.com/13134334/59421884-abb4a480-8dcf-11e9-953e-8f86187d0dfb.png)
