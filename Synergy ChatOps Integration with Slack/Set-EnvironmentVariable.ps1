@@ -19,12 +19,27 @@ function Set-EnvironmentVariable {
     )
         
     
+    $servicename = "Hubot_Bender"
+
     # Create a hashtable for the results
     $result = @{ }
 
     Try {
         [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
-        $result.output = "``$value`` is now set" 
+        
+        sleep 5
+
+        # Checking the presence of the Hubot Windows service   
+        Try {
+            Restart-Service $servicename -ErrorAction stop -WhatIf
+        }
+        Catch {
+            $result.output = "I cannot configure ``$value`` as the Windows service ``$($servicename)`` cannot be found on my Windows machine !`nPlease modify ``Set-EnvironmentVariable.ps1`` with the correct service name (line 22)" 
+            $result.success = $false
+            return $result | ConvertTo-Json    
+        }
+
+        $result.output = "``$value`` is now set, please wait while I restart my ``$($servicename)`` Windows service..." 
         $result.success = $true
     }
     Catch {
@@ -33,7 +48,11 @@ function Set-EnvironmentVariable {
     }
 
 
-    # Return the result and conver it to json
+    # Restarting the Hubot windows service to activate the new environment variable in Hubot
+    Start-Process powershell.exe -ArgumentList "-file $PSScriptRoot\restart-hubotservice.ps1", "Hubot_Hubot"   
+     
+   
+    # Return the result and convert it to json
     return $result | ConvertTo-Json
 
 }

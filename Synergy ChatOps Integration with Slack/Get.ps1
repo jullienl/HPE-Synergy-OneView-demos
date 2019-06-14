@@ -446,7 +446,7 @@ function get {
 
 
 
-    # Return the result deleting SP and conver it to json
+    # Return the result deleting SP and convert it to json
     #$script:resultsp = $result
     return $result | ConvertTo-Json
 
