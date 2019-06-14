@@ -13,9 +13,9 @@ A Chatbot is often described as a computer program or an artificial intelligence
 > Integration is what makes Slack a really interesting chat client. There are tons of integrations including bots that users can install that provide access to features from
 > directly within the Slack interface.
 
-Using simple chat messages sent to the Chatbot, the robot assistant will analyze the request, identify and run the action and then return the response. 
-
 ![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
+
+Using simple chat messages sent to the Chatbot, the robot assistant will analyze the request, identify and run the action against the Synergy environment and then return the response. 
 
 The scripts I provide in this repo can enable the ChatBot **Hubot** to provide information about many resources in HPE OneView but can also enable the ChatBot to fully compose/decompose the Synergy infrastructure automatically by provisioning/un-provisioning HPE Synergy servers with an OS fully configured.
 
