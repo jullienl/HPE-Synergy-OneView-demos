@@ -25,7 +25,7 @@ function delete-server {
 
     #Connecting to the Synergy Composer
     Try {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
+        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | out-null
     }
     Catch {
         $env = "I cannot connect to OneView ! Check my OneView connection settings using ``find env``" 
