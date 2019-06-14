@@ -87,6 +87,7 @@ From the Slack channel, you can automate parts of your ops-related tasks, like g
 * `deploy xen <name>` - Deploys XenServer 7.1 on a free server resource using Image Streamer and turn it on
 * `get <name>` - Lists the resource available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
 
+![image](https://user-images.githubusercontent.com/13134334/59513194-a4b69080-8eba-11e9-9489-ee2b5a390a80.png)
 
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
 
@@ -102,6 +103,8 @@ It is required to define the OneView credentials and IP address. This can be don
 * `set IP <IP>` - Sets the IP address of the HPE Synergy Composer (OneView)
 * `set password <password>` - Sets the password of the OneView user with Infrastructure administrator role  
 * `set username <name>` - Sets the username of a OneView user with Infrastructure administrator role
+
+![image](https://user-images.githubusercontent.com/13134334/59512244-9ff0dd00-8eb8-11e9-9167-9c767dad787e.png)
 
 ## Troubleshooting
 Hubot logs can be found in the **Logs** folder of your Hubot (e.g. C:\myhubot\Logs). This is where you usually find all you need for troubleshooting.
