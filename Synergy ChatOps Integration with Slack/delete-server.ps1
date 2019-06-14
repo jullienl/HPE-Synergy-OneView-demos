@@ -7,7 +7,7 @@ function delete-server {
     (
         # Server name
         [Parameter(Mandatory = $true)]
-        $name #="win-1"
+        $name  
     )
 
 
