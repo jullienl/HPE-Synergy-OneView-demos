@@ -15,13 +15,14 @@ A Chatbot is often described as a computer program or an artificial intelligence
 
 Using simple chat messages sent to the Chatbot, the robot assistant will analyze the request, identify and run the action and then return the response. 
 
+![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
+
 The scripts I provide in this repo can enable the ChatBot **Hubot** to provide information about many resources in HPE OneView but can also enable the ChatBot to fully compose/decompose the Synergy infrastructure automatically by provisioning/un-provisioning HPE Synergy servers with an OS fully configured.
 
 > **Hubot** is an open source chatbot that's easy to program and interact with using scripts written in [CoffeeScript](https://en.wikipedia.org/wiki/CoffeeScript).  
 > Information about the Hubot integration can be found [here](https://slack.com/apps/A0F7XDU93-hubot)
 
-
-![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
+![image](https://user-images.githubusercontent.com/13134334/59511655-24426080-8eb7-11e9-99e8-eca50e402760.png)
 
 ### In the background: 
 * Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
