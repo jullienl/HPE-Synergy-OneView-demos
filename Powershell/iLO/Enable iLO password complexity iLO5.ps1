@@ -84,7 +84,7 @@ clear
 
 if ($iloIPs) {
     write-host ""
-    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with a new password :" 
+    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enabled :" 
     $result = Get-HPOVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
     $result.ForEach( { [PSCustomObject]$_ }) | Format-Table -AutoSize | Out-Host
 
