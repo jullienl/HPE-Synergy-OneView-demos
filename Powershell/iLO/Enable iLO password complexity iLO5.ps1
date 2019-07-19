@@ -2,7 +2,7 @@
 # by lionel.jullien@hpe.com
 # July 2019
 #
-# Change the iLO password complexity option in all iLOs managed by OneView without using any iLO local account
+# Change the iLO password complexity option in every iLO5 managed by OneView without using any iLO local account
 #
 # OneView administrator account is required. 
 # iLO modification is done through OneView and iLO SSOsession key using REST PATCH method
