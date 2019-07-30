@@ -25,21 +25,7 @@ function Failure {
 }
 
 # Uncomment the following lines if facing the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."  (usually due to using a OneView Self-signed certificate)
-<#
-
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-#>
+# [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 
 #Creation of the header
 $headers = @{ } 
