@@ -36,7 +36,7 @@ function Failure {
     #break
 }
 
-# Uncomment the following lines if facing the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."  (usually due to using a OneView Self-signed certificate)
+# Uncomment the following line if facing the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."  (usually due to using a OneView Self-signed certificate)
 # [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 
 
