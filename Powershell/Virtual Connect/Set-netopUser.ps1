@@ -11,6 +11,8 @@
 #
 # Script requirements: Composer 4.20
 # OneView Powershell Library is not required
+# 
+# Note: If using a OneView Self-signed certificate, it is required to uncomment line 42
 
 
 
