@@ -13,8 +13,8 @@ $username = "Administrator"
 $password = "password"
 $composer = "composer.lj.lab"
 
+# Server that you want to get the drive information from (name found using get-hpovserver)
 $server = "Frame1, bay 6"
-
 
 
 #Importing HPOneView module
