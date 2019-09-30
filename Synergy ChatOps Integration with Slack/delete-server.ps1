@@ -7,7 +7,7 @@ function delete-server {
     (
         # Server name
         [Parameter(Mandatory = $true)]
-        $name  
+        $name #="win-1"
     )
 
 
@@ -84,7 +84,7 @@ function delete-server {
 
         Do { sleep 2 } until ( (Get-HPOVServer | ? serverProfileUri -eq $serverprofileuri ).powerstate -eq "Off")
         
-        sleep 15
+        sleep 20
 
         Remove-HPOVServerProfile -ServerProfile $name -force -Confirm:$false -ErrorAction stop | Out-Null
              

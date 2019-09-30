@@ -81,7 +81,7 @@ function get {
        
     if ($name -eq "profile") {    
         
-        $splist = Get-HPOVServerProfile | % { "`n*$($_.Name)* : ``$($_.Status)``" } 
+        $splist = Get-HPOVServerProfile | % { "`n- *$($_.Name)* : ``$($_.Status)``" } 
         $profilenb = (Get-HPOVServerProfile | measure-object ).count 
 
         if (! $splist) { 
@@ -102,8 +102,8 @@ function get {
 
     elseif ($name -eq "network") {    
         
-        $networklist = Get-HPOVnetwork | ? category -NotMatch "fc-networks" | % { "`n*$($_.Name)* : ``$($_.purpose)`` - VLAN: ``$($_.vlanid)``" } 
-        $FCnetworklist = Get-HPOVnetwork -Type FibreChannel | % { "`n*$($_.Name)* : ``$($_.fabrictype)``" } 
+        $networklist = Get-HPOVnetwork | ? category -NotMatch "fc-networks" | % { "`n- *$($_.Name)* : ``$($_.purpose)`` - VLAN: ``$($_.vlanid)``" } 
+        $FCnetworklist = Get-HPOVnetwork -Type FibreChannel | % { "`n- *$($_.Name)* : ``$($_.fabrictype)``" } 
 
         $networknb = (Get-HPOVnetwork | ? category -NotMatch "fc-networks" | measure-object ).count + (Get-HPOVnetwork -Type FibreChannel | measure-object ).count
 
@@ -128,7 +128,7 @@ function get {
 
     elseif ($name -eq "enclosure") {    
         
-        $enclosurelist = Get-HPOVenclosure | % { "`n*$($_.Name)* - Status: ``$($_.Status)``" } 
+        $enclosurelist = Get-HPOVenclosure | % { "`n- *$($_.Name)* - Status: ``$($_.Status)``" } 
         $enclosurenb = (Get-HPOVenclosure | measure-object ).count 
 
         if (! $enclosurelist) { 
@@ -149,7 +149,7 @@ function get {
 
     elseif ($name -eq "interconnect") {    
         
-        $interconnectlist = Get-HPOVInterconnect | % { "`n*$($_.Name)*: `n`t$($_.model)`n`tStatus: ``$($_.Status)``" } 
+        $interconnectlist = Get-HPOVInterconnect | % { "`n- *$($_.Name)*: `n`t$($_.model) - Status: ``$($_.Status)``" } 
         $interconnectnb = (Get-HPOVInterconnect | measure-object ).count 
 
         if (! $interconnectlist) { 
@@ -170,7 +170,7 @@ function get {
 
     elseif ($name -eq "LIG") {    
         
-        $LIGlist = Get-HPOVLogicalInterconnectGroup | % { "`n*$($_.Name)*" } 
+        $LIGlist = Get-HPOVLogicalInterconnectGroup | % { "`n- *$($_.Name)*" } 
         $LIGnb = (Get-HPOVLogicalInterconnectGroup | measure-object ).count 
 
         if (! $LIGlist) { 
@@ -190,7 +190,7 @@ function get {
 
     elseif ($name -eq "LI") {    
         
-        $LIlist = Get-HPOVlogicalInterconnect | % { "`n*$($_.Name)* : $($_.consistencyStatus) `n`tStatus: ``$($_.Status)``" } 
+        $LIlist = Get-HPOVlogicalInterconnect | % { "`n- *$($_.Name)* : ``$($_.consistencyStatus)`` - Status: ``$($_.Status)``" } 
         $LInb = (Get-HPOVlogicalInterconnect | measure-object ).count 
 
         if (! $LIlist) { 
@@ -211,7 +211,7 @@ function get {
 
     elseif ($name -eq "EG") {    
         
-        $EGlist = Get-HPOVEnclosureGroup | % { "`n*$($_.Name)* - Status: ``$($_.status)``: $(  $_.associatedLogicalInterconnectGroups | %  { Send-HPOVRequest -uri $_ } | % {"`n`t"; $_.Name ; "-" ; $_.redundancyType } )" } 
+        $EGlist = Get-HPOVEnclosureGroup | % { "`n*Name*: ``$($_.Name)`` - *Status*: ``$($_.status)`` $(  $_.associatedLogicalInterconnectGroups | %  { Send-HPOVRequest -uri $_ } | % {"`n - *LIG*: ``$($_.Name)`` $( If ($_.redundancyType) {"- $($_.redundancyType)"} ) " } )" } 
         $EGnb = (Get-HPOVEnclosureGroup | measure-object ).count 
 
         if (! $EGlist) { 
@@ -232,8 +232,8 @@ function get {
 
     elseif ($name -eq "LE") {    
         
-        $LElist = Get-HPOVLogicalEnclosure | % { "`n*$($_.Name)* - ``$($_.state)``: `nEG: `n`t $( ($_.enclosureGroupUri | %  { Send-HPOVRequest -uri $_ }).Name ) `nEnclosures: $(  $_.enclosureUris | %  { Send-HPOVRequest -uri $_ } | % {"`n`t"; $_.Name } )" } 
         $LEnb = (Get-HPOVLogicalEnclosure | measure-object ).count 
+        $LElist = Get-HPOVLogicalEnclosure | % { "`n*Name*: ``$($_.Name)`` `n*State*: ``$($_.state)`` `n*Enclosure Group*: ``$( ($_.enclosureGroupUri | %  { Send-HPOVRequest -uri $_ }).Name )`` `n*Enclosures*: $(  $_.enclosureUris | %  { Send-HPOVRequest -uri $_ } | % { "`n- ``$($_.Name)`` " } )" } 
 
         if (! $LElist) { 
 
@@ -253,7 +253,7 @@ function get {
 
     elseif ($name -eq "uplinkset") {    
         
-        $uplinksetlist = Get-HPOVUplinkSet | % { "`n*$($_.Name)* - Status: ``$($_.status)`` : $(   $_.networkUris | % { Send-HPOVRequest -uri $_ } | % { "`n`t$($_.Name) - VLAN: ``$($_.vlanid)`` " }   ) " }   
+        $uplinksetlist = Get-HPOVUplinkSet | % { "`n*$($_.Name)* - Status: ``$($_.status)``: $( if($_.networkUris ) { $(   $_.networkUris | % { Send-HPOVRequest -uri $_ } | % { "`n- ``$($_.Name)`` - VLAN: ``$($_.vlanid)`` " }   )} else {"-"}  )   " }   
         $uplinksetnb = (Get-HPOVUplinkSet | measure-object ).count 
 
         if (! $uplinksetlist) { 
@@ -272,9 +272,43 @@ function get {
 
 
 
-    elseif ($name -eq "spt") {    
-        
-        $sptlist = Get-HPOVServerProfileTemplate | % { "`n*$($_.Name)*" } 
+    elseif ($name -eq "spt") {  
+
+        $spts = Get-HPOVServerProfileTemplate
+        $serverprofiletemplates = @{ }
+
+        foreach ($spt in $spts) {
+            $sptname = $spt.name
+            $SPTUri = $spt.Uri
+            $association = "server_profile_template_to_server_profiles"
+            $uri = "/rest/index/associations?name={0}&parentUri={1}" -f $association, $SPTUri
+
+            $server_profile_template_to_server_profiles = (Send-HPOVRequest -Uri $Uri).members
+            If ($server_profile_template_to_server_profiles) {
+                $serverprofileconsistency = @()
+                Foreach ($server_profile_template_to_server_profile in $server_profile_template_to_server_profiles) {  
+            
+                    $serverprofilename = "*$((Send-HPOVRequest -Uri ($server_profile_template_to_server_profile.childUri) ) | % name)*"
+                    If ( ((Send-HPOVRequest -Uri ($server_profile_template_to_server_profile.childUri) ) | % templateCompliance) -eq "Compliant" ) {
+                        $templateCompliance = "``Consistent``"
+                    }
+                    Else { $templateCompliance = "``Inconsistent``" }
+
+                    $serverprofileconsistency += ("- "+ $serverprofilename + " : " + $templateCompliance)
+                }
+
+                $serverprofiletemplates.add($sptname, $serverprofileconsistency)
+            }
+            Else {
+
+                $serverprofiletemplates.add($sptname, $Null)
+
+             }
+           
+        }
+
+
+        $sptlist = ( $serverprofiletemplates.GetEnumerator() | Sort-Object Name | % {   if($_.value) {  " - ``$($_.name)`` : $( $_.value | % {"`n`t$($_)"} )   " } else {" - ``$($_.name)``"}             }) -join "`n" 
         $spnb = (Get-HPOVServerProfileTemplate | measure-object ).count 
 
         if (! $sptlist) { 
@@ -286,7 +320,7 @@ function get {
 
         else {
      
-            $result.output = "$($spnb) Server Profile Template(s) found: $($sptlist)" 
+            $result.output = "$($spnb) Server Profile Template(s) found: `n$($sptlist)" 
             $result.success = $true
         }
     }
@@ -295,7 +329,7 @@ function get {
 
     elseif ($name -eq "networkset") {    
         
-        $networksettlist = Get-HPOVNetworkSet | % { "`n*$($_.Name)* : $( $_.networkUris | % { Send-HPOVRequest -uri $_ } | % {"`n`t$($_.Name) - VLAN: ``$($_.vlanid)`` " }   ) " }
+        $networksettlist = Get-HPOVNetworkSet | % { "`n*$($_.Name)* : $( $_.networkUris | % { Send-HPOVRequest -uri $_ } | % {"`n`t- ``$($_.Name)`` - VLAN: ``$($_.vlanid)`` " }   ) " }
         $networksetnb = (Get-HPOVNetworkSet | measure-object ).count 
 
         if (! $networksettlist) { 
@@ -316,7 +350,7 @@ function get {
 
     elseif ($name -eq "OSDP") {    
         
-        $OSDPlist = Get-HPOVOSDeploymentPlan | % { "`n*$($_.Name)*" } 
+        $OSDPlist = Get-HPOVOSDeploymentPlan | % { "`n- *$($_.Name)*" } 
         $OSDPnb = (Get-HPOVOSDeploymentPlan | measure-object ).count 
 
         if (! $OSDPlist) { 
@@ -360,10 +394,10 @@ function get {
 
     elseif ($name -eq "user") {    
         
-        $userlist = Get-HPOVuser | % { "`n*$($_.userName)*: ``$( If ($_.enabled) {"Enabled"} else {"Not enabled"})`` - Permissions: ``$($_.permissions.rolename)``" } 
+        $userlist = Get-HPOVuser | % { "`n- *$($_.userName)*: ``$( If ($_.enabled) {"Enabled"} else {"Not enabled"})`` - Permissions: $( $_.permissions.rolename | % { "``$($_)`` "})" } 
         $usernb = (Get-HPOVuser | measure-object ).count 
 
-        $ldapgroup = Get-HPOVLdapGroup | % { "`n*$($_.egroup)* - Permissions: ``$($_.permissions.rolename)`` - Directory: ``$($_.loginDomain)``" } 
+        $ldapgroup = Get-HPOVLdapGroup | % {   If($_.egroup) { ":`n- *$($_.egroup)* - Permissions: $( $_.permissions.rolename | % { "``$($_)`` "}) - Directory: ``$($_.loginDomain)``"} else {}             } 
         $ldapgroupnb = (Get-HPOVLdapGroup | measure-object ).count
 
         if (! $userlist) { 
@@ -375,7 +409,7 @@ function get {
 
         else {
             if ($ldapgroup) { 
-                $result.output = "$($usernb) Local User(s) found: $($userlist) `n$($ldapgroupnb) LDAP Group(s) found: $($ldapgroup) " 
+                $result.output = "$($usernb) Local User(s) found: $($userlist) `n$($ldapgroupnb) LDAP Group(s) found $($ldapgroup) " 
                 
             }
             else {
@@ -392,7 +426,7 @@ function get {
 
     elseif ($name -eq "spp") {    
         
-        $spplist = Get-HPOVBaseline | % { "`n*$($_.Name)* - location: ``$($_.locations)``" } 
+        $spplist = Get-HPOVBaseline | % { "`n- *$($_.Name)* - location: ``$($_.locations)``" } 
 
         $sppnb = (Get-HPOVBaseline | measure-object ).count 
 

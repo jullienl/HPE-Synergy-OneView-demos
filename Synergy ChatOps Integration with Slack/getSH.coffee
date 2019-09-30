@@ -1,8 +1,8 @@
 # Description:
-#   List the resource avalaible in OneView 
+#   Get server hardware details  
 #
 # Commands:
-#   `get <name>` - Lists the resource avalaible in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert).
+#   `getsh <name>` - Get the server hardware <name> information (e.g. Frame1, bay 2)
 #
 
 # Require the edge module we installed
@@ -11,20 +11,20 @@ edge = require("edge")
 # Build the PowerShell that will execute
 executePowerShell = edge.func('ps', -> ###
   # Dot source the function
-  . .\scripts\get.ps1
+  . .\scripts\getsh.ps1
 
   # Edge.js passes an object to PowerShell as a variable - $inputFromJS
   # This object is built in CoffeeScript on line 30 below
-  get -name $inputFromJS.name
+  getsh -name $inputFromJS.name
 ###
 )
 
 module.exports = (robot) ->
   # Capture the user message using a regex capture
   # to get the resource name
-  robot.respond /get (.*)/i, (msg) ->
+  robot.respond /getsh (.*)/i, (msg) ->
     # i: case insensitive - $: at the end - ^: at the begining
-    msg.send "Ok, let me see what we have..."
+    msg.send "Ok, let me see what are the information of that server hardware..."
     name = msg.match[1]
     # Build an object to send to PowerShell
     psObject = {
