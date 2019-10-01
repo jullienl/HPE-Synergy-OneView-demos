@@ -75,20 +75,27 @@ Each `deploy-<OS>server.ps1` PowerShell script must be modified with the corresp
 
 ## Available commands
 From the Slack channel, you can automate parts of your ops-related tasks, like getting some information from OneView, deleting a server profile or provisioning a new server with an OS using the Image Streamer. All these actions can be found using the Hubot ``help`` command or `help <command>`:
+  
+![image](https://user-images.githubusercontent.com/13134334/65963159-730e0900-e45a-11e9-9039-31df126eb3c1.png)
+  
 
-![image](https://user-images.githubusercontent.com/13134334/59419033-62158b00-8dca-11e9-8954-63ea7ea4cc28.png)
+* `delete <name>` - Turns off and unprovisions server `<name>`  
+  
+* `deploy centos <name>` - Deploys CentOS 7.5 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
+* `deploy esx <name>` - Deploys ESXi 6.5U2 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy rhel <name>` - Deploys RHEL7.3 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy sles <name>` - Deploys SLES12 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
+* `deploy win <name>` - Deploys Windows 2016 server on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy xen <name>` - Deploys XenServer 7.1 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+  
+* `get <name>` - Lists the resource `<name>` available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
+* `getenclosure <name>` - Get the frame `<name>` information (e.g. Frame1)
+* `getsh <name>` - Get the Server Hardware `<name>` information (e.g. Frame1, bay 3)
+* `getsp <name>` - Get the Server Profile `<name>` information (e.g. Profile-1)
+* `getspt <name>` - Get the Server Profile Template `<name>` information (e.g. RH6.7)
 
-* `delete <name>` - Turns off and unprovisions a server
-* `deploy centos <name>` - Deploys CentOS 7.5 on a free server resource using Image Streamer and turn it on 
-* `deploy esx <name>` - Deploys ESXi 6.5U2 on a free server resource using Image Streamer and turn it on
-* `deploy rhel <name>` - Deploys RHEL7.3 on a free server resource using Image Streamer and turn it on
-* `deploy sles <name>` - Deploys SLES12 on a free server resource using Image Streamer and turn it on 
-* `deploy win <name>` - Deploys Windows 2016 server on a free server resource using Image Streamer and turn it on
-* `deploy xen <name>` - Deploys XenServer 7.1 on a free server resource using Image Streamer and turn it on
-* `get <name>` - Lists the resource available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
-
-![image](https://user-images.githubusercontent.com/13134334/59513194-a4b69080-8eba-11e9-9489-ee2b5a390a80.png)
-
+![image](https://user-images.githubusercontent.com/13134334/65963354-e0ba3500-e45a-11e9-8d51-6b9d30d9fba8.png)
+  
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
 
 
