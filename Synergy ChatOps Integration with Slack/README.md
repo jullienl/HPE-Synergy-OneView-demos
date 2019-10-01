@@ -89,12 +89,16 @@ From the Slack channel, you can automate parts of your ops-related tasks, like g
 * `deploy xen <name>` - Deploys XenServer 7.1 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
   
 * `get <name>` - Lists the resource `<name>` available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
+  
+![image](https://user-images.githubusercontent.com/13134334/65963354-e0ba3500-e45a-11e9-8d51-6b9d30d9fba8.png)
+  
 * `getenclosure <name>` - Get the frame `<name>` information (e.g. Frame1)
 * `getsh <name>` - Get the Server Hardware `<name>` information (e.g. Frame1, bay 3)
 * `getsp <name>` - Get the Server Profile `<name>` information (e.g. Profile-1)
 * `getspt <name>` - Get the Server Profile Template `<name>` information (e.g. RH6.7)
+  
+![image](https://user-images.githubusercontent.com/13134334/65963895-03991900-e45c-11e9-9736-9ab0b5e08a33.png)
 
-![image](https://user-images.githubusercontent.com/13134334/65963354-e0ba3500-e45a-11e9-8d51-6b9d30d9fba8.png)
   
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
 
