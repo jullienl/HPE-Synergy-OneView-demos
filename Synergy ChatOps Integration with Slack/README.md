@@ -78,16 +78,7 @@ From the Slack channel, you can automate parts of your ops-related tasks, like g
   
 ![image](https://user-images.githubusercontent.com/13134334/65963159-730e0900-e45a-11e9-9039-31df126eb3c1.png)
   
-
-* `delete <name>` - Turns off and unprovisions server `<name>`  
-  
-* `deploy centos <name>` - Deploys CentOS 7.5 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
-* `deploy esx <name>` - Deploys ESXi 6.5U2 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
-* `deploy rhel <name>` - Deploys RHEL7.3 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
-* `deploy sles <name>` - Deploys SLES12 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
-* `deploy win <name>` - Deploys Windows 2016 server on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
-* `deploy xen <name>` - Deploys XenServer 7.1 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
-  
+### Get information from the Composer  
 * `get <name>` - Lists the resource `<name>` available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
   
 ![image](https://user-images.githubusercontent.com/13134334/65963354-e0ba3500-e45a-11e9-8d51-6b9d30d9fba8.png)
@@ -99,10 +90,18 @@ From the Slack channel, you can automate parts of your ops-related tasks, like g
   
 ![image](https://user-images.githubusercontent.com/13134334/65963895-03991900-e45c-11e9-9736-9ab0b5e08a33.png)
 
+### Automated provisioning
   
+* `deploy centos <name>` - Deploys CentOS 7.5 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
+* `deploy esx <name>` - Deploys ESXi 6.5U2 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy rhel <name>` - Deploys RHEL7.3 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy sles <name>` - Deploys SLES12 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
+* `deploy win <name>` - Deploys Windows 2016 server on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy xen <name>` - Deploys XenServer 7.1 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+  
+![image](https://user-images.githubusercontent.com/13134334/65964547-7ce53b80-e45d-11e9-8499-fa45e2c575c5.png)
+
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
-
-
 
 ![image](https://user-images.githubusercontent.com/13134334/59421884-abb4a480-8dcf-11e9-953e-8f86187d0dfb.png)
 
