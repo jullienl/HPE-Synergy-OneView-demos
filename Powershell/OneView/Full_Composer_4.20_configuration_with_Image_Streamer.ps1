@@ -42,25 +42,18 @@
 # THE SOFTWARE.                                                                 #
 #                                                                               #
 #################################################################################
-
 #>
 
-# Global Variables
 
-# I am using an external repo now
-# $baseline1 = "C:\Kits\_HP\_SPP\874800-001.iso"
-# $baseline2 = "C:\Kits\_HP\_SPP\Synergy subset\874768-001.iso"
-      
-
-import-module HPOneview.420
- 
 # OneView Credentials
 $username = "Administrator" 
 $password = "xxxxx" 
 $IP = "192.168.1.110" 
 
 
-# Import the OneView 4.00 library
+# Import the OneView 4.20 library
+import-module HPOneview.420
+
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 

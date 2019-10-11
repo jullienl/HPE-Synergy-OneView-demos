@@ -42,15 +42,7 @@
 # THE SOFTWARE.                                                                 #
 #                                                                               #
 #################################################################################
-
 #>
-
-# Global Variables
-
-# I am using an external repo now
-# $baseline1 = "C:\Kits\_HP\_SPP\874800-001.iso"
-# $baseline2 = "C:\Kits\_HP\_SPP\Synergy subset\874768-001.iso"
-      
 
  
 # OneView Credentials
