@@ -19,9 +19,13 @@ $IP = "192.168.1.110"
 
 # OneView Credentials
 $username = "Administrator" 
-$password = "password" 
+$password = read-host "Please enter the Composer password for Administrator" -AsSecureString
 
-# Import the OneView 4.00 library
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+    
+
+# Import the OneView 5.00 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
 
@@ -79,13 +83,14 @@ Function MyImport-Module {
 
         
         If ( !(get-PSRepository).name -eq "PSGallery" )
-        {Register-PSRepository -Default}
+        { Register-PSRepository -Default }
                 
         Try {
             find-module -Name $module -ErrorAction Stop | out-Null
                 
             Try {
-                Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+                Install-Module -Name $module -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop | Out-Null
+                Import-module $module
                 Write-host "`nInstalling $Module ..." 
             }
             catch {
@@ -108,20 +113,21 @@ Function MyImport-Module {
 #MyImport-Module PowerShellGet
 #MyImport-Module FormatPX
 #MyImport-Module SnippetPX
-MyImport-Module HPOneview.410 #-update
+# MyImport-Module HPOneview.420 #-update
+MyImport-Module HPOneview.500
 #MyImport-Module PoshRSJob
    
   
 
 # Connection to the Synergy Composer
 
-If ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
+If ($connectedSessions -and ($connectedSessions | ? { $_.name -eq $IP })) {
     Write-Verbose "Already connected to $IP."
 }
 
 Else {
     Try {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
+        Connect-HPOVMgmt -appliance $IP -Credential $credentials | Out-Null
     }
     Catch {
         throw $_
@@ -131,52 +137,32 @@ Else {
 
 
 
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
-
-
-# Creation of the header
-
-$postParams = @{userName = $username; password = $password} | ConvertTo-Json 
-$headers = @{} 
-#$headers["Accept"] = "application/json" 
-$headers["X-API-Version"] = "300"
-
-# Capturing the OneView Session ID and adding it to the header
-    
-$key = $ConnectedSessions[0].SessionID 
-
-$headers["auth"] = $key
-    
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 $numberofframes = @(Get-HPOVEnclosure).count
-$frames = Get-HPOVEnclosure | % {$_.name}
-    
+$frames = Get-HPOVEnclosure | % { $_.name }
     
 #clear
-
-
 #Which enclosure you want to eFuse a component?
 
 if ($numberofframes -gt 0) {
     $interconnects = Get-HPOVInterconnect     
-    $whosframe1 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | % {$_.enclosurename}
+    $whosframe1 = $interconnects | where { $_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3" } | % { $_.enclosurename }
 }
 
 if ($numberofframes -gt 1) {
-    $whosframe2 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6"} | % {$_.enclosurename}
+    $whosframe2 = $interconnects | where { $_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6" } | % { $_.enclosurename }
 }
 
 if ($numberofframes -gt 2) {
     $frameswithsatellites = $interconnects | where -Property Partnumber -eq "779218-B21" 
-    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename |  ? { $_.Count -gt 1 } | % {$_.name}  
+    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | % { $_.name }  
 }
 
-if ($numberofframes -gt 3) { Write-Host "This script does not support more than 3 frames"}
+if ($numberofframes -gt 3) { Write-Host "This script does not support more than 3 frames" }
 
 
-do 
-
-{    
+do {    
    
     do {
         
@@ -184,8 +170,8 @@ do
         write-host "On which frame do you want to eFuse a component?"
         write-host ""
         write-host "1 - $whosframe1"
-        if ($numberofframes -gt 1) {write-host "2 - $whosframe2"}
-        if ($numberofframes -gt 2) {write-host "3 - $whosframe3"}
+        if ($numberofframes -gt 1) { write-host "2 - $whosframe2" }
+        if ($numberofframes -gt 2) { write-host "3 - $whosframe3" }
         write-host ""
         write-host "X - Exit"
         write-host ""
@@ -223,9 +209,9 @@ do
     }
     
    
-    $enclosure = Get-HPOVEnclosure | where {$_.name -Match $frame}
-    $frameuuid = (Get-HPOVEnclosure | where {$_.name -Match $frame}).uuid
-    $locationUri = (Get-HPOVEnclosure | where {$_.name -Match $frame}).uri
+    $enclosure = Get-HPOVEnclosure | where { $_.name -Match $frame }
+    $frameuuid = (Get-HPOVEnclosure | where { $_.name -Match $frame }).uuid
+    $locationUri = (Get-HPOVEnclosure | where { $_.name -Match $frame }).uri
     
 
     do {
@@ -260,65 +246,63 @@ do
 
     if ($componenttoefuse -eq 1) {
         clear
-        $ert = Get-HPOVServer | where {$_.locationUri -eq $locationUri} 
+        $ert = Get-HPOVServer | where { $_.locationUri -eq $locationUri } 
 
-        $ert | Select @{Name = "Model"; expression = {$_.shortmodel}},
-        @{Name = "Compute"; expression = {$_.name}},
-        @{Name = "Power State"; expression = {$_.powerState}},
-        @{Name = "Profile"; expression = {$_.state}}        | Format-Table -AutoSize | out-host
+        $ert | Select-Object @{Name = "Model"; expression = { $_.shortmodel } },
+        @{Name = "Compute"; expression = { $_.name } },
+        @{Name = "PowerState"; expression = { $_.powerState } },
+        @{Name = "Status"; expression = { $_.Status } },
+        @{Name = "Profile"; expression = { $_.state } } | Format-Table -AutoSize | out-host
                   
-        $baynb = Read-Host "Please enter the Computer Module Bay number to efuse (1 to 12)"
-        #$body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
-        $component = "Device"  
-    }
+    $baynb = Read-Host "Please enter the Computer Module Bay number to efuse (1 to 12)"
+    #$body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
+    $component = "Device"  
+}
 
-    if ($componenttoefuse -eq 2) {
-        clear
-        $ert = Get-HPOVInterconnect | where {$_.enclosurename -eq $frame} 
+if ($componenttoefuse -eq 2) {
+    clear
+    $ert = Get-HPOVInterconnect | where { $_.enclosurename -eq $frame } 
                     
-        $ert | Select @{Name = "Interconnect Model"; Expression = {$_.model}}, @{Name = "Bay number"; Expression = {$_.interconnectlocation.locationEntries | where {$_.type -eq "Bay"} | select  value | % {$_.value}}} | Sort-Object –Property "Bay number" | Out-Host
+    $ert | Select @{Name = "Interconnect Model"; Expression = { $_.model } }, @{Name = "Status"; Expression = { $_.status } },
+    @{Name = "Bay number"; Expression = { $_.interconnectlocation.locationEntries | where { $_.type -eq "Bay" } | select  value | % { $_.value } } } | Sort-Object -Property "Bay number" | Out-Host
 
 
-        $baynb = Read-Host "Please enter the Interconnect Module Bay number to efuse (1 to 6)"
-        #$body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-        $component = "ICM"  
-    }
+$baynb = Read-Host "Please enter the Interconnect Module Bay number to efuse (1 to 6)"
+#$body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+$component = "ICM"  
+}
 
-    if ($componenttoefuse -eq 3) {
-        clear
-        $ert = (Get-HPOVEnclosure | where {$_.name -Match $frame}).applianceBays | where {$_.devicePresence -eq "Present"}
-        $ert | Select @{Name = "Model"; Expression = {$_.model}}, @{Name = "Bay number"; Expression = {$_.baynumber}}, @{Name = "Status"; Expression = {$_.status}} | Out-Host
+if ($componenttoefuse -eq 3) {
+    clear
+    $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
+    $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
         
-        $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2)"
-        #$body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-        $component = "Appliance"  
-    }
+    $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2)"
+    #$body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+    $component = "Appliance"  
+}
 
-    if ($componenttoefuse -eq 4) {
-        clear
-        $ert = (Get-HPOVEnclosure | where {$_.name -Match $frame}).managerbays
-        $ert | Select @{Name = "Model"; Expression = {$_.model}}, @{Name = "Bay number"; Expression = {$_.baynumber}}, @{Name = "Role"; Expression = {$_.role}}, @{Name = "Status"; Expression = {$_.status}} | Out-Host
+if ($componenttoefuse -eq 4) {
+    clear
+    $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).managerbays
+    $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Role"; Expression = { $_.role } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
 
-        $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2)"
-        #$body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-        $component = "FLM"  
-    }
+    $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2)"
+    #$body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+    $component = "FLM"  
+}
 
-    if ($componenttoefuse -eq "x") { exit }
+if ($componenttoefuse -eq "x") { exit }
 
-
-
-    # eFuse the Component
-    #$efusecomponent = Invoke-WebRequest -Uri "https://$IP/rest/enclosures/$frameuuid" -ContentType "application/json" -Headers $headers -Method PATCH -UseBasicParsing -Body $body
     
-    $efusecomponent = Reset-HPOVEnclosureDevice -Enclosure $enclosure  -Component $component -DeviceID $baynb -Efuse -confirm:$false | Wait-HPOVTaskComplete
+$efusecomponent = Reset-HPOVEnclosureDevice -Enclosure $enclosure  -Component $component -DeviceID $baynb -Efuse -confirm:$false | Wait-HPOVTaskComplete
     
-    #sleep 15
+#sleep 15
 
-    write-host `n`n`n`n
-    Write-Warning "The $Component in Bay $baynb is efusing!`n"
+write-host `n`n`n`n
+Write-Warning "The $Component in Bay $baynb is efusing!`n"
 
-    pause
+pause
  
 } until ( $componenttoefuse -eq "X" )
 
