@@ -57,12 +57,10 @@ $IP = "192.168.1.xx"
 import-module HPOneview.500
 
 
-
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $password)
     
 
    
