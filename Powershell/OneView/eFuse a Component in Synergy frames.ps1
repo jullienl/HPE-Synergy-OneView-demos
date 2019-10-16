@@ -21,8 +21,7 @@ $IP = "192.168.1.110"
 $username = "Administrator" 
 $password = read-host "Please enter the Composer password for Administrator" -AsSecureString
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $password)
     
 
 # Import the OneView 5.00 library
