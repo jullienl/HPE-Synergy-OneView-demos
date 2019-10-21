@@ -47,7 +47,7 @@
  
 # OneView Credentials
 $username = "Administrator" 
-$password = read-host "Please enter the Composer password for Administrator" -AsSecureString
+$secpasswd = read-host "Please enter the Composer password for Administrator" -AsSecureString
 
 # OneView IP Address
 $IP = "192.168.1.xx" 
@@ -60,7 +60,7 @@ import-module HPOneview.500
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $password)
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
     
 
    
@@ -86,7 +86,7 @@ Else
 
    
                 
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
 
 filter Timestamp {"$(Get-Date -Format G): $_"}
 
@@ -352,10 +352,7 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 # Installing Nimble Storage System Nimble.xx.lab 
 
     $username = "admin" 
-    $password = read-host "Please enter the Nimble password for admin" -AsSecureString
-
-
-    $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+    $secpasswd = read-host "Please enter the Nimble password for admin" -AsSecureString
     $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 
     Add-HPOVStorageSystem -Hostname "nimble.xx.lab" -Credential $credentials -Family Nimble -VIPS "nimble.xx.lab" | Wait-HPOVTaskComplete 
