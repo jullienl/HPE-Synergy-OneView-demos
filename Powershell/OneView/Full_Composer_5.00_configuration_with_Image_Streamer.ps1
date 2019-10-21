@@ -115,13 +115,11 @@ filter Timestamp {"$(Get-Date -Format G): $_"}
 # Add a SAN Manager
 
 $username = "admin" 
-$password = read-host "Please enter the Brocade admin password" -AsSecureString
-
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$secpasswd = read-host "Please enter the Brocade admin password" -AsSecureString
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 
-Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-32g.xx.lab -Credential $credentials
-Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $credentials
+Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-32g.xx.lab -Credential $credentials -UseSsl
+Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $credentials -UseSsl
 
 
 
