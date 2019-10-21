@@ -66,7 +66,7 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
    
 # Connection to the Synergy Composer
 
-If ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
+If ($connectedSessions -and ($connectedSessions | Where-Object{$_.name -eq $IP}))
 {
     Write-Verbose "Already connected to $IP."
 }
@@ -86,7 +86,7 @@ Else
 
    
                 
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | Where-Object {$_.name -eq $IP})
 
 filter Timestamp {"$(Get-Date -Format G): $_"}
 
@@ -128,13 +128,13 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 
     $Server = New-HPOVLdapServer -Name dc.xx.lab -TrustLeafCertificate -Certificate D:\Kits\Microsoft\CA\Root_CA_Certificate_liogw.cer 
 
-    Do {sleep 4} until  ( $server )
+    Do {Start-Sleep 4} until  ( $server )
     
     $credentialAD = Get-Credential -UserName Administrator -Message "Please enter the password of xx\Administrator" 
 
     New-HPOVLdapDirectory -name xx.lab -AD -basedn "DC=xx,DC=lab" -servers $Server -Credential $credentialAD | out-null
 
-    Do {sleep 4} until  ( Get-HPOVLdapDirectory )
+    Do {Start-Sleep 4} until  ( Get-HPOVLdapDirectory )
     
     $Directory = Get-HPOVLdapDirectory -Name "xx.lab" 
     
@@ -225,8 +225,7 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 
     if ($numberofframes -gt 0) {
     $interconnects =  Get-HPOVInterconnect     
-    $whosframe1 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | % {$_.enclosurename}
-    $frame1SN = Get-HPOVEnclosure -Name $whosframe1 |  % {$_.serialnumber}
+    $whosframe1 = $interconnects | Where-Object {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | ForEach-Object {$_.enclosurename}
     if ($whosframe1 -ne "Frame1") {
         $frame1 = get-hpovenclosure -Name $whosframe1 
         #Set-HPOVEnclosure -Name "Frame1-$frame1SN" -Enclosure $frame1
@@ -236,8 +235,7 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
     }
 
     if ($numberofframes -gt 1) {
-    $whosframe2 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6"} |  % {$_.enclosurename}
-    $frame2SN = Get-HPOVEnclosure -Name $whosframe2 |  % {$_.serialnumber}
+    $whosframe2 = $interconnects | Where-Object {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6"} |  ForEach-Object {$_.enclosurename}
     if ($whosframe2 -ne "Frame2") {
         $frame2 = get-hpovenclosure -Name $whosframe2
         #Set-HPOVEnclosure -Name "Frame2-$frame2SN" -Enclosure $frame2
@@ -246,9 +244,8 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
     }
 
     if ($numberofframes -gt 2) {
-    $frameswithsatellites = $interconnects | where -Property Partnumber -EQ -value "779218-B21" 
-    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename |  ?{ $_.Count -gt 1 } | % {$_.name}  
-    $frame3SN = Get-HPOVEnclosure -Name $whosframe3 |  % {$_.serialnumber}
+    $frameswithsatellites = $interconnects | Where-Object -Property Partnumber -EQ -value "779218-B21" 
+    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename |  Where-Object-Object{ $_.Count -gt 1 } | ForEach-Object {$_.name}  
     if ($whosframe3 -ne "Frame3") {
         $frame3 = get-hpovenclosure -Name $whosframe3
         #Set-HPOVEnclosure -Name "Frame3-$frame3SN" -Enclosure $frame3
@@ -286,10 +283,10 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 
   
     $interconnects =  Get-HPOVInterconnect     
-    $whosframe1 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | % {$_.enclosurename}
-    $whosframe2 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6"} |  % {$_.enclosurename}
-    $frameswithsatellites = $interconnects | where -Property Partnumber -EQ -value "779218-B21" 
-    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename |  ?{ $_.Count -gt 1 } | % {$_.name}  
+    $whosframe1 = $interconnects | Where-Object {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | ForEach-Object {$_.enclosurename}
+    $whosframe2 = $interconnects | Where-Object {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6"} |  ForEach-Object {$_.enclosurename}
+    $frameswithsatellites = $interconnects | Where-Object -Property Partnumber -EQ -value "779218-B21" 
+    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename |  Where-Object{ $_.Count -gt 1 } | ForEach-Object {$_.name}  
 
    
     # MLAG Uplink Sets   
@@ -326,7 +323,7 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 
     $ImageStreamerManagementNetwork = Get-HPOVNetwork -Name "Management" -ErrorAction Stop
 
-    Get-HPOVImageStreamerAppliance | Select -First 1 | New-HPOVOSDeploymentServer -Name "Image-Streamer_PAIR-1" -ManagementNetwork $ImageStreamerManagementNetwork
+    Get-HPOVImageStreamerAppliance | Select-Object -First 1 | New-HPOVOSDeploymentServer -Name "Image-Streamer_PAIR-1" -ManagementNetwork $ImageStreamerManagementNetwork
 
 
 # Create Enclosure Group 
@@ -382,7 +379,7 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
     #Set-HPOVStoragePool
     
     # Import 3PAR volumes
-    $StorageDeviceName1 = Get-3PARVolumes -name $volume1 | % {$_.name}   
+    $StorageDeviceName1 = Get-3PARVolumes -name $volume1 | ForEach-Object {$_.name}   
 
     Get-HPOVStorageSystem -SystemName "3par.xx.lab"  |  Add-HPOVStorageVolume   -VolumeName $volume1 -StorageDeviceName $StorageDeviceName1 -Shared | Wait-HPOVTaskComplete
 
@@ -435,9 +432,9 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 
 # Adding frame ressources to rack
 
-    $frame3 = Get-HPOVenclosure | ? {$_.name -match "Frame3"}
-    $frame2 = Get-HPOVenclosure | ? {$_.name -match "Frame2"}
-    $frame1 = Get-HPOVenclosure | ? {$_.name -match "Frame1"}
+    $frame3 = Get-HPOVenclosure | Where-Object {$_.name -match "Frame3"}
+    $frame2 = Get-HPOVenclosure | Where-Object {$_.name -match "Frame2"}
+    $frame1 = Get-HPOVenclosure | Where-Object {$_.name -match "Frame1"}
 
 
     $Rack = Get-HPOVRack -Name Rack-Synergy -ErrorAction Stop
@@ -478,9 +475,9 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 
     $LE = '3_frame_LE'
     $interconnects =  Get-HPOVInterconnect     
-    $whosframe1 = $interconnects | where {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | % {$_.enclosurename}
+    $whosframe1 = $interconnects | Where-Object {$_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3"} | ForEach-Object {$_.enclosurename}
 
-    $baseline = Get-HPOVBaseline | Sort-Object -Property @{Expression = "Version"; Descending = $True} | select -First 1
+    $baseline = Get-HPOVBaseline | Sort-Object -Property @{Expression = "Version"; Descending = $True} | Select-Object -First 1
     $EG = Get-HPOVEnclosureGroup -Name "3_frame_EG"
 
     write-output "Creating the Logical Enclosure 'LE'" | Timestamp
@@ -506,14 +503,14 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
     $Resources += Get-HPOVNetwork
     $Resources += Get-HPOVNetworkSet
     $Resources += Get-HPOVFabricManager
-    $Resources += Get-HPOVServer | ? model -NotMatch "660"
+    $Resources += Get-HPOVServer | Where-Object model -NotMatch "660"
     $Resources += Get-HPOVOSDeploymentPlan
         
     Get-HPOVScope -Name $scopename | Add-HPOVResourceToScope -InputObject $Resources
 
     <#
 
-    Get-HPOVScope -Name "OneView Users" | select members | % members
+    Get-HPOVScope -Name "OneView Users" | Select-Object members | ForEach-Object members
 
     #>
 
@@ -624,7 +621,7 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
             catch {
                 #failure
                 write-host "`nArtifact bundle '$filename' upload error !" -ForegroundColor Red
-                $error[0] #| fl *
+                $error[0] #| Format-List *
             }
         }
         else {
@@ -839,27 +836,27 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
 
         $SY460SHT = Get-HPOVServerHardwareTypes -name "SY 480 Gen9 1"
         
-        $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
+        $enclosuregroup = Get-HPOVEnclosureGroup | Where-Object {$_.osDeploymentSettings.manageOSDeployment -eq $True} | Select-Object -First 1 
         
-        $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri
+        $ManagementURI = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | ForEach-Object Uri
 
         $OSDP = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan
         $osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
         $OSDeploymentPlanAttributes = $osCustomAttributes 
 
 
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.dhcp').value = 'False'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.connectionid').value = '3'
-        ($OSDeploymentPlanAttributes | ? name -eq 'DomainName').value = 'xx.lab'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.ipaddress').value = ''
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.dhcp').value = 'False'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.connectionid').value = '3'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'DomainName').value = 'xx.lab'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC2.dhcp').value = 'False'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC2.connectionid').value = '4'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Hostname').value = "{profile}"
 
                       
-        $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
+        $ISCSINetwork = Get-HPOVNetwork | Where-Object {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
 
         $IscsiParams1 = @{
                ConnectionID                  = 1;
@@ -886,10 +883,10 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
         $ImageStreamerBootConnection2 = New-HPOVServerProfileConnection @IscsiParams2
 
         
-        $con3 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
-        $con4 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
-        $con5 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 0 |  New-HPOVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel 
-        $con6 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 1 | New-HPOVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel
+        $con3 = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
+        $con4 = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
+        $con5 = Get-HPOVNetwork | Where-Object fabricType -match "FabricAttach" | Select-Object -Index 0 |  New-HPOVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel 
+        $con6 = Get-HPOVNetwork | Where-Object fabricType -match "FabricAttach" | Select-Object -Index 1 | New-HPOVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel
         $volume1 = Get-HPOVStorageVolume -Name $datastore | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
   
 
@@ -925,7 +922,7 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
       catch  
          {
        
-         $error[0] | fl * -force 
+         $error[0] | Format-List * -force 
                
          }
    
@@ -954,27 +951,27 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
 
         $SY460SHT = Get-HPOVServerHardwareTypes -name "SY 480 Gen9 1"
         
-        $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
+        $enclosuregroup = Get-HPOVEnclosureGroup | Where-Object {$_.osDeploymentSettings.manageOSDeployment -eq $True} | Select-Object -First 1 
         
-        $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri
+        $ManagementURI = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | ForEach-Object Uri
 
         $OSDP = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan
         $osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
         $OSDeploymentPlanAttributes = $osCustomAttributes 
 
 
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.ipaddress').value = ''
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.dhcp').value = 'False'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.connectionid').value = '3'
-        ($OSDeploymentPlanAttributes | ? name -eq 'DomainName').value = 'xx.lab'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.dhcp').value = 'False'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.connectionid').value = '4'
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.ipaddress').value = ''
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.dhcp').value = 'False'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.connectionid').value = '3'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'DomainName').value = 'xx.lab'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC2.dhcp').value = 'False'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC2.connectionid').value = '4'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'ManagementNIC2.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Hostname').value = "{profile}"
 
                       
-        $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
+        $ISCSINetwork = Get-HPOVNetwork | Where-Object {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
 
         $IscsiParams1 = @{
                ConnectionID                  = 1;
@@ -1001,10 +998,10 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
         $ImageStreamerBootConnection2 = New-HPOVServerProfileConnection @IscsiParams2
 
         
-        $con3 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
-        $con4 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
-        $con5 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 0 |  New-HPOVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel 
-        $con6 = Get-HPOVNetwork | ? fabricType -match "FabricAttach" | select -Index 1 | New-HPOVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel
+        $con3 = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
+        $con4 = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
+        $con5 = Get-HPOVNetwork | Where-Object fabricType -match "FabricAttach" | Select-Object -Index 0 |  New-HPOVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel 
+        $con6 = Get-HPOVNetwork | Where-Object fabricType -match "FabricAttach" | Select-Object -Index 1 | New-HPOVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel
         $volume1 = Get-HPOVStorageVolume -Name $datastore | New-HPOVServerProfileAttachVolume # -LunIdType Manual -LunID 0
   
 
@@ -1040,7 +1037,7 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
       catch  
          {
        
-         $error[0] | fl * -force 
+         $error[0] | Format-List * -force 
                
          }
    
@@ -1069,32 +1066,32 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
 
         $SY460SHT = Get-HPOVServerHardwareTypes -name "SY 480 Gen9 1"
         
-        $enclosuregroup = Get-HPOVEnclosureGroup | ? {$_.osDeploymentSettings.manageOSDeployment -eq $True} | select -First 1 
+        $enclosuregroup = Get-HPOVEnclosureGroup | Where-Object {$_.osDeploymentSettings.manageOSDeployment -eq $True} | Select-Object -First 1 
         
-        $ManagementURI = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | % Uri
+        $ManagementURI = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | ForEach-Object Uri
 
         $OSDP = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan
         $osCustomAttributes = Get-HPOVOSDeploymentPlan -name $OSDeploymentplan -ErrorAction Stop | Get-HPOVOSDeploymentPlanAttribute
         $OSDeploymentPlanAttributes = $osCustomAttributes 
 
 
-       # ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC1.ipaddress').value = 'SubnetPool'
-        #($OSDeploymentPlanAttributes | ? name -eq 'TeamNIC2.ipaddress').value = 'SubnetPool'
-        ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC1.dhcp').value = $True
-        ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC1.connectionid').value = '3'
-        ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC2.dhcp').value = $True
-        ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC2.connectionid').value = '4'
-        ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC1.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'Team0NIC2.networkuri').value = $ManagementURI
-        ($OSDeploymentPlanAttributes | ? name -eq 'Hostname').value = "{profile}"
-        ($OSDeploymentPlanAttributes | ? name -eq 'TotalNICTeamings').value = '1'
+       # ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC1.ipaddress').value = 'SubnetPool'
+        #($OSDeploymentPlanAttributes | Where-Object name -eq 'TeamNIC2.ipaddress').value = 'SubnetPool'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC1.dhcp').value = $True
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC1.connectionid').value = '3'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC2.dhcp').value = $True
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC2.connectionid').value = '4'
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC1.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Team0NIC2.networkuri').value = $ManagementURI
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'Hostname').value = "{profile}"
+        ($OSDeploymentPlanAttributes | Where-Object name -eq 'TotalNICTeamings').value = '1'
 
         
 
-        $OSDeploymentPlanAttributes = $OSDeploymentPlanAttributes | ? { $_.name -notmatch  "Team1"  }
+        $OSDeploymentPlanAttributes = $OSDeploymentPlanAttributes | Where-Object { $_.name -notmatch  "Team1"  }
  
                       
-        $ISCSINetwork = Get-HPOVNetwork | ? {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
+        $ISCSINetwork = Get-HPOVNetwork | Where-Object {$_.purpose -match "ISCSI" -and $_.SubnetUri -ne $Null} 
 
         $IscsiParams1 = @{
                ConnectionID                  = 1;
@@ -1121,8 +1118,8 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
         $ImageStreamerBootConnection2 = New-HPOVServerProfileConnection @IscsiParams2
 
         
-        $con3 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
-        $con4 = Get-HPOVNetwork | ? {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
+        $con3 = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null} | New-HPOVServerProfileConnection -connectionId 3
+        $con4 = Get-HPOVNetwork | Where-Object {$_.purpose -match "Management" -and $_.SubnetUri -ne $Null}  | New-HPOVServerProfileConnection -connectionId 4
         $con5 = Get-HPOVNetwork -Name "Production-10"  |  New-HPOVServerProfileConnection -ConnectionID 5  
         $con6 = Get-HPOVNetwork -Name "Production-10"  |  New-HPOVServerProfileConnection -ConnectionID 6
         
@@ -1159,7 +1156,7 @@ New-HPOVServerProfileTemplate -Name $name -Description $description -ServerHardw
       catch  
          {
        
-         $error[0] | fl * -force 
+         $error[0] | Format-List * -force 
                
          }
    
