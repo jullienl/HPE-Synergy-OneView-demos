@@ -191,9 +191,9 @@ Add-HPOVSanManager -Type BrocadeFOS -Hostname brocade-16g.xx.lab -Credential $cr
 #create FC networks
 
    New-HPOVNetwork -Name FC-A -type FC -fabricType FabricAttach 
-   Get-HPOVNetwork -Name "FC-A" | Set-HPOVNetwork -ManagedSan Brocade-32G
+   Get-HPOVNetwork -Name "FC-A" | Set-HPOVNetwork -ManagedSan "Brocade-G620"
    New-HPOVNetwork -Name FC-B -type FC -fabricType FabricAttach 
-   Get-HPOVNetwork -Name "FC-B" | Set-HPOVNetwork -ManagedSan Brocade-16G
+   Get-HPOVNetwork -Name "FC-B" | Set-HPOVNetwork -ManagedSan "Brocade-6505"
 
     
 #Associate Management Pool subnet to Management network
