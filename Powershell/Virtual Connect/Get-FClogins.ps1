@@ -26,7 +26,7 @@
 #############################################################################################################################
 
 #IP address of OneView
-$IP = "192.168.1.110" 
+$IP = "192.168.3.4"
 
 # OneView Credentials
 $username = "Administrator" 
@@ -42,7 +42,7 @@ Clear-Host
 
 $ApplianceConnection = Connect-HPOVMgmt -appliance $IP -Credential $credentials 
 
-$LinkedFCuplinkports = (Get-HPOVInterconnect | Where-Object model -match "40G").ports | Where-Object { $_.configPortTypes -match "FibreChannel" -and $_.portstatus -eq "Linked" }
+$LinkedFCuplinkports = (Get-HPOVInterconnect | Where-Object { $_.model -match "40G" -or $_.model -match "100G" } ).ports | Where-Object { $_.configPortTypes -match "FibreChannel" -and $_.portstatus -eq "Linked" }
 
 foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
    
