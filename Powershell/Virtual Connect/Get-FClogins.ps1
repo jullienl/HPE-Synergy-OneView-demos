@@ -30,7 +30,7 @@ $IP = "192.168.1.110"
 
 # OneView Credentials
 $username = "Administrator" 
-$password = "P@ssw0rd"
+$password = "password"
 
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
