@@ -2,7 +2,7 @@
 #   Deploys a CentOS 7.5 server using SPT
 #
 # Commands:
-#   `deploy centos <name>` - Deploys CentOS 7.5 on a free server resource using Image Streamer and turn it on
+#   `deploy centos <name>` - Deploys CentOS 7.5 on a free server resource using Image Streamer and turn it on (Note: IP is set after a reboot)
 
 # Require the edge module we installed
 edge = require("edge")

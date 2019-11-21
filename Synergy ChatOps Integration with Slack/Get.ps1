@@ -41,8 +41,10 @@ function get {
     $password = $env:OneView_password
     $IP = $env:OneView_IP
 
-    Import-Module HPOneview.420 
-
+    #Import-Module HPOneview.500 
+    $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+    
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
     # Create a hashtable for the results
@@ -50,7 +52,7 @@ function get {
 
     #Connecting to the Synergy Composer
     Try {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | out-null
+        Connect-HPOVMgmt -appliance $IP -Credential $credentials -ErrorAction stop | out-null
     }
     Catch {
         $env = "I cannot connect to OneView ! Check my OneView connection settings using ``find env``" 
@@ -294,7 +296,7 @@ function get {
                     }
                     Else { $templateCompliance = "``Inconsistent``" }
 
-                    $serverprofileconsistency += ("- "+ $serverprofilename + " : " + $templateCompliance)
+                    $serverprofileconsistency += ("- " + $serverprofilename + " : " + $templateCompliance)
                 }
 
                 $serverprofiletemplates.add($sptname, $serverprofileconsistency)
@@ -303,12 +305,12 @@ function get {
 
                 $serverprofiletemplates.add($sptname, $Null)
 
-             }
+            }
            
         }
 
 
-        $sptlist = ( $serverprofiletemplates.GetEnumerator() | Sort-Object Name | % {   if($_.value) {  " - ``$($_.name)`` : $( $_.value | % {"`n`t$($_)"} )   " } else {" - ``$($_.name)``"}             }) -join "`n" 
+        $sptlist = ( $serverprofiletemplates.GetEnumerator() | Sort-Object Name | % { if ($_.value) { " - ``$($_.name)`` : $( $_.value | % {"`n`t$($_)"} )   " } else { " - ``$($_.name)``" } }) -join "`n" 
         $spnb = (Get-HPOVServerProfileTemplate | measure-object ).count 
 
         if (! $sptlist) { 
@@ -397,7 +399,7 @@ function get {
         $userlist = Get-HPOVuser | % { "`n- *$($_.userName)*: ``$( If ($_.enabled) {"Enabled"} else {"Not enabled"})`` - Permissions: $( $_.permissions.rolename | % { "``$($_)`` "})" } 
         $usernb = (Get-HPOVuser | measure-object ).count 
 
-        $ldapgroup = Get-HPOVLdapGroup | % {   If($_.egroup) { ":`n- *$($_.egroup)* - Permissions: $( $_.permissions.rolename | % { "``$($_)`` "}) - Directory: ``$($_.loginDomain)``"} else {}             } 
+        $ldapgroup = Get-HPOVLdapGroup | % { If ($_.egroup) { ":`n- *$($_.egroup)* - Permissions: $( $_.permissions.rolename | % { "``$($_)`` "}) - Directory: ``$($_.loginDomain)``" } else { } } 
         $ldapgroupnb = (Get-HPOVLdapGroup | measure-object ).count
 
         if (! $userlist) { 

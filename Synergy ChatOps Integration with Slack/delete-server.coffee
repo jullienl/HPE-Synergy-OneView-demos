@@ -2,7 +2,7 @@
 #   Unprovision a server 
 #
 # Commands:
-#   `delete <name>` - Turns off and unprovisions a server 
+#   `delete <name>` - Turns off and unprovisions a server using its server profile name (ex.: delete ESX-2)
 
 # Require the edge module we installed
 edge = require("edge")

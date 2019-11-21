@@ -19,7 +19,9 @@ function deploy-winserver {
     $password = $env:OneView_password
     $IP = $env:OneView_IP
 
-    Import-Module HPOneview.420 
+    #Import-Module HPOneview.500  
+    $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -28,7 +30,7 @@ function deploy-winserver {
 
     #Connecting to the Synergy Composer
     Try {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | out-null
+        Connect-HPOVMgmt -appliance $IP -Credential $credentials | out-null
     }
     Catch {
         $env = "I cannot connect to OneView ! Check my OneView connection settings using ``find env``" 

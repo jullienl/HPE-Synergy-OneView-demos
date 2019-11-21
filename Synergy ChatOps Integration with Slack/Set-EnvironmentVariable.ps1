@@ -1,6 +1,6 @@
 ﻿# -------------------------------------------------------------------------------------------------------
 #   
-#   Set a persistant Windows environment variable for the IP address of OneView
+#   Set a persistant Windows environment variable for the Username/Password, IP address of OneView
 #
 # --------------------------------------------------------------------------------------------------------
 
@@ -19,13 +19,13 @@ function Set-EnvironmentVariable {
     )
         
     
-    $servicename = "Hubot_Bender"
+    $servicename = "Hubot_Hubot"
 
     # Create a hashtable for the results
     $result = @{ }
 
     Try {
-        [System.Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
+        [Environment]::SetEnvironmentVariable($Name, $Value, [System.EnvironmentVariableTarget]::Machine)
         
         sleep 5
 
