@@ -35,7 +35,8 @@ The scripts I provide in this repo can enable the ChatBot **Hubot** to provide i
 You will need to a have a few things ready to get a Hubot setup with Slack:
 
 * A Windows Machine with PowerShell 4.0+ and with administrative access
-* [HPE OneView 4.20 PowerShell library](https://github.com/HewlettPackard/POSH-HPOneView) must be installed on the Windows Machine
+* [HPE OneView 5.00 PowerShell library](https://github.com/HewlettPackard/POSH-HPOneView) must be installed on the Windows Machine
+* It is recommended to install the OneView PowerShell library 5.00 using `Install-Module -Name HPOneView.500 -Scope AllUsers` to avoid Hubot access issues to the library  
 * Administrative access in your Slack group to create a Hubot integration
 * Hubot commands for automated server provisioning and deployment require the creation of Server Profile Templates using HPE Image Streamer OS Deployment plans in HPE OneView
 
