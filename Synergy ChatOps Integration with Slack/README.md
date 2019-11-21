@@ -5,7 +5,7 @@ ChatOps is an approach to automate many ops-related tasks with a chat bot.
 
 ## Description
 
-The purpose of this integration is to provide ChatOps operation with a HPE Synergy environment from a mobile app (= possibility to use a smartphone/tablet) using a [chatbot]( https://www.expertsystem.com/chatbot/).
+The purpose of this integration is to provide ChatOps operation with a HPE Synergy environment from a mobile app (= possibility to use a smartphone/tablet) using a [chatbot](https://slack.com/apps/A7FTEHPEG-chatbot).
 
 A Chatbot is often described as a computer program or an artificial intelligence software that can simulate a conversation (or a chat) with a user. In this integration, we are going to use a ChatBot engine to interact directly with HPE OneView using chat messages from a **Slack** workspace (the mobile app).  
 
@@ -13,15 +13,16 @@ A Chatbot is often described as a computer program or an artificial intelligence
 > Integration is what makes Slack a really interesting chat client. There are tons of integrations including bots that users can install that provide access to features from
 > directly within the Slack interface.
 
-Using simple chat messages sent to the Chatbot, the robot assistant will analyze the request, identify and run the action and then return the response. 
+![image](https://user-images.githubusercontent.com/13134334/65966111-f67e2900-e45f-11e9-844a-0b2f7ee980b5.png)
+
+Using simple chat messages sent to the Chatbot, the robot assistant will analyze the request, identify and run the action against the Synergy environment and then return the response. 
 
 The scripts I provide in this repo can enable the ChatBot **Hubot** to provide information about many resources in HPE OneView but can also enable the ChatBot to fully compose/decompose the Synergy infrastructure automatically by provisioning/un-provisioning HPE Synergy servers with an OS fully configured.
 
 > **Hubot** is an open source chatbot that's easy to program and interact with using scripts written in [CoffeeScript](https://en.wikipedia.org/wiki/CoffeeScript).  
 > Information about the Hubot integration can be found [here](https://slack.com/apps/A0F7XDU93-hubot)
 
-
-![image](https://user-images.githubusercontent.com/13134334/59289960-a6dcdd00-8c77-11e9-8d87-53de017e2460.png)
+![image](https://user-images.githubusercontent.com/13134334/59511848-9f0b7b80-8eb7-11e9-928a-fb59f04aa28e.png)
 
 ### In the background: 
 * Slack is securely connected to the Hubot engine located next to the HPE Synergy infrastructure
@@ -74,22 +75,33 @@ Each `deploy-<OS>server.ps1` PowerShell script must be modified with the corresp
 
 ## Available commands
 From the Slack channel, you can automate parts of your ops-related tasks, like getting some information from OneView, deleting a server profile or provisioning a new server with an OS using the Image Streamer. All these actions can be found using the Hubot ``help`` command or `help <command>`:
+  
+![image](https://user-images.githubusercontent.com/13134334/65963159-730e0900-e45a-11e9-9039-31df126eb3c1.png)
+  
+### Get information from the Composer  
+* `get <name>` - Lists the resource `<name>` available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
+  
+![image](https://user-images.githubusercontent.com/13134334/65963354-e0ba3500-e45a-11e9-8d51-6b9d30d9fba8.png)
+  
+* `getenclosure <name>` - Get the frame `<name>` information (e.g. Frame1)
+* `getsh <name>` - Get the Server Hardware `<name>` information (e.g. Frame1, bay 3)
+* `getsp <name>` - Get the Server Profile `<name>` information (e.g. Profile-1)
+* `getspt <name>` - Get the Server Profile Template `<name>` information (e.g. RH6.7)
+  
+![image](https://user-images.githubusercontent.com/13134334/65963895-03991900-e45c-11e9-9736-9ab0b5e08a33.png)
 
-![image](https://user-images.githubusercontent.com/13134334/59419033-62158b00-8dca-11e9-8954-63ea7ea4cc28.png)
-
-* `delete <name>` - Turns off and unprovisions a server
-* `deploy centos <name>` - Deploys CentOS 7.5 on a free server resource using Image Streamer and turn it on 
-* `deploy esx <name>` - Deploys ESXi 6.5U2 on a free server resource using Image Streamer and turn it on
-* `deploy rhel <name>` - Deploys RHEL7.3 on a free server resource using Image Streamer and turn it on
-* `deploy sles <name>` - Deploys SLES12 on a free server resource using Image Streamer and turn it on 
-* `deploy win <name>` - Deploys Windows 2016 server on a free server resource using Image Streamer and turn it on
-* `deploy xen <name>` - Deploys XenServer 7.1 on a free server resource using Image Streamer and turn it on
-* `get <name>` - Lists the resource available in OneView (ex.: profile, network, networkset, enclosure, interconnect, uplinkset, LIG, LI, EG, LE, SPT, osdp, server, user, spp, alert)
-
+### Automated provisioning
+  
+* `deploy centos <name>` - Deploys CentOS 7.5 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
+* `deploy esx <name>` - Deploys ESXi 6.5U2 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy rhel <name>` - Deploys RHEL7.3 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy sles <name>` - Deploys SLES12 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on 
+* `deploy win <name>` - Deploys Windows 2016 server on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+* `deploy xen <name>` - Deploys XenServer 7.1 on an available server resource using Image Streamer, defines `<name>` as the server profile/OS name and turn it on
+  
+![image](https://user-images.githubusercontent.com/13134334/65964547-7ce53b80-e45d-11e9-8499-fa45e2c575c5.png)
 
 > Automated provisioning and deployment of server when using `deploy <OS> <name>` commands relies on OneView Server Profile Templates using HPE Image Streamer OS Deployment plans.
-
-
 
 ![image](https://user-images.githubusercontent.com/13134334/59421884-abb4a480-8dcf-11e9-953e-8f86187d0dfb.png)
 
@@ -101,6 +113,8 @@ It is required to define the OneView credentials and IP address. This can be don
 * `set IP <IP>` - Sets the IP address of the HPE Synergy Composer (OneView)
 * `set password <password>` - Sets the password of the OneView user with Infrastructure administrator role  
 * `set username <name>` - Sets the username of a OneView user with Infrastructure administrator role
+
+![image](https://user-images.githubusercontent.com/13134334/59512244-9ff0dd00-8eb8-11e9-9167-9c767dad787e.png)
 
 ## Troubleshooting
 Hubot logs can be found in the **Logs** folder of your Hubot (e.g. C:\myhubot\Logs). This is where you usually find all you need for troubleshooting.
