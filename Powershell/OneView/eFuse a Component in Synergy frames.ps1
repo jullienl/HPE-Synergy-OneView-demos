@@ -29,12 +29,14 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
 
 
-Function MyImport-Module {
+Function Import-ModuleAdv {
     
     # Import a module that can be imported
     # If it cannot, the module is installed
     # When -update parameter is used, the module is updated 
     # to the latest version available on the PowerShell library
+    #
+    # ex: import-moduleAdv hponeview.500
     
     param ( 
         $module, 
@@ -44,11 +46,10 @@ Function MyImport-Module {
     if (get-module $module -ListAvailable) {
         if ($update.IsPresent) {
             
-            # Updates the module to the latest version
-            [string]$Moduleinstalled = (Get-Module -Name $module).version
+            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
             
             Try {
-                [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction Stop).version
+                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
             }
             Catch {
                 Write-Warning "Error: No internet connection to update $module ! `
@@ -56,11 +57,14 @@ Function MyImport-Module {
                 return 
             }
 
-            $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
+            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not $Compare.SideIndicator -eq '==') {
+            #If ( ( $Compare.SideIndicator -eq '==') ) {
+            
+            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
                 Try {
                     Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
+                    Get-Module $Module -ListAvailable | Where-Object -Property Version -LT -Value $RepoModule | Uninstall-Module 
                 }
                 Catch {
                     write-warning "Error: $module cannot be updated !"
@@ -88,9 +92,10 @@ Function MyImport-Module {
             find-module -Name $module -ErrorAction Stop | out-Null
                 
             Try {
-                Install-Module -Name $module -Scope CurrentUser -Force -AllowClobber -ErrorAction Stop | Out-Null
-                Import-module $module
+                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
                 Write-host "`nInstalling $Module ..." 
+                Import-module $module
+               
             }
             catch {
                 Write-Warning "$Module cannot be installed!" 
@@ -109,12 +114,7 @@ Function MyImport-Module {
 
 }
 
-#MyImport-Module PowerShellGet
-#MyImport-Module FormatPX
-#MyImport-Module SnippetPX
-# MyImport-Module HPOneview.420 #-update
-MyImport-Module HPOneview.500
-#MyImport-Module PoshRSJob
+Import-ModuleAdv HPOneview.500 #-update
    
   
 
@@ -253,55 +253,55 @@ do {
         @{Name = "Status"; expression = { $_.Status } },
         @{Name = "Profile"; expression = { $_.state } } | Format-Table -AutoSize | out-host
                   
-    $baynb = Read-Host "Please enter the Computer Module Bay number to efuse (1 to 12)"
-    #$body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
-    $component = "Device"  
-}
+        $baynb = Read-Host "Please enter the Computer Module Bay number to efuse (1 to 12)"
+        #$body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
+        $component = "Device"  
+    }
 
-if ($componenttoefuse -eq 2) {
-    clear
-    $ert = Get-HPOVInterconnect | where { $_.enclosurename -eq $frame } 
+    if ($componenttoefuse -eq 2) {
+        clear
+        $ert = Get-HPOVInterconnect | where { $_.enclosurename -eq $frame } 
                     
-    $ert | Select @{Name = "Interconnect Model"; Expression = { $_.model } }, @{Name = "Status"; Expression = { $_.status } },
-    @{Name = "Bay number"; Expression = { $_.interconnectlocation.locationEntries | where { $_.type -eq "Bay" } | select  value | % { $_.value } } } | Sort-Object -Property "Bay number" | Out-Host
+        $ert | Select @{Name = "Interconnect Model"; Expression = { $_.model } }, @{Name = "Status"; Expression = { $_.status } },
+        @{Name = "Bay number"; Expression = { $_.interconnectlocation.locationEntries | where { $_.type -eq "Bay" } | select  value | % { $_.value } } } | Sort-Object -Property "Bay number" | Out-Host
 
 
-$baynb = Read-Host "Please enter the Interconnect Module Bay number to efuse (1 to 6)"
-#$body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-$component = "ICM"  
-}
+        $baynb = Read-Host "Please enter the Interconnect Module Bay number to efuse (1 to 6)"
+        #$body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+        $component = "ICM"  
+    }
 
-if ($componenttoefuse -eq 3) {
-    clear
-    $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
-    $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
+    if ($componenttoefuse -eq 3) {
+        clear
+        $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
+        $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
         
-    $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2)"
-    #$body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-    $component = "Appliance"  
-}
+        $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2)"
+        #$body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+        $component = "Appliance"  
+    }
 
-if ($componenttoefuse -eq 4) {
-    clear
-    $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).managerbays
-    $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Role"; Expression = { $_.role } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
+    if ($componenttoefuse -eq 4) {
+        clear
+        $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).managerbays
+        $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Role"; Expression = { $_.role } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
 
-    $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2)"
-    #$body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-    $component = "FLM"  
-}
+        $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2)"
+        #$body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+        $component = "FLM"  
+    }
 
-if ($componenttoefuse -eq "x") { exit }
+    if ($componenttoefuse -eq "x") { exit }
 
     
-$efusecomponent = Reset-HPOVEnclosureDevice -Enclosure $enclosure  -Component $component -DeviceID $baynb -Efuse -confirm:$false | Wait-HPOVTaskComplete
+    $efusecomponent = Reset-HPOVEnclosureDevice -Enclosure $enclosure  -Component $component -DeviceID $baynb -Efuse -confirm:$false | Wait-HPOVTaskComplete
     
-#sleep 15
+    #sleep 15
 
-write-host `n`n`n`n
-Write-Warning "The $Component in Bay $baynb is efusing!`n"
+    write-host `n`n`n`n
+    Write-Warning "The $Component in Bay $baynb is efusing!`n"
 
-pause
+    pause
  
 } until ( $componenttoefuse -eq "X" )
 
