@@ -1,3 +1,13 @@
+# Add networks from a csv file
+   This PowerShell script adds all network resource defined in a CSV file to a Synergy environment and presents this network to all Compute Modules 
+   using the specified Network Set. The script also adds the network resource to the LIG uplinkset and to the network set defined in OneView.   
+      
+   _Example of the script output:_   
+   ![](https://user-images.githubusercontent.com/13134334/71364702-4a029d80-259d-11ea-902e-afd655d491af.png)
+   
+   _Example of the csv file content:_  
+   ![](https://user-images.githubusercontent.com/13134334/71364871-ad8ccb00-259d-11ea-81b7-57881512e949.png)
+
 # Get-HPOVinterconnectstatistics
    This PowerShell function provides the network statistics of a given port from a Virtual Connect SE 40Gb F8 Module for Synergy.   
       
