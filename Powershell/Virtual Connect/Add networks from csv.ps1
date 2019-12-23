@@ -63,7 +63,7 @@ $IP = "192.168.1.110"
 
 # OneView Credentials
 $username = "Administrator" 
-$password = "P@ssw0rd"
+$password = "password"
 
 $LIG_UplinkSet = "M-LAG-Nexus"
 $networksetname = "Production_network_set"
