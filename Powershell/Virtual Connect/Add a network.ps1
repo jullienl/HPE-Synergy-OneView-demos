@@ -39,6 +39,7 @@
 #################################################################################
 
 
+
 #################################################################################
 #                                Global Variables                               #
 #################################################################################
@@ -54,37 +55,104 @@ $password = "password"
 $IP = "192.168.1.110" 
 
 
-# Importing the OneView 3.10 library
+#################################################################################
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-if (-not (get-module HPOneview.310)) {  
-    Import-module HPOneview.310
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+
+# Import the OneView 5.00 library
+Function Import-ModuleAdv {
+    
+    # Import a module that can be imported
+    # If it cannot, the module is installed
+    # When -update parameter is used, the module is updated 
+    # to the latest version available on the PowerShell library
+    #
+    # ex: import-moduleAdv hponeview.500
+    
+    param ( 
+        $module, 
+        [switch]$update 
+    )
+   
+    if (get-module $module -ListAvailable) {
+        if ($update.IsPresent) {
+            
+            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
+            
+            Try {
+                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
+            }
+            Catch {
+                Write-Warning "Error: No internet connection to update $module ! `
+                `nCheck your network connection, you might need to configure a proxy if you are connected to a corporate network!"
+                return 
+            }
+
+            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
+
+            #If ( ( $Compare.SideIndicator -eq '==') ) {
+            
+            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
+                Try {
+                    Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
+                    Get-Module $Module -ListAvailable | Where-Object -Property Version -LT -Value $RepoModule | Uninstall-Module 
+                }
+                Catch {
+                    write-warning "Error: $module cannot be updated !"
+                    return
+                }
+           
+            }
+            Else {
+                Write-host "You are using the latest version of $module !" 
+            }
+        }
+            
+        Import-module $module
+            
+    }
+
+    Else {
+        Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
+
+        
+        If ( !(get-PSRepository).name -eq "PSGallery" )
+        { Register-PSRepository -Default }
+                
+        Try {
+            find-module -Name $module -ErrorAction Stop | out-Null
+                
+            Try {
+                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
+                Write-host "`nInstalling $Module ..." 
+                Import-module $module
+               
+            }
+            catch {
+                Write-Warning "$Module cannot be installed!" 
+                $error[0] | Format-list * -force
+                pause
+                exit
+            }
+
+        }
+        catch {
+            write-warning "Error: $module cannot be found in the online PSGallery !"
+            return
+        }
+            
+    }
+
 }
 
-   
-$PWord = ConvertTo-SecureString –String $password –AsPlainText -Force
-$cred = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Username, $PWord
+Import-ModuleAdv HPOneview.500 #-update
 
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
 
 # Connection to the Synergy Composer
-
-if ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
-    Write-Verbose "Already connected to $IP."
-}
-
-else {
-    Try {
-        Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
-    }
-    Catch {
-        throw $_
-    }
-}
-
-               
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
-clear-host
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
 #################################################################################
@@ -93,10 +161,9 @@ clear-host
 
 
 
-$networks = Get-HPOVNetwork -type Ethernet | where {$_.Name -match $Networkprefix} | % {$_.name}
+$networks = Get-HPOVNetwork -type Ethernet | where { $_.Name -match $Networkprefix } | % { $_.name }
 
-if ($networks -eq $Null)
-{
+if ($networks -eq $Null) {
 
     write-host "`nThere is no network using the prefix: " -NoNewline
     Write-host -f Cyan $networkprefix -NoNewline
@@ -104,25 +171,23 @@ if ($networks -eq $Null)
 
 }
 
-if ($networks.count -lt 2)
-{
+if ($networks.count -lt 2) {
 
     write-host "`nThe following: " -NoNewline
     Write-host -f Cyan $networkprefix -NoNewline
     Write-host "* network is available in OneView:`n"
 
-    Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name = "Network name"; Expression = {$_.Name}}, @{Name = "VLAN ID"; Expression = {$_.vlanid}} | Out-Host
+    Get-HPOVNetwork -type Ethernet | where { $_.Name -match $Networkprefix } | Select-Object @{Name = "Network name"; Expression = { $_.Name } }, @{Name = "VLAN ID"; Expression = { $_.vlanid } } | Out-Host
 
 }
 
-if ($networks.count -gt 1)
-{
+if ($networks.count -gt 1) {
 
     write-host "`nThe following: " -NoNewline
     Write-host -f Cyan $networkprefix -NoNewline
     Write-host "* networks are available in OneView:`n"
 
-    Get-HPOVNetwork -type Ethernet  | where {$_.Name -match $Networkprefix} | Select-Object @{Name = "Network name"; Expression = {$_.Name}}, @{Name = "VLAN ID"; Expression = {$_.vlanid}}  | Out-Host
+    Get-HPOVNetwork -type Ethernet | where { $_.Name -match $Networkprefix } | Select-Object @{Name = "Network name"; Expression = { $_.Name } }, @{Name = "VLAN ID"; Expression = { $_.vlanid } } | Out-Host
 
 }
 
@@ -158,7 +223,7 @@ $MyLIG = Get-HPOVLogicalInterconnectGroup -Name $LIG
 $MyLI = ((Get-HPOVLogicalInterconnect) | ? logicalInterconnectGroupUri -eq $MyLIG.uri)
 
 
-$uplink_set = $MyLIG.uplinkSets | where-Object {$_.name -eq $uplinkset} 
+$uplink_set = $MyLIG.uplinkSets | where-Object { $_.name -eq $uplinkset } 
 $uplink_Set.networkUris += (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
 
 try {
@@ -197,7 +262,7 @@ if ($Updating -eq "y") {
 
 
     try {
-        Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop| Wait-HPOVTaskComplete | Out-Null
+        Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
     }
     catch {
         echo $_ #.Exception
@@ -233,8 +298,7 @@ catch {
 }
 
 
-if ((Get-HPOVLogicalInterconnect).consistencyStatus -eq "consistent" -and $Updating -eq "y")   # Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
-{
+if ((Get-HPOVLogicalInterconnect).consistencyStatus -eq "consistent" -and $Updating -eq "y") { # Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
     Write-host "`nThe network VLAN ID: " -NoNewline
     Write-host -f Cyan $vlan -NoNewline
     Write-host " has been successfully added and presented to all server profiles that are using the Network Set: " -NoNewline
