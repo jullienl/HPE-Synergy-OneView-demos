@@ -12,7 +12,9 @@
 # Script requirements: Composer 4.20
 # OneView Powershell Library is not required
 # 
-# Note: If using a OneView Self-signed certificate, it is required to uncomment line 42
+# Note: If using a OneView Self-signed certificate, it is required to uncomment line 44
+# 
+# Latest news: Reset-HPOVInterconnectNetOpPassword is now available in the OneView PowerShell library !
 
 
 
