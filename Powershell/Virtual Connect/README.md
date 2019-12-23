@@ -1,6 +1,6 @@
 # Add networks from a csv file
-   This PowerShell script adds all network resource defined in a CSV file to a Synergy environment and presents this network to all Compute Modules 
-   using the specified Network Set. The script also adds the network resource to the LIG uplinkset and to the network set defined in OneView.   
+   This PowerShell script adds all network resource defined in a CSV file to a Synergy environment and presents these networks to all Compute Modules 
+   using the specified Network Set. The script also adds all networks to the specified uplinkset defined in OneView.   
       
    _Example of the script output:_   
    ![](https://user-images.githubusercontent.com/13134334/71364702-4a029d80-259d-11ea-902e-afd655d491af.png)

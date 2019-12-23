@@ -4,7 +4,7 @@
 #   December 2019
 #
 #   This PowerShell script adds all network resource defined in a CSV file to a Synergy environment and presents this network to all Compute Modules using the specified Network Set.    
-#   The script also adds the network resource to the LIG uplinkset and to the network set defined in OneView.
+#   The script also adds all networks to the specified uplinkset defined in OneView.   
 #
 #   The network name and VLAN ID are taken from the NetName/VLAN_ID columns of the CSV file. Notice that a file example is available in this GitHub folder.
 #
