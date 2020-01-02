@@ -1,0 +1,36 @@
+---
+- name: Ansible OneView Synergy playbook to remove deployed servers using Image Streamer
+  hosts: WIN
+  gather_facts: no
+  vars:
+    - config: "{{ playbook_dir }}/oneview_config.json"
+
+  tasks:
+    - name : Getting server profile(s) information
+      oneview_server_profile:
+         config: "{{ config }}"
+         state: "present"
+         data:
+            name: "{{ inventory_hostname }}"
+      delegate_to: localhost
+
+    #- debug: var=server_hardware
+
+    - name: Powering off the server hardware [{{ server_hardware.name }}]
+      oneview_server_hardware:
+        config: "{{ config }}"
+        state: power_state_set
+        data:
+            name : "{{ server_hardware.name }}"
+            powerStateData:
+                powerState: "Off"
+                powerControl: "PressAndHold"
+      delegate_to: localhost
+
+    - name: Deleting Server Profile [{{ inventory_hostname }}]
+      oneview_server_profile:
+        config: "{{ config }}"
+        state: "absent"
+        data:
+          name: "{{ inventory_hostname }}"
+      delegate_to: localhost
