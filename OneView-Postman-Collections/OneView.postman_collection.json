@@ -6,6 +6,298 @@
 	},
 	"item": [
 		{
+			"name": "Logs",
+			"item": [
+				{
+					"name": "Get-Audit-Logs",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/audit-logs?start=0&count=150&filter=\"date>='2019-04-01'\"",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"audit-logs"
+							],
+							"query": [
+								{
+									"key": "start",
+									"value": "0"
+								},
+								{
+									"key": "count",
+									"value": "150"
+								},
+								{
+									"key": "filter",
+									"value": "\"date>='2019-04-01'\""
+								}
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Audit-Logs Settings",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/audit-logs/settings",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"audit-logs",
+								"settings"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Set-Audit-Logs Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "If-Match",
+								"value": "\"2019-12-10T10:05:22Z\"",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"LogForwardingSettingsDto\",\r\n    \"uri\": \"/rest/audit-logs/settings\",\r\n    \"category\": \"audit-logs\",\r\n    \"forwardingType\": \"rsyslogd\",\r\n    \"forwardingEnabled\": true,\r\n    \"remoteDestinations\": [\r\n        {\r\n            \"remoteDestination\": \"10.0.0.9\",\r\n            \"remotePort\": \"514\"\r\n        }\r\n    ]\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/audit-logs/settings",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"audit-logs",
+								"settings"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset-Audit-Logs Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "If-Match",
+								"type": "text",
+								"value": "\"2019-12-10T10:05:22Z\""
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"LogForwardingSettingsDto\",\r\n    \"uri\": \"/rest/audit-logs/settings\",\r\n    \"category\": \"audit-logs\",\r\n    \"forwardingType\": \"rsyslogd\",\r\n    \"forwardingEnabled\": false,\r\n    \"remoteDestinations\": [\r\n            ]\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/audit-logs/settings",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"audit-logs",
+								"settings"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Remote-Syslog Settings",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/remote-syslog",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"remote-syslog"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Set-Remote-Syslog Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n   \"type\": \"RemoteSyslog\",\r\n   \"sendTestLog\": false,\r\n   \"remoteSyslogPort\": \"514\",\r\n   \"remoteSyslogDestination\": \"15.146.158.242\",\r\n   \"enabled\": true\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/remote-syslog",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"remote-syslog"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset-Remote-Syslog Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n   \"type\": \"RemoteSyslog\",\r\n   \"sendTestLog\": false,\r\n   \"remoteSyslogPort\": \"\",\r\n   \"remoteSyslogDestination\": \"\",\r\n   \"enabled\": false\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/remote-syslog",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"remote-syslog"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "Reserved VLAN range",
 			"item": [
 				{
@@ -89,10 +381,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/version",
 							"protocol": "https",
@@ -153,10 +441,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/fabrics/",
 							"protocol": "https",
@@ -258,10 +542,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "{{taskresult}}",
 							"host": [
@@ -302,10 +582,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/{{fabricid}}/reserved-vlan-range",
 							"protocol": "https",
@@ -394,10 +670,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/version",
 							"protocol": "https",
@@ -952,10 +1224,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/version",
 							"protocol": "https",
@@ -1119,10 +1387,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
 							"protocol": "https",
@@ -1164,10 +1428,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/index/associations?parentUri={{spturi}}&name=server_profile_template_to_server_profiles",
 							"protocol": "https",
@@ -1209,10 +1469,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
 							"protocol": "https",
@@ -1260,7 +1516,7 @@
 				"header": [
 					{
 						"key": "X-API-Version",
-						"value": "300"
+						"value": "1000"
 					},
 					{
 						"key": "Content-Type",
@@ -1269,7 +1525,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"P@ssw0rd\",\r\n\"userName\":\"administrator\"\r\n}"
 				},
 				"url": {
 					"raw": "https://{{composer}}/rest/login-sessions",
@@ -1321,10 +1577,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/version",
 					"protocol": "https",
@@ -1356,10 +1608,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/server-profile-templates",
 					"protocol": "https",
@@ -1412,56 +1660,6 @@
 			"response": []
 		},
 		{
-			"name": "Get-Audit-Logs",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
-				},
-				"url": {
-					"raw": "https://{{composer}}/rest/audit-logs?start=0&count=150&filter=\"date>='2019-04-01'\"",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"audit-logs"
-					],
-					"query": [
-						{
-							"key": "start",
-							"value": "0"
-						},
-						{
-							"key": "count",
-							"value": "150"
-						},
-						{
-							"key": "filter",
-							"value": "\"date>='2019-04-01'\""
-						}
-					]
-				},
-				"description": "Login Session"
-			},
-			"response": []
-		},
-		{
 			"name": "Get-Datacenters",
 			"request": {
 				"method": "GET",
@@ -1475,10 +1673,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/datacenters",
 					"protocol": "https",
@@ -1508,10 +1702,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/os-deployment-plans/",
 					"protocol": "https",
@@ -1542,10 +1732,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/hypervisor-managers",
 					"protocol": "https",
@@ -1575,10 +1761,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/hypervisor-cluster-profiles",
 					"protocol": "https",
@@ -1634,8 +1816,8 @@
 					"formdata": [
 						{
 							"key": "File",
-							"type": "file",
-							"src": ""
+							"value": null,
+							"type": "file"
 						}
 					]
 				},
@@ -1658,6 +1840,96 @@
 			"response": []
 		},
 		{
+			"name": "Get-Interconnect",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{composer}}/rest/interconnects/",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"interconnects",
+						""
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": " Get-interconnect VC40G Frame1-bay3",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{composer}}/rest/interconnects/19c01938-6414-4705-9e4e-075cb3e8f433",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"interconnects",
+						"19c01938-6414-4705-9e4e-075cb3e8f433"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": " Get-Interconnect VC40G Frame1-Bay3-port Q4:1",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{composer}}/rest/interconnects/19c01938-6414-4705-9e4e-075cb3e8f433/ports/19c01938-6414-4705-9e4e-075cb3e8f433:Q4:1",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"interconnects",
+						"19c01938-6414-4705-9e4e-075cb3e8f433",
+						"ports",
+						"19c01938-6414-4705-9e4e-075cb3e8f433:Q4:1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get-Interconnect FC logins",
 			"request": {
 				"method": "GET",
@@ -1671,10 +1943,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/interconnects/06aa031d-436c-44fb-b078-f6b883bed280/ports/06aa031d-436c-44fb-b078-f6b883bed280:Q4:1",
 					"protocol": "https",
@@ -1707,10 +1975,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/metrics/capability",
 					"protocol": "https",
