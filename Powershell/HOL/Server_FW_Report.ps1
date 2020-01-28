@@ -38,3 +38,4 @@ foreach ($server in $servers) {
 import-csv Server_FW_Report.txt -delimiter ";" | export-csv Server_FW_Report.csv -NoTypeInformation
 remove-item Server_FW_Report.txt -Confirm:$false
 
+Disconnect-HPOVMgmt
