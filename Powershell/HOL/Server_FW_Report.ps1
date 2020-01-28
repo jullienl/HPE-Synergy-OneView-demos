@@ -1,13 +1,16 @@
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
+#IP address of OneView
 $IP = "192.168.56.101" 
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# OneView Credentials
+$username = "Administrator" 
+$password = "password"
 
-#Connecting to the Synergy Composer
-Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
-               
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+    
+ 
+Connect-HPOVMgmt -appliance $IP -Credential $credentials 
+
 
 $servers = Get-HPOVServer 
 
