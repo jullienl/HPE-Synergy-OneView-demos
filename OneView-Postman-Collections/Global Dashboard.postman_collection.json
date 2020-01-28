@@ -1,0 +1,136 @@
+{
+	"info": {
+		"_postman_id": "7ef632f1-dd39-45f9-82d3-780f1488f292",
+		"name": "Global Dashboard",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create a session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "d0c91a93-a3a1-4136-8246-6a91313140a2",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"GDsessionID\", jsonData.sessionID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-API-Version",
+						"value": "2",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
+				},
+				"url": {
+					"raw": "https://oneview-global-dashboard.lj.lab/rest/login-sessions",
+					"protocol": "https",
+					"host": [
+						"oneview-global-dashboard",
+						"lj",
+						"lab"
+					],
+					"path": [
+						"rest",
+						"login-sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Appliances",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-version",
+						"value": "2",
+						"type": "text"
+					},
+					{
+						"key": "auth",
+						"value": "{{GDsessionID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
+				},
+				"url": {
+					"raw": "https://oneview-global-dashboard.lj.lab/rest/appliances",
+					"protocol": "https",
+					"host": [
+						"oneview-global-dashboard",
+						"lj",
+						"lab"
+					],
+					"path": [
+						"rest",
+						"appliances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Resources-alerts",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-version",
+						"value": "2",
+						"type": "text"
+					},
+					{
+						"key": "auth",
+						"value": "{{GDsessionID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
+				},
+				"url": {
+					"raw": "https://oneview-global-dashboard.lj.lab/rest/resource-alerts",
+					"protocol": "https",
+					"host": [
+						"oneview-global-dashboard",
+						"lj",
+						"lab"
+					],
+					"path": [
+						"rest",
+						"resource-alerts"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
