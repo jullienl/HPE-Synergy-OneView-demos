@@ -59,9 +59,7 @@ function delete-server {
     # Verifying the SP is present
     Try { 
                 
-        $serverprofileuri = Get-HPOVserverprofile -Name $name -ErrorAction stop | % uri  
-    
-    }
+        $serverprofile = Get-HPOVserverprofile -Name $name -ErrorAction stop }
     
     Catch {
 
@@ -80,16 +78,9 @@ function delete-server {
     # Turning off the server hadware and deleting the SP
     try {
                     
-        $server = Get-HPOVServer -ErrorAction stop | ? serverProfileUri -eq $serverprofileuri
-         
-        $server | Stop-HPOVServer -Force -Confirm:$false -ErrorAction Stop | out-null
-
-        Do { sleep 2 } until ( (Get-HPOVServer | ? serverProfileUri -eq $serverprofileuri ).powerstate -eq "Off")
-        
-        sleep 20
+        $serverprofile | stop-HPOVServer -Force -Confirm:$false -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
 
         Remove-HPOVServerProfile -ServerProfile $name -force -Confirm:$false -ErrorAction stop | Out-Null
-             
             
         $result.output = "*$($name)* is being deleted" 
             
