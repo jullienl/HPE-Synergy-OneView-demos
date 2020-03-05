@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  vars:
+    - config: "{{ playbook_dir }}/oneview_config.json"
+  tasks:
+    - name: Gather paginated, filtered and sorted facts about Server Hardware
+      oneview_server_hardware_facts:
+        config: "{{ config }}"
+        params:
+          start: 0
+          count: 3
+          sort: name:ascending
+          filter: uidState='Off'
+      delegate_to: localhost
+
+    #- debug: var=server_hardwares
+
+    - debug: 
+        msg: "{{ item.name }} has {{ item.processorCount }} x {{ item.processorType }} processors"
+      loop: "{{server_hardwares}}"
+      loop_control:
+        label: "{{ item.model }}"
+      
+
+    - name: Gather paginated, sorted and filtered facts about Ethernet Networks
+      oneview_ethernet_network_facts:
+        config: "{{ config }}"
+        params:
+          sort: 'name:descending'
+          filter: "purpose=General"
+
+    - debug: msg="{{ ethernet_networks  | map(attribute='name') | list }}"
+
