@@ -224,7 +224,7 @@ if ($Interconnectstate -notcontains "Configured") {
     Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
 }
         
-do { $Interconnectstate = (((Get-HPOVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $MyLI.uri).state }
+do { $Interconnectstate = (((Get-HPOVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $LI.uri).state }
 
 until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains "Imported" -and $Interconnectstate -notcontains "Configuring")
 
