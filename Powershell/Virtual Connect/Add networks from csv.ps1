@@ -56,7 +56,7 @@
 #################################################################################
 
 # CSV File  
-$csvfile = "C:\Temp\VC_mig_0.2.csv"
+$csvfile = "networks_creation.csv"
 
 #IP address of OneView
 $IP = "192.168.1.110" 
@@ -234,8 +234,6 @@ until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcont
 
 
 
-
-
 Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
 Write-host -f Cyan $LIG.name
 Write-host "`nPlease wait..." 
@@ -292,4 +290,4 @@ ForEach ($VLAN In $data) {
 }
     
 $ConnectedSessions | Disconnect-HPOVMgmt | Out-Null
-Remove-Module (Get-Module -Name HPOneView*).Name
+ 
