@@ -219,14 +219,21 @@ $LI = ((Get-HPOVLogicalInterconnect) | where-object logicalInterconnectGroupUri 
 
 
 # Making sure the LI is not in updating state before we run a LI Update
-$Interconnectstate = (((Get-HPOVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $LI.URI ).state  
-if ($Interconnectstate -notcontains "Configured") {
-    Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
+
+do {
+    $Interconnectstate = (((Get-HPOVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $LI.uri).state 
+
+    if ($Interconnectstate -notcontains "Configured") {
+
+        Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
+    }
+
 }
-        
-do { $Interconnectstate = (((Get-HPOVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $LI.uri).state }
 
 until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains "Imported" -and $Interconnectstate -notcontains "Configuring")
+
+
+
 
 
 Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
