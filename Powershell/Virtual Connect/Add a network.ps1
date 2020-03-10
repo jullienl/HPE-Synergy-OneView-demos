@@ -320,3 +320,4 @@ if ($Updating -eq "n" -and ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris -
 if ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris -notcontains $vlanuri) {
     Write-Warning "`nThe network VLAN ID: $vlan has NOT been added successfully, check the status of your Logical Interconnect resource`n" 
 }
+Disconnect-HPOVMgmt

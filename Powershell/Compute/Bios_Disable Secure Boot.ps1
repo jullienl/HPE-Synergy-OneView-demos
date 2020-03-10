@@ -40,12 +40,14 @@
 #>
 
 
-Function MyImport-Module {
+Function Import-ModuleAdv {
     
     # Import a module that can be imported
     # If it cannot, the module is installed
     # When -update parameter is used, the module is updated 
     # to the latest version available on the PowerShell library
+    #
+    # ex: import-moduleAdv hponeview.500
     
     param ( 
         $module, 
@@ -53,13 +55,13 @@ Function MyImport-Module {
     )
    
     if (get-module $module -ListAvailable) {
+
         if ($update.IsPresent) {
             
-            # Updates the module to the latest version
-            [string]$Moduleinstalled = (Get-Module -Name $module).version
+            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
             
             Try {
-                [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction Stop).version
+                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
             }
             Catch {
                 Write-Warning "Error: No internet connection to update $module ! `
@@ -67,11 +69,18 @@ Function MyImport-Module {
                 return 
             }
 
-            $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
+            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not $Compare.SideIndicator -eq '==') {
+            #If ( ( $Compare.SideIndicator -eq '==') ) {
+            
+            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
                 Try {
-                    Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
+                    # not using update-module as it keeps the old version of the module
+                    #Remove existing version
+                    Get-Module $Module -ListAvailable | Uninstall-Module 
+
+                    #Install latest one from PSGallery
+                    Install-Module -Name $Module
                 }
                 Catch {
                     write-warning "Error: $module cannot be updated !"
@@ -88,19 +97,22 @@ Function MyImport-Module {
             
     }
 
+
     Else {
         Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
 
         
         If ( !(get-PSRepository).name -eq "PSGallery" )
-        {Register-PSRepository -Default}
+        { Register-PSRepository -Default }
                 
         Try {
             find-module -Name $module -ErrorAction Stop | out-Null
                 
             Try {
-                Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
                 Write-host "`nInstalling $Module ..." 
+                Import-module $module
+               
             }
             catch {
                 Write-Warning "$Module cannot be installed!" 
@@ -119,11 +131,9 @@ Function MyImport-Module {
 
 }
 
+Import-ModuleAdv HPOneview.500 #-update
 
-MyImport-Module PowerShellGet
-MyImport-Module FormatPX
-MyImport-Module SnippetPX
-MyImport-Module HPOneview.400 #-update
+  
 
 # MyImport-Module HPRESTCmdlets
 
@@ -139,23 +149,20 @@ $ilopassword = "password"
 
 
 #Loading HPEBIOSCmdlets module
-Try
-{
+Try {
     Import-Module HPEBIOSCmdlets -ErrorAction stop
 }
 
-Catch 
-
-{
+Catch {
     Write-Host "`nHPEBIOSCmdlets module cannot be loaded"
     write-host "It is necessary to install the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library)"
     write-host "See http://www.hpe.com/servers/powershell" 
     Write-Host "Exit..."
     exit
-    }
+}
 
 
-$InstalledBiosModule  =  Get-Module -Name "HPEBIOSCmdlets"
+$InstalledBiosModule = Get-Module -Name "HPEBIOSCmdlets"
 Write-Host "`nHPiLOCmdlets Module Version : $($InstalledBiosModule.Version) is installed on your machine."
 
 
@@ -163,81 +170,61 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #Connecting to the Synergy Composer
 
-if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
-{
-    Write-Verbose "Already connected to $IP."
-}
-
-else
-{
-    Try 
-    {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
-    }
-    Catch 
-    {
-        throw $_
-    }
-}
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 
 
 #Capturing iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer |  where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-HPOVServer | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 
 #Checking Secure Boot on all iLOst
-Foreach ($iloIP in $iLOIPs)
-{
-   Try 
-   { 
+Foreach ($iloIP in $iLOIPs) {
+    Try { 
         $connection = Connect-HPEBIOS -IP $iloIP -Username $ilousername -Password $ilopassword -DisableCertificateAuthentication -ErrorAction Stop
     
         $sbs = get-HPEBIOSSecureBootState -Connection $connection  -ErrorAction Stop
         
-        if ($sbs.SecureBootState -eq 'Enabled') 
-        {
+        if ($sbs.SecureBootState -eq 'Enabled') {
             Try {
                 Set-HPEBIOSSecureBootState -Connection $connection -SecureBootState Disabled -ErrorAction Stop
-                }
-            Catch
-                {
+            }
+            Catch {
                 echo ($error[0] | FL)
                 return
-                }
+            }
 
             write-host "`nSecure Boot on iLO: $iloIP has been disabled" 
 
-            $server = Get-HPOVServer  |  where {$_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP} 
+            $server = Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } 
                        
             
-            if ($server.powerState -eq "Off")
-            { 
-                    write-host "`nStarting server: $($server.name) to enable the change..."
+            if ($server.powerState -eq "Off") { 
+                write-host "`nStarting server: $($server.name) to enable the change..."
 
-                    Start-HPOVServer -Server $server  | Wait-HPOVTaskComplete
+                Start-HPOVServer -Server $server | Wait-HPOVTaskComplete
             }
-            else
-            {
-                   write-host "`n $($server.name) is running. You need to restart the server to enable the change..." -ForegroundColor Yellow
+            else {
+                write-host "`n $($server.name) is running. You need to restart the server to enable the change..." -ForegroundColor Yellow
   
             }
 
         }
-        else
-        {
+        else {
             write-host "Secure Boot on iLO: $iloIP is already disabled" 
         }
    
     }
-   Catch
-   {
+    Catch {
         write-host "Error disabling Secure boot on iLO: $iloIP"
         echo ($error[0] | fl)
-   }
+    }
 
 }
 
+Disconnect-HPOVMgmt

@@ -21,36 +21,33 @@ $IP = "192.168.1.110"
 
 
 #Loading HPiLOCmdlets module
-Try
-{
+Try {
     Import-Module HPiLOCmdlets -ErrorAction stop
 }
 
 Catch 
-
 {
     Write-Host "`nHPiLOCmdlets module cannot be loaded"
     write-host "It is necessary to install the HPE iLO Cmdlets for Windows PowerShell (HPiLOCmdlets library)"
     write-host "See http://www.hpe.com/servers/powershell" 
     Write-Host "Exit..."
     exit
-    }
+}
 
 
-    $InstallediLOModule  =  Get-Module -Name "HPiLOCmdlets"
-    Write-Host "`nHPiLOCmdlets Module Version : $($InstallediLOModule.Version) is installed on your machine."
+$InstallediLOModule = Get-Module -Name "HPiLOCmdlets"
+Write-Host "`nHPiLOCmdlets Module Version : $($InstallediLOModule.Version) is installed on your machine."
 
 
 
 
-#Loading OneView 3.10 module
+#Loading OneView module
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.310)) 
-    {  
-    Import-module HPOneview.310
-    }
+if (-not (get-module HPOneview.500)) {  
+    Import-module HPOneview.500
+}
 
    
 $PWord = ConvertTo-SecureString –String $password –AsPlainText -Force
@@ -59,45 +56,39 @@ $cred = New-Object –TypeName System.Management.Automation.PSCredential –Argu
 
 #Connecting to the Synergy Composer
 
-if ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
-{
+if ($connectedSessions -and ($connectedSessions | ? { $_.name -eq $IP })) {
     Write-Verbose "Already connected to $IP."
 }
 
-else
-{
-    Try 
-    {
+else {
+    Try {
         Connect-HPOVMgmt -appliance $IP -PSCredential $cred | Out-Null
     }
-    Catch 
-    {
+    Catch {
         throw $_
     }
 }
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 
 
 #Capturing iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-HPOVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 
 #Proceeding factory Reset
-Foreach ($iloIP in $iLOIPs)
-{
-   Try 
-   { 
+Foreach ($iloIP in $iLOIPs) {
+    Try { 
         Set-HPiLOFactoryDefault -Force -Password password -Server $iloIP -Username demopaq -DisableCertificateAuthentication
     }
-   Catch
-   {
+    Catch {
         write-host " Factory reset Error for iLO : $iloIP"
-   }
+    }
 
 }
 
 write-host "`nYou can now import the new iLO certificate of each iLO in OneView using the iLO IP address from Settings > Security > Manage Certificate page"
 
+Disconnect-HPOVMgmt

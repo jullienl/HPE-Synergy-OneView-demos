@@ -41,64 +41,39 @@ $Location = "C:\\Kits\\_HP\\iLO\\iLO4\\ilo4_254.bin" #Location of the iLO Firmwa
 $ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password"   
 
 
-#IP address of OneView
-$DefaultIP = "192.168.1.110" 
-Clear
-$IP = Read-Host "Please enter the IP address of your OneView appliance [$($DefaultIP)]" 
-$IP = ($DefaultIP,$IP)[[bool]$IP]
-
-# OneView Credentials
-$username = "Administrator" 
-$defaultpassword = "password" 
-$password = Read-Host "Please enter the Administrator password for OneView [$($Defaultpassword)]"
-$password = ($Defaultpassword,$password)[[bool]$password]
+# Composer information
+$username = "Administrator"
+$password = "password"
+$IP = "composer.lj.lab"
 
 
-# Import the OneView 3.0 library
+If (-not (get-Module HPOneview.500) ) {
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-    if (-not (get-module HPOneview.310)) 
-    {  
-    Import-module HPOneview.310
-    }
-
-   
-   
-$PWord = ConvertTo-SecureString –String $password –AsPlainText -Force
-$cred = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Username, $PWord
+    Import-Module HPOneview.500
+}
 
 
-    # Connection to the Synergy Composer
-    if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
-        Write-Host -ForegroundColor red "Disconnect all existing HPOV / Composer sessions and before running script"
-        exit 1
-        }
-    elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
-        Write-Host -ForegroundColor gray "Reusing Existing Composer session"
-        }
-    else {
-        #Make a clean connection
-        Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
-        $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -PSCredential $cred
-        }
+# Connection to the Synergy Composer
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
 import-HPOVSSLCertificate
 
 
-    $iLO4serverIPs =  Get-HPOVServer | % {$_.mpHostInfo.mpIpaddresses[1].address} # | select -first 1 
+$iLO4serverIPs = Get-HPOVServer | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
      
-    $iLO4serverIPs  | Update-HPiLOFirmware -Credential $ilocreds -Location $Location -DisableCertificateAuthentication
+$iLO4serverIPs | Update-HPiLOFirmware -Credential $ilocreds -Location $Location -DisableCertificateAuthentication
    
-    # To manually upadate an iLO, use its IP address like:
-    # "192.168.1.203" | Update-HPiLOFirmware -Credential $ilocreds -Location $Location -DisableCertificateAuthentication
+# To manually upadate an iLO, use its IP address like:
+# "192.168.1.203" | Update-HPiLOFirmware -Credential $ilocreds -Location $Location -DisableCertificateAuthentication
       
    
 Write-Host "The following" $iLO4serverIPs.Count "iLOs have been updated:"
 $iLO4serverIPs  
     
-   
+Disconnect-HPOVMgmt 
 
 
 

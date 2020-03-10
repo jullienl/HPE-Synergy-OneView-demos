@@ -49,27 +49,16 @@ $IP = "192.168.1.110"
 
 
 
-Import-Module HPOneview.420 
+Import-Module HPOneview.500 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-#Connecting to the Synergy Composer
-
-if ($connectedSessions -and ($connectedSessions | Where-Object {$_.name -eq $IP})) {
-    Write-Verbose "Already connected to $IP."
-}
-
-else {
-    Try {
-        $ApplianceConnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password 
-    }
-    Catch {
-        throw $_
-    }
-}
-
+# Connection to the Synergy Composer
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | Where-Object {$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | Where-Object { $_.name -eq $IP })
 
 Get-HPOVServerprofiletemplate | Out-Host
         
@@ -113,7 +102,7 @@ Write-verbose "SPT Child Server list: $serverprofiles.name"
 $uniqueconnections = $_spt.connectionSettings.connections | Sort-Object -Property networkUri -Unique
 
 
-$_Connections = @{}
+$_Connections = @{ }
 
 Foreach ($connection in ($uniqueconnections)) {
 
@@ -153,7 +142,7 @@ foreach ($serverprofile in $serverprofiles) {
         #If SPT network found in SP                         
         Else { 
             # If LAG already configured, no profile change       
-            If ( (($serverprofile.connectionSettings.connections | Where-Object {$_.networkUri -eq $connectionuri}).lagName) -match $lagname) {
+            If ( (($serverprofile.connectionSettings.connections | Where-Object { $_.networkUri -eq $connectionuri }).lagName) -match $lagname) {
                 write-host "Profile $($serverprofile.name): Connection '$networkname' is already configured for $lagname"
             }
             #If LAG not found, profile modification           
@@ -163,7 +152,7 @@ foreach ($serverprofile in $serverprofiles) {
                     
                 write-host "Profile $($serverprofile.name): Connection '$networkname' must be configured for LAG"
                                        
-                $networkconnections = ($serverprofile.connectionSettings.connections | Where-Object {$_.networkUri -eq $connectionuri})
+                $networkconnections = ($serverprofile.connectionSettings.connections | Where-Object { $_.networkUri -eq $connectionuri })
                 
                 foreach ($networkconnection in $networkconnections) {
                     

@@ -33,46 +33,22 @@
 #################################################################################
 
 
-#IP address of OneView
-$DefaultIP = "192.168.1.110" 
-Clear
-$IP = Read-Host "Please enter the IP address of your OneView appliance [$($DefaultIP)]" 
-$IP = ($DefaultIP, $IP)[[bool]$IP]
-
-# OneView Credentials
-$username = "Administrator" 
-$defaultpassword = "password" 
-$password = Read-Host "Please enter the Administrator password for OneView [$($Defaultpassword)]"
-$password = ($Defaultpassword, $password)[[bool]$password]
+# Composer information
+$username = "Administrator"
+$password = "password"
+$IP = "composer.lj.lab"
 
 
-# Import the OneView 4.20 library
+If (-not (get-Module HPOneview.500) ) {
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-if (-not (get-module HPOneview.420)) {  
-    Import-module HPOneview.420
+    Import-Module HPOneview.500
 }
-
-   
-   
-$PWord = ConvertTo-SecureString -String $password -AsPlainText -Force
-$cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $PWord
 
 
 # Connection to the Synergy Composer
-if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
-    Write-Host -ForegroundColor red "Disconnect all existing HPOV / Composer sessions and before running script"
-    exit 1
-}
-elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
-    Write-Host -ForegroundColor gray "Reusing Existing Composer session"
-}
-else {
-    #Make a clean connection
-    Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
-    $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -PSCredential $cred
-}
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                 
 import-HPOVSSLCertificate
@@ -148,3 +124,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
+Disconnect-HPOVMgmt

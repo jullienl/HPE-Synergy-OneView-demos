@@ -87,81 +87,69 @@
 #>
 function Get-HPOVinterconnectstatistics {
 
-[cmdletbinding(DefaultParameterSetName=’All’, 
-                SupportsShouldProcess=$True
-                 )]
+    [cmdletbinding(DefaultParameterSetName = ’All’, 
+        SupportsShouldProcess = $True
+    )]
 
     Param 
     (
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [Alias('composer', 'appliance')]
-        [string]$IP = "",    #IP address of HPE OneView
+        [string]$IP = "", #IP address of HPE OneView
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [Alias('u', 'userid')]
         [string]$username = "Administrator", 
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [Alias('p', 'pwd')]
         [string]$password = "password",
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [string]$interconnect = "",
 
-        [parameter(Mandatory=$true, ParameterSetName="All")]
-        [string]$portname="",
+        [parameter(Mandatory = $true, ParameterSetName = "All")]
+        [string]$portname = "",
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [switch]$throughputstatistics ,
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [switch]$QoS,
 
-        [parameter(ParameterSetName="All")]
+        [parameter(ParameterSetName = "All")]
         [switch]$FlexNICs
                                
     )
    
    
-# Import the OneView 3.1 library
+    # Import the OneView 3.1 library
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.310)) 
-    {  
-    Import-module HPOneview.310
+    if (-not (get-module HPOneview.500)) {  
+        Import-module HPOneview.500
     }
 
    
 
-# Connection to the Synergy Composer
+    # Connection to the Synergy Composer
 
-If ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
-{
-    Write-Verbose "Already connected to $IP."
-}
-
-Else
-{
-    Try 
-    {
-        $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password |  Out-Null
-    }
-    Catch 
-    {
-        throw $_
-    }
-}
+    $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+    Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+
+               
+    import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 
-# Creation of the header
+    # Creation of the header
 
-    $postParams = @{userName=$username;password=$password} | ConvertTo-Json 
-    $headers = @{} 
+    $postParams = @{userName = $username; password = $password } | ConvertTo-Json 
+    $headers = @{ } 
     #$headers["Accept"] = "application/json" 
     $headers["X-API-Version"] = "300"
 
@@ -171,9 +159,9 @@ import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -
 
     $headers["auth"] = $key
 
-# Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
-# due to an invalid Remote Certificate
-add-type -TypeDefinition  @"
+    # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
+    # due to an invalid Remote Certificate
+    add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
         public class TrustAllCertsPolicy : ICertificatePolicy {
@@ -187,31 +175,30 @@ add-type -TypeDefinition  @"
     [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-$IC=get-HPovInterconnect -Name $interconnect
+    $IC = get-HPovInterconnect -Name $interconnect
 
-$uri = $IC.uri
+    $uri = $IC.uri
 
-Write-Verbose "The interconnect is : $interconnect"
+    Write-Verbose "The interconnect is : $interconnect"
  
-$stat1 = Invoke-WebRequest -Uri "https://$IP$uri/statistics/$portname" -ContentType "application/json" -Headers $headers -Method GET # -UseBasicParsing 
+    $stat1 = Invoke-WebRequest -Uri "https://$IP$uri/statistics/$portname" -ContentType "application/json" -Headers $headers -Method GET # -UseBasicParsing 
  
-Write-Verbose "The general stats are $stat1"
+    Write-Verbose "The general stats are $stat1"
 
-clear 
-
-
-$configporttype = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).configPortTypes
-
-$porttype = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).portType
-
-$portlinked = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).portStatus
-
-$moduletype =  (get-HPovInterconnect -Name $interconnect).model
+    clear 
 
 
+    $configporttype = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).configPortTypes
 
-if ($portlinked -eq "Unlinked") 
-    { 
+    $porttype = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).portType
+
+    $portlinked = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).portStatus
+
+    $moduletype = (get-HPovInterconnect -Name $interconnect).model
+
+
+
+    if ($portlinked -eq "Unlinked") { 
         Write-host "" 
         Write-warning "`n`nPort $portname is unlinked ! No statistics is available !`n" 
         
@@ -220,38 +207,32 @@ if ($portlinked -eq "Unlinked")
     
 
 
-if ($throughputstatistics -eq $False -and $qos -eq $False -and $FlexNICs -eq $False -and $configporttype -notmatch "FibreChannel")
- 
-    {  write-host "`nStatistics for $portname :"  -ForegroundColor Green
-       ($stat1.Content | convertfrom-Json).commonStatistics 
+    if ($throughputstatistics -eq $False -and $qos -eq $False -and $FlexNICs -eq $False -and $configporttype -notmatch "FibreChannel") {
+        write-host "`nStatistics for $portname :"  -ForegroundColor Green
+        ($stat1.Content | convertfrom-Json).commonStatistics 
     }
      
 
 
 
 
-if ($qos -eq $False -and $configporttype -match 'FibreChannel' -and $FlexNICs -eq $False -and $throughputstatistics -eq $False) 
-
-    {
+    if ($qos -eq $False -and $configporttype -match 'FibreChannel' -and $FlexNICs -eq $False -and $throughputstatistics -eq $False) {
        
-       Write-host "`nPort $portname is a Fibre Channel uplink"
-       write-host "`FC statistics:"  -ForegroundColor Green
-       ($stat1.Content | convertfrom-Json).fcStatistics
+        Write-host "`nPort $portname is a Fibre Channel uplink"
+        write-host "`FC statistics:"  -ForegroundColor Green
+        ($stat1.Content | convertfrom-Json).fcStatistics
     }
 
     
     
-if ($throughputstatistics -eq $True -and $FlexNICs -eq $False) 
-
-    {   
+    if ($throughputstatistics -eq $True -and $FlexNICs -eq $False) {   
     
-         if ($configporttype -match 'FibreChannel' -and $moduletype -match "Virtual Connect SE 40Gb F8 Module for Synergy") 
-                    { 
-                        Write-host "" 
-                        Write-warning "`n`nThroughput statistics are currently not supported on a Fibre Channel Port on the HPE Virtual Connect SE 40Gb F8 Module for HPE Synergy !`n" 
+        if ($configporttype -match 'FibreChannel' -and $moduletype -match "Virtual Connect SE 40Gb F8 Module for Synergy") { 
+            Write-host "" 
+            Write-warning "`n`nThroughput statistics are currently not supported on a Fibre Channel Port on the HPE Virtual Connect SE 40Gb F8 Module for HPE Synergy !`n" 
         
-                        return
-                    }
+            return
+        }
         
         
         write-host "`nThroughput statistics:`n" -ForegroundColor Green
@@ -263,17 +244,14 @@ if ($throughputstatistics -eq $True -and $FlexNICs -eq $False)
    
 
         
-if ($qos.IsPresent) 
-
-    {   
+    if ($qos.IsPresent) {   
         
-        if ((($stat1.Content | convertfrom-Json).qosPortStatistics) -eq $Null) 
-            { 
-                Write-host "" 
-                Write-warning "`n`nThere is no QoS Statistics on $portname !`n" 
-                return
+        if ((($stat1.Content | convertfrom-Json).qosPortStatistics) -eq $Null) { 
+            Write-host "" 
+            Write-warning "`n`nThere is no QoS Statistics on $portname !`n" 
+            return
                 
-            }
+        }
         
         write-host "`nQoS statistics:"  -ForegroundColor Green
            
@@ -283,45 +261,39 @@ if ($qos.IsPresent)
 
 
     
-if ($FlexNICs.IsPresent) 
-
-    {   
+    if ($FlexNICs.IsPresent) {   
 
         $subports = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).subports
 
-        if ($porttype -match "Uplink") 
-            { 
-                Write-host "" 
-                Write-warning "`n`nThere is no FlexNIC on $portname as it is an uplink !`n" 
+        if ($porttype -match "Uplink") { 
+            Write-host "" 
+            Write-warning "`n`nThere is no FlexNIC on $portname as it is an uplink !`n" 
                 
-                return
-            }
+            return
+        }
 
-        if ($subports -eq $Null -and $porttype -notmatch "Uplink") 
-            { 
-                Write-host "" 
-                Write-warning "`n`nNo statistics is available as $portname has no FlexNIC configured !`n" 
+        if ($subports -eq $Null -and $porttype -notmatch "Uplink") { 
+            Write-host "" 
+            Write-warning "`n`nNo statistics is available as $portname has no FlexNIC configured !`n" 
                 
-                return
-            }
+            return
+        }
     
         $count = (($stat1.Content | convertfrom-Json).subportStatistics).count
         
         write-host "`n$portname is configured with $count FlexNIC(s):"  -ForegroundColor Green
 
 
-        if ($throughputstatistics.IsPresent) 
-        
-            {
+        if ($throughputstatistics.IsPresent) {
                                        
-                ($stat1.Content | convertfrom-Json).subportStatistics.subportAdvancedStatistics | ForEach-Object {
+            ($stat1.Content | convertfrom-Json).subportStatistics.subportAdvancedStatistics | ForEach-Object {
           
                 write-host ("`nKilobits per second received on $portname / FlexNIC" + $_.subportNumber + " in the last hour:" )
            
                 ($_.receiveKilobitsPerSec -split ":" ) }
 
 
-                ($stat1.Content | convertfrom-Json).subportStatistics.subportAdvancedStatistics | ForEach-Object {
+            ($stat1.Content | convertfrom-Json).subportStatistics.subportAdvancedStatistics | ForEach-Object {
           
                 write-host ("`nPackets per second received on $portname / FlexNIC" + $_.subportNumber + " in the last hour:" )
            
@@ -329,25 +301,23 @@ if ($FlexNICs.IsPresent)
 
         
         
-            }
+        }
 
-        else
-
-            {
+        else {
 
         
-                (($stat1.Content | convertfrom-Json).subportStatistics) | ForEach-Object {
+            (($stat1.Content | convertfrom-Json).subportStatistics) | ForEach-Object {
           
                 write-host ("Statistics of $portname / FlexNIC" + $_.subportNumber + ":" )
 
-                ($_.subportCommonStatistics) | select -Property rfc1213IfInOctets,rfc1213IfInUcastPkts,rfc1213IfInNUcastPkts,rfc1213IfOutOctets,rfc1213IfOutUcastPkts,rfc1213IfOutNUcastPkts | fl  }
+                ($_.subportCommonStatistics) | select -Property rfc1213IfInOctets, rfc1213IfInUcastPkts, rfc1213IfInNUcastPkts, rfc1213IfOutOctets, rfc1213IfOutUcastPkts, rfc1213IfOutNUcastPkts | fl }
             
         
-            }
+        }
 
     } 
 
-    
+    Disconnect-HPOVMgmt
 }
 
 

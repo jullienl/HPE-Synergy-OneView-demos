@@ -16,19 +16,21 @@ OneView Powershell Library is required
 # Composer information
 $username = "Administrator"
 $password = "password"
-$composer = "composer.lj.lab"
+$IP = "composer.lj.lab"
 
 
-If (-not (get-Module HPOneview.420) ) {
+If (-not (get-Module HPOneview.500) ) {
 
-    Import-Module HPOneview.420
+    Import-Module HPOneview.500
 }
 
 
-#Connecting to the Synergy Composer
-Connect-HPOVMgmt -appliance $composer -UserName $username -Password $password | Out-Null
+# Connection to the Synergy Composer
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
-
+               
 # GET (before)
 
 $fabric = Send-HPOVRequest -uri "/rest/fabrics" 
@@ -74,3 +76,5 @@ $task | Wait-HPOVTaskComplete
 $newPool = Send-HPOVRequest -uri $pool.uri
 
 "AFTER - vlan-pool: start={0}, length={1}" -f $newPool.start, $newPool.length | Write-Host -ForegroundColor Green
+
+Disconnect-HPOVMgmt

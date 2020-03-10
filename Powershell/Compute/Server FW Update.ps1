@@ -68,12 +68,14 @@ $serverFWlocation = "D:\Kits\_Scripts\_PowerShell\Compute\I42_1.46_10_05_2018.si
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
 
 
-Function MyImport-Module {
+Function Import-ModuleAdv {
     
     # Import a module that can be imported
     # If it cannot, the module is installed
     # When -update parameter is used, the module is updated 
     # to the latest version available on the PowerShell library
+    #
+    # ex: import-moduleAdv hponeview.500
     
     param ( 
         $module, 
@@ -81,13 +83,13 @@ Function MyImport-Module {
     )
    
     if (get-module $module -ListAvailable) {
+
         if ($update.IsPresent) {
             
-            # Updates the module to the latest version
-            [string]$Moduleinstalled = (Get-Module -Name $module).version
+            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
             
             Try {
-                [string]$ModuleonRepo = (Find-Module -Name $module -ErrorAction Stop).version
+                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
             }
             Catch {
                 Write-Warning "Error: No internet connection to update $module ! `
@@ -95,11 +97,18 @@ Function MyImport-Module {
                 return 
             }
 
-            $Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
+            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
 
-            If (-not $Compare.SideIndicator -eq '==') {
+            #If ( ( $Compare.SideIndicator -eq '==') ) {
+            
+            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
                 Try {
-                    Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
+                    # not using update-module as it keeps the old version of the module
+                    #Remove existing version
+                    Get-Module $Module -ListAvailable | Uninstall-Module 
+
+                    #Install latest one from PSGallery
+                    Install-Module -Name $Module
                 }
                 Catch {
                     write-warning "Error: $module cannot be updated !"
@@ -116,19 +125,22 @@ Function MyImport-Module {
             
     }
 
+
     Else {
         Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
 
         
         If ( !(get-PSRepository).name -eq "PSGallery" )
-        {Register-PSRepository -Default}
+        { Register-PSRepository -Default }
                 
         Try {
             find-module -Name $module -ErrorAction Stop | out-Null
                 
             Try {
-                Install-Module –Name $module -Scope CurrentUser –Force -ErrorAction Stop | Out-Null
+                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
                 Write-host "`nInstalling $Module ..." 
+                Import-module $module
+               
             }
             catch {
                 Write-Warning "$Module cannot be installed!" 
@@ -143,42 +155,24 @@ Function MyImport-Module {
             return
         }
             
-        
-            
-               
-            
     }
 
 }
 
-MyImport-Module HPiLOCmdlets # -update
-#MyImport-Module FormatPX
-#MyImport-Module SnippetPX
-MyImport-Module HPOneview.410 #-update
-#MyImport-Module PoshRSJob
-#MyImport-Module HPRESTCmdlets
 
-
+Import-ModuleAdv HPOneview.500 #-update
+Import-ModuleAdv HPiLOCmdlets # -update
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #Connecting to the Synergy Composer
 
-if ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
-    Write-Verbose "Already connected to $IP."
-}
-
-else {
-    Try {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
-    }
-    Catch {
-        throw $_
-    }
-}
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
+import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
@@ -188,9 +182,9 @@ $servers = Get-HPOVServer | ? model -match "480 Gen10"
 #$servers = Get-HPOVServer | select -first 1
 
 
-$iLOserverIPs = $servers | % {$_.mpHostInfo.mpIpaddresses[1].address} # | select -first 1 
+$iLOserverIPs = $servers | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
     
-$iLOserverIPs  | Update-HPiLOServerFirmware -Username $ilousername -Password $ilopassword -Location $serverFWlocation #-DisableCertificateAuthentication
+$iLOserverIPs | Update-HPiLOServerFirmware -Username $ilousername -Password $ilopassword -Location $serverFWlocation #-DisableCertificateAuthentication
     
 # To update ilo FW :     
 #$iLOserverIPs  | Update-HPiLOFirmware -Username $ilousername -Password $ilopassword -Location $serverFWlocation #-DisableCertificateAuthentication
@@ -202,7 +196,7 @@ $iLOserverIPs  | Update-HPiLOServerFirmware -Username $ilousername -Password $il
 Write-Host "`nThe following"$iLOserverIPs.Count"server System ROM have been updated:`n"
 $iLOserverIPs  
     
-   
+Disconnect-HPOVMgmt
 
 
 

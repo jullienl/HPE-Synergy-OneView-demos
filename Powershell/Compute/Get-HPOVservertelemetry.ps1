@@ -62,113 +62,98 @@
 #>
 function Get-HPOVservertelemetry {
 
-[cmdletbinding(DefaultParameterSetName=’All’, 
-                SupportsShouldProcess=$True
-                 )]
+  [cmdletbinding(DefaultParameterSetName = "All",
+    SupportsShouldProcess = $True
+  )]
 
-    Param 
-    (
+  Param 
+  (
 
-        [parameter(ParameterSetName="All")]
-        [Alias('composer', 'appliance')]
-        [string]$IP = "192.168.1.110",    #IP address of HPE OneView
+    [parameter(ParameterSetName = "All")]
+    [Alias('composer', 'appliance')]
+    [string]$IP = "192.168.1.110", #IP address of HPE OneView
 
-        [parameter(ParameterSetName="All")]
-        [Alias('u', 'userid')]
-        [string]$username = "Administrator", 
+    [parameter(ParameterSetName = "All")]
+    [Alias('u', 'userid')]
+    [string]$username = "Administrator", 
 
-        [parameter(ParameterSetName="All")]
-        [Alias('p', 'pwd')]
-        [string]$password = "password",
+    [parameter(ParameterSetName = "All")]
+    [Alias('p', 'pwd')]
+    [string]$password = "password",
 
-        [parameter(ParameterSetName="All")]
-        [string]$profile = "Win"
+    [parameter(ParameterSetName = "All")]
+    [string]$profile = "rh-1"
 
                                
-    )
+  )
    
 
 
-# Import the OneView 3.1 library
+  # Import the OneView 5.0 library
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-    if (-not (get-module HPOneview.310)) 
-    {  
-    Import-module HPOneview.310
-    }
+  if (-not (get-module HPOneview.500)) {  
+    Import-module HPOneview.500
+  }
 
-   
+  
 
-# Connection to the Synergy Composer
-
-If ($connectedSessions -and ($connectedSessions | ?{$_.name -eq $IP}))
-{
-    Write-Verbose "Already connected to $IP."
-}
-
-Else
-{
-    Try 
-    {
-        $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password |  Out-Null
-    }
-    Catch 
-    {
-        throw $_
-    }
-}
+  # Connection to the Synergy Composer
+  $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+  $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+  Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ?{$_.name -eq $IP})
+  import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
-clear
+  clear
 
-$profileuri = (Get-HPOVServerProfile  | ? {$_.name -eq $profile}).uri
+  $profileuri = (Get-HPOVServerProfile | ? { $_.name -eq $profile }).uri
 
-$node = Get-HPOVServer | ? {$_.serverProfileUri -eq $profileuri }
+  $node = Get-HPOVServer | ? { $_.serverProfileUri -eq $profileuri }
 
-$URI = $node.uri
-$NAME = $node.Name
-$temp = $URI + "/utilization?fields=AmbientTemperature"
+  $URI = $node.uri
+  $NAME = $node.Name
+  $temp = $URI + "/utilization?fields=AmbientTemperature"
 
-$Resulttemp = Send-HPOVRequest $temp
+  $Resulttemp = Send-HPOVRequest $temp
 
-$CurrentSampletemp = $Resulttemp.metricList.metricSamples
-$SampleTimetemp = [datetime]($Resulttemp.newestSampleTime)
-$LastTempValue = echo $CurrentSampletemp[0][1]
-
-
-write-host "`nServer Profile: " -NoNewline; write-host -f Cyan $Profile
-write-host "Compute Module: " -NoNewline; write-host -f Cyan $Name
-write-host "`nSample Time: " -NoNewline; write-host -f Cyan $SampleTimetemp
-
-write-host "`nTemperature Reading: " -NoNewline; write-host $LastTempValue -f Cyan
-
-$cpu = $URI + "/utilization?fields=CpuAverageFreq"
-$Resultcpu = Send-HPOVRequest $cpu
-$CurrentSamplecpu = $Resultcpu.metricList.metricSamples
-$SampleTimecpu = [datetime]($Resultcpu.newestSampleTime)
-$LastcpuValue = echo $CurrentSamplecpu[0][1]
-
-write-host "CPU Average Reading: " -nonewline ; Write-Host $LastcpuValue -f Cyan
-
-$cpuu = $URI + "/utilization?fields=CpuUtilization"
-$Resultcpuu = Send-HPOVRequest $cpuu
-$CurrentSamplecpuu = $Resultcpuu.metricList.metricSamples
-$SampleTimecpuu = [datetime]($Resultcpuu.newestSampleTime)
-$LastcpuuValue = echo $CurrentSamplecpuu[0][1]
-
-write-host "CPU Utilization Reading: " -NoNewline; write-host $LastcpuuValue -f Cyan
-
-$AveragePower = $URI + "/utilization?fields=AveragePower"
-$ResultAveragePower = Send-HPOVRequest $AveragePower
-$CurrentSampleAveragePower = $ResultAveragePower.metricList.metricSamples
-$SampleTimeAveragePower = [datetime]($ResultAveragePower.newestSampleTime)
-$LastAveragePowerValue = echo $CurrentSampleAveragePower[0][1]
-
-write-host "Average Power Reading: " -NoNewline; write-host $LastAveragePowerValue -f Cyan
-Write-host ""
+  $CurrentSampletemp = $Resulttemp.metricList.metricSamples
+  $SampleTimetemp = [datetime]($Resulttemp.newestSampleTime)
+  $LastTempValue = echo $CurrentSampletemp[0][1]
 
 
+  write-host "`nServer Profile: " -NoNewline; write-host -f Cyan $Profile
+  write-host "Compute Module: " -NoNewline; write-host -f Cyan $Name
+  write-host "`nSample Time: " -NoNewline; write-host -f Cyan $SampleTimetemp
+
+  write-host "`nTemperature Reading: " -NoNewline; write-host $LastTempValue -f Cyan
+
+  $cpu = $URI + "/utilization?fields=CpuAverageFreq"
+  $Resultcpu = Send-HPOVRequest $cpu
+  $CurrentSamplecpu = $Resultcpu.metricList.metricSamples
+  $SampleTimecpu = [datetime]($Resultcpu.newestSampleTime)
+  $LastcpuValue = echo $CurrentSamplecpu[0][1]
+
+  write-host "CPU Average Reading: " -nonewline ; Write-Host $LastcpuValue -f Cyan
+
+  $cpuu = $URI + "/utilization?fields=CpuUtilization"
+  $Resultcpuu = Send-HPOVRequest $cpuu
+  $CurrentSamplecpuu = $Resultcpuu.metricList.metricSamples
+  $SampleTimecpuu = [datetime]($Resultcpuu.newestSampleTime)
+  $LastcpuuValue = echo $CurrentSamplecpuu[0][1]
+
+  write-host "CPU Utilization Reading: " -NoNewline; write-host $LastcpuuValue -f Cyan
+
+  $AveragePower = $URI + "/utilization?fields=AveragePower"
+  $ResultAveragePower = Send-HPOVRequest $AveragePower
+  $CurrentSampleAveragePower = $ResultAveragePower.metricList.metricSamples
+  $SampleTimeAveragePower = [datetime]($ResultAveragePower.newestSampleTime)
+  $LastAveragePowerValue = echo $CurrentSampleAveragePower[0][1]
+
+  write-host "Average Power Reading: " -NoNewline; write-host $LastAveragePowerValue -f Cyan
+  Write-host ""
+
+  Disconnect-HPOVMgmt
 }

@@ -91,6 +91,7 @@ Function Import-ModuleAdv {
     )
    
     if (get-module $module -ListAvailable) {
+
         if ($update.IsPresent) {
             
             [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
@@ -110,8 +111,12 @@ Function Import-ModuleAdv {
             
             If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
                 Try {
-                    Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
-                    Get-Module $Module -ListAvailable | Where-Object -Property Version -LT -Value $RepoModule | Uninstall-Module 
+                    # not using update-module as it keeps the old version of the module
+                    #Remove existing version
+                    Get-Module $Module -ListAvailable | Uninstall-Module 
+
+                    #Install latest one from PSGallery
+                    Install-Module -Name $Module
                 }
                 Catch {
                     write-warning "Error: $module cannot be updated !"
@@ -127,6 +132,7 @@ Function Import-ModuleAdv {
         Import-module $module
             
     }
+
 
     Else {
         Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
@@ -146,7 +152,7 @@ Function Import-ModuleAdv {
             }
             catch {
                 Write-Warning "$Module cannot be installed!" 
-                $error[0] | Format-list * -force
+                $error[0] | FL * -force
                 pause
                 exit
             }
@@ -162,6 +168,8 @@ Function Import-ModuleAdv {
 }
 
 Import-ModuleAdv HPOneview.500 #-update
+
+  
 
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
 

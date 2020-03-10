@@ -34,61 +34,37 @@
 #################################################################################
 
 
-#IP address of OneView
-$DefaultIP = "192.168.1.110" 
-Clear
-$IP = Read-Host "Please enter the IP address of your OneView appliance [$($DefaultIP)]" 
-$IP = ($DefaultIP, $IP)[[bool]$IP]
-
-# OneView Credentials
-$username = "Administrator" 
-$defaultpassword = "password" 
-$password = Read-Host "Please enter the Administrator password for OneView [$($Defaultpassword)]"
-$password = ($Defaultpassword, $password)[[bool]$password]
+# Composer information
+$username = "Administrator"
+$password = "password"
+$IP = "composer.lj.lab"
 
 
-# Import the OneView 4.10 library
+If (-not (get-Module HPOneview.500) ) {
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-if (-not (get-module HPOneview.410)) {  
-    Import-module HPOneview.410
+    Import-Module HPOneview.500
 }
-
-   
-   
-$PWord = ConvertTo-SecureString -String $password -AsPlainText -Force
-$cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $PWord
 
 
 # Connection to the Synergy Composer
-if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
-    Write-Host -ForegroundColor red "Disconnect all existing HPOV / Composer sessions and before running script"
-    exit 1
-}
-elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
-    Write-Host -ForegroundColor gray "Reusing Existing Composer session"
-}
-else {
-    #Make a clean connection
-    Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
-    $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -PSCredential $cred
-}
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                 
 import-HPOVSSLCertificate
 
 
 # Capture iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer |  where mpModel -eq iLO5 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-HPOVServer | where mpModel -eq iLO5 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 clear
 
 if ($iloIPs) {
     write-host ""
     Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with a new password :" 
-    $result = Get-HPOVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = {$_.mpHostInfo.mpIpAddresses[1].address}}, name, shortModel, serialNumber 
-    $result.ForEach( {[PSCustomObject]$_}) | Format-Table -AutoSize | Out-Host
+    $result = Get-HPOVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
+    $result.ForEach( { [PSCustomObject]$_ }) | Format-Table -AutoSize | Out-Host
 
 }
 
@@ -100,7 +76,7 @@ $admpassword = Read-Host "Please enter the password you want to assign to all iL
 $admpassword = ($Defaultadmpassword, $admpassword)[[bool]$admpassword]
 
 #Creation of the body content to pass to iLO
-$bodyiloParams = @{Password = $admpassword} | ConvertTo-Json 
+$bodyiloParams = @{Password = $admpassword } | ConvertTo-Json 
 
 # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
 # due to an invalid Remote Certificate
@@ -122,10 +98,10 @@ add-type -TypeDefinition  @"
 Foreach ($iloIP in $iloIPs) {
     # Capture of the SSO Session Key
  
-    $ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+    $ilosessionkey = (Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
  
     # Creation of the header using the SSO Session Key 
-    $headerilo = @{} 
+    $headerilo = @{ } 
     $headerilo["Accept"] = "application/json" 
     $headerilo["X-API-Version"] = "800"
     $headerilo["X-Auth-Token"] = $ilosessionkey 
@@ -138,8 +114,7 @@ Foreach ($iloIP in $iloIPs) {
         # Modification of the Administrator password
         $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/accountservice/accounts/1/" -Body $bodyiloParams -ContentType "application/json" -Headers $headerilo -Method PATCH -UseBasicParsing
 
-        if ($Error[0] -eq $Null) 
-        {
+        if ($Error[0] -eq $Null) {
             write-host ""
             Write-Host "Administrator password has been changed in iLo $iloIP"
         }
@@ -157,3 +132,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
+Disconnect-HPOVMgmt

@@ -36,55 +36,32 @@
 #################################################################################
 
 
-#IP address of OneView
-$DefaultIP = "192.168.1.110" 
-Clear
-$IP = Read-Host "Please enter the IP address of your OneView appliance [$($DefaultIP)]" 
-$IP = ($DefaultIP, $IP)[[bool]$IP]
-
-# OneView Credentials
+# OneView Credentials and IP
 $username = "Administrator" 
-$defaultpassword = "password" 
-$password = Read-Host "Please enter the Administrator password for OneView [$($Defaultpassword)]"
-$password = ($Defaultpassword, $password)[[bool]$password]
+$password = "password" 
+$IP = "192.168.1.110" 
 
 
-# Import the OneView 4.10 library
+# Import the OneView library
+
+If (-not (get-Module HPOneview.500) ) {
+
+    Import-Module HPOneview.500
+}
+
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-if (-not (get-module HPOneview.410)) {  
-    Import-module HPOneview.410
-}
-
-   
-   
-$PWord = ConvertTo-SecureString –String $password –AsPlainText -Force
-$cred = New-Object –TypeName System.Management.Automation.PSCredential –ArgumentList $Username, $PWord
-
-
 # Connection to the Synergy Composer
-if ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -gt 1)) {
-    Write-Host -ForegroundColor red "Disconnect all existing HPOV / Composer sessions and before running script"
-    exit 1
-}
-elseif ((test-path Variable:ConnectedSessions) -and ($ConnectedSessions.Count -eq 1) -and ($ConnectedSessions[0].Default) -and ($ConnectedSessions[0].Name -eq $IP)) {
-    Write-Host -ForegroundColor gray "Reusing Existing Composer session"
-}
-else {
-    #Make a clean connection
-    Disconnect-HPOVMgmt -ErrorAction SilentlyContinue
-    $Appplianceconnection = Connect-HPOVMgmt -appliance $IP -PSCredential $cred
-}
-
-                
-import-HPOVSSLCertificate
+$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
 # Creation of the header
 
-$postParams = @{userName = $username; password = $password} | ConvertTo-Json 
-$headers = @{} 
+$postParams = @{userName = $username; password = $password } | ConvertTo-Json 
+$headers = @{ } 
 #$headers["Accept"] = "application/json" 
 $headers["X-API-Version"] = "800"
 
@@ -97,10 +74,10 @@ $headers["auth"] = $key
 
 
 # Capture iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer | where mpModel -eq iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-HPOVServer | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 # Capture and display iLO IP adresses not supporting REST
-$unsupportediLO = Get-HPOVServer | where mpModel -ne iLO4 | % {$_.mpHostInfo.mpIpAddresses[1].address }
+$unsupportediLO = Get-HPOVServer | where mpModel -ne iLO4 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 
 $iloIPs
@@ -148,10 +125,10 @@ add-type -TypeDefinition  @"
 Foreach ($iloIP in $iloIPs) {
     # Capture of the SSO Session Key
  
-    $ilosessionkey = (Get-HPOVServer | where {$_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP} | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+    $ilosessionkey = (Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
 
     # Creation of the header using the SSO Session Key
-    $headerilo = @{} 
+    $headerilo = @{ } 
     $headerilo["Accept"] = "application/json" 
     $headerilo["X-API-Version"] = "800"
     $headerilo["X-Auth-Token"] = $ilosessionkey 
@@ -197,3 +174,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
+Disconnect-HPOVMgmt
