@@ -1,4 +1,7 @@
-﻿$username = "Administrator"
+﻿# Provides the 5 latest alerts and the number of all alerts available in HPE OneView Global Dashboard
+
+# Global Dashboard information
+$username = "Administrator"
 $password = "password"
 $globaldashboard = "192.168.1.50"
  

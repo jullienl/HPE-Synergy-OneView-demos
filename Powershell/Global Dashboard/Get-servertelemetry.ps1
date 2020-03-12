@@ -1,3 +1,17 @@
+# Generates a CSV telemetry report with Temperature/CPU Utilization/Average Power of all servers managed by HPE OneView Global Dashboard
+#
+# "Appliance Name", "Appliance IP", "Appliance Model", "Server Profile", "Server Hardware", "Sample Time", "Temperature", "CPU Utilization", "Average Power"
+# "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "rh-1", "Frame1, bay 2", "03/12/2020 07:55:00", "17", "1", "57"
+# "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "win-2", "Frame3, bay 4", "03/12/2020 08:00:00", "21", "0", "73"
+# "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "ESX-65U3.1", "Frame3, bay 5", "03/12/2020 08:00:00", "19", "0", "0"
+# "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "win-1", "Frame3, bay 1", "03/12/2020 08:00:00", "19", "0", "63"
+# "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "esx-1", "Frame3, bay 9", "03/12/2020 08:00:00", "20", "0", "82"
+# "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "RH75-SUT", "Frame1, bay 5", "03/12/2020 08:25:00", "20", "0", "57"
+# "HPEOneView-DCS", "hpeoneview-dcs.lj.lab", "HPE OneView - Demo VM", "DL_380_2", "172.18.6.30", "03/12/2020 12:35:00", "0", "0", "0"
+# "HPEOneView-DCS", "hpeoneview-dcs.lj.lab", "HPE OneView - Demo VM", "DL_380_1", "172.18.6.13", "03/12/2020 11:45:00", "0", "0", "0"
+
+
+
 # Global Dashboard information
 $username = "Administrator"
 $password = "password"
@@ -38,7 +52,7 @@ $ManagedAppliances = (invoke-webrequest -Uri "https://$globaldashboard/rest/appl
 
 $OVappliances = $ManagedAppliances.members
 
-echo "Appliance Name;Appliance IP;Appliance Model;Server Profile;Sample Time;Temperature;CPU Average;CPU Utilization;Average Power" > Server_Telemetry_Report.txt 
+echo "Appliance Name;Appliance IP;Appliance Model;Server Profile;Server Hardware;Sample Time;Temperature;CPU Utilization;Average Power" > Server_Telemetry_Report.txt 
 
 Clear-Host
 
@@ -94,15 +108,10 @@ foreach ($OVappliance in $OVappliances) {
         write-host "`t- Average Power: " -NoNewline; write-host "$($LastAveragePowerValue)W" -f Cyan
 
  
-        "$($OVappliance.applianceName);$($OVappliance.applianceLocation);$($OVappliance.model);$($OVProfile.name);$SampleTimetemp;$LastTempValue;$LastcpuValue;$LastcpuuValue;$LastAveragePowerValue" | Out-File Server_Telemetry_Report.txt -Append
+        "$($OVappliance.applianceName);$($OVappliance.applianceLocation);$($OVappliance.model);$($OVProfile.name);$serverhardwarename;$SampleTimetemp;$LastTempValue;$LastcpuuValue;$LastAveragePowerValue" | Out-File Server_Telemetry_Report.txt -Append
     }
 }
 
 
 import-csv Server_Telemetry_Report.txt -delimiter ";" | export-csv Server_Telemetry_Report.csv -NoTypeInformation
 remove-item Server_Telemetry_Report.txt -Confirm:$false
-
-
-
-
-
