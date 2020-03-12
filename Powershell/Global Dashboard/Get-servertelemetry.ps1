@@ -1,4 +1,4 @@
-# Generates a CSV telemetry report with Temperature/CPU Utilization/Average Power of all servers managed by HPE OneView Global Dashboard
+# Generates a CSV telemetry report with the last sample Temperature/CPU Utilization/Average Power values of all servers managed by HPE OneView Global Dashboard
 #
 # "Appliance Name", "Appliance IP", "Appliance Model", "Server Profile", "Server Hardware", "Sample Time", "Temperature", "CPU Utilization", "Average Power"
 # "composer.lj.lab", "composer.lj.lab", "Synergy Composer", "rh-1", "Frame1, bay 2", "03/12/2020 07:55:00", "17", "1", "57"
@@ -50,7 +50,7 @@ $headers["auth"] = $key
 
 $ManagedAppliances = (invoke-webrequest -Uri "https://$globaldashboard/rest/appliances" -Headers $headers -Method GET) | ConvertFrom-Json
 
-$OVappliances = $ManagedAppliances.members
+$OVappliances = $ManagedAppliances.members[0]
 
 echo "Appliance Name;Appliance IP;Appliance Model;Server Profile;Server Hardware;Sample Time;Temperature;CPU Utilization;Average Power" > Server_Telemetry_Report.txt 
 
@@ -85,7 +85,10 @@ foreach ($OVappliance in $OVappliances) {
         $Resulttemperature = Invoke-webrequest -Uri "https://$OVIP$temperature" -Headers $OVheaders -Method Get | ConvertFrom-Json
         $CurrentSampletemp = $Resulttemperature.metricList.metricSamples
         $SampleTimetemp = [datetime]($Resulttemperature.newestSampleTime)
+        # Collecting the last Temperature sample value
         $LastTempValue = echo $CurrentSampletemp[0][1]
+
+
         $serverHardwareUri = $OVProfile.serverHardwareUri 
         $serverhardwarename = (Invoke-webrequest -Uri "https://$OVIP$serverHardwareUri" -Headers $OVheaders -Method Get | ConvertFrom-Json).name
         write-host "`n > Server Profile: " -NoNewline; write-host -f Cyan $OVProfile.name -NoNewline; write-host " - Compute Module: " -NoNewline; write-host -f Cyan $serverhardwarename
@@ -97,6 +100,7 @@ foreach ($OVappliance in $OVappliances) {
         $Resultcpuu = Invoke-webrequest -Uri "https://$OVIP$cpuu" -Headers $OVheaders -Method Get | ConvertFrom-Json
         $CurrentSamplecpuu = $Resultcpuu.metricList.metricSamples
         #$SampleTimecpuu = [datetime]($Resultcpuu.newestSampleTime)
+        # Collecting the last CPU Utilization sample value
         $LastcpuuValue = echo $CurrentSamplecpuu[0][1]
         write-host "`t- CPU Utilization: " -NoNewline; write-host $LastcpuuValue -f Cyan
 
@@ -104,10 +108,10 @@ foreach ($OVappliance in $OVappliances) {
         $ResultAveragePower = invoke-webrequest -Uri "https://$OVIP$AveragePower" -Headers $OVheaders -Method Get | ConvertFrom-Json
         $CurrentSampleAveragePower = $ResultAveragePower.metricList.metricSamples
         #$SampleTimeAveragePower = [datetime]($ResultAveragePower.newestSampleTime)
+        # Collecting the last Average Power sample value
         $LastAveragePowerValue = echo $CurrentSampleAveragePower[0][1]
         write-host "`t- Average Power: " -NoNewline; write-host "$($LastAveragePowerValue)W" -f Cyan
 
- 
         "$($OVappliance.applianceName);$($OVappliance.applianceLocation);$($OVappliance.model);$($OVProfile.name);$serverhardwarename;$SampleTimetemp;$LastTempValue;$LastcpuuValue;$LastAveragePowerValue" | Out-File Server_Telemetry_Report.txt -Append
     }
 }
