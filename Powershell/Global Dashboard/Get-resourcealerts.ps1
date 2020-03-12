@@ -1,5 +1,5 @@
 ﻿$username = "Administrator"
-$password = "P@ssw0rd"
+$password = "password"
  
 #Creation of the header
 $headers = @{ } 

@@ -1,6 +1,6 @@
 # Global Dashboard information
 $username = "Administrator"
-$password = "P@ssw0rd"
+$password = "password"
 $globaldashboard = "192.168.1.50"
  
 #Creation of the header
