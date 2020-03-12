@@ -12,9 +12,6 @@ $headers["X-API-Version"] = "2"
 #$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
 $Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
 
-#Opening a login session with Global DashBoard
-$session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
-
 # To avoid with self-signed certificate: could not establish trust relationship for the SSL/TLS Secure Channel – Invoke-WebRequest
 add-type -TypeDefinition  @"
         using System.Net;
@@ -30,6 +27,8 @@ add-type -TypeDefinition  @"
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
+#Opening a login session with Global DashBoard
+$session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
 
 #Capturing the OneView Global DashBoard Session ID and adding it to the header
 $key = ($session.content | ConvertFrom-Json).sessionID

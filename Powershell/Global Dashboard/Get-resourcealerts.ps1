@@ -1,5 +1,6 @@
 ﻿$username = "Administrator"
 $password = "password"
+$globaldashboard = "192.168.1.50"
  
 #Creation of the header
 $headers = @{ } 
@@ -10,18 +11,33 @@ $headers["X-API-Version"] = "2"
 #$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
 $Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
 
-#Opening a login session with Global DashBoard
-$session = invoke-webrequest -Uri "https://192.168.1.50/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
+# To avoid with self-signed certificate: could not establish trust relationship for the SSL/TLS Secure Channel – Invoke-WebRequest
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
+#Opening a login session with Global DashBoard
+$session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
 
 #Capturing the OneView Global DashBoard Session ID and adding it to the header
 $key = ($session.content | ConvertFrom-Json).sessionID
 $headers["auth"] = $key
 
-
 #Capturing the OneView Global DashBoard alerts
-$resourcealerts = (invoke-webrequest -Uri "https://192.168.1.50/rest/resource-alerts" -Headers $headers -Method GET) | ConvertFrom-Json
+$resourcealerts = (invoke-webrequest -Uri "https://$globaldashboard/rest/resource-alerts" -Headers $headers -Method GET) | ConvertFrom-Json
+
 Clear-Host
+
 if (($resourcealerts.total) -eq "0") {
     Write-host "No alert found !`n"
     
