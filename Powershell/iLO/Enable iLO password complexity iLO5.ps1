@@ -94,8 +94,6 @@ Foreach ($iloIP in $iloIPs) {
  
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
-    $headerilo["Accept"] = "application/json" 
-    $headerilo["X-API-Version"] = "1000"
     $headerilo["X-Auth-Token"] = $ilosessionkey 
 
 
