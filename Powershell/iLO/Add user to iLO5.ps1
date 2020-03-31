@@ -126,7 +126,7 @@ Foreach ($iloIP in $iloIPs) {
 
     $headerilo = @{ } 
     $headerilo["Accept"] = "application/json" 
-    $headerilo["OData-Version"] = "4"
+    #$headerilo["OData-Version"] = "4"
     $headerilo["X-Auth-Token"] = $ilosessionkey 
 
 
