@@ -65,7 +65,7 @@ if ($nbservers -eq $False) {
 }
 else {
     Write-host "`nNumber of servers that will be moved: " -NoNewline ; write-host $nbservers -ForegroundColor Cyan
-    Write-host "Servers found:"
+    Write-host "Server(s) found:"
     $serverstomove.name
 }
 
@@ -91,7 +91,7 @@ foreach ($server in $serverstomove) {
     }
 
     try { 
-        write-host "`nAdding back to OneView management in managed mode"
+        write-host "Adding back to OneView management in managed mode"
         write-host "Please wait..."
         Add-HPOVServer -hostname $serverIP -Credential $ilocredentials  -LicensingIntent $ilolicensetype | Wait-HPOVTaskComplete | out-Null 
     }
@@ -108,9 +108,19 @@ foreach ($server in $serverstomove) {
     } 
     else {
         # Add back to rack in the same location
-        Add-HPOVResourceToRack -Rack $rack -ULocation $servertopUSlot -InputObject $server | Out-Null
-        write-host "`n$($server.name)" -f Cyan -NoNewline; Write-Host " has been moved successfully from monitored to managed mode and placed back in rack " -NoNewline; write-host $rackname -f cy -NoNewline; write-host " in location U " -NoNewline; write-host $servertopUSlot -f Cyan
+        Try {
+            
+            Add-HPOVResourceToRack -Rack $rack -ULocation $servertopUSlot -InputObject $server | Out-Null
+      
+            write-host "$($server.name)" -f Cyan -NoNewline; Write-Host " has been added successfully in managed mode and placed back in rack " -NoNewline; write-host $rackname -f cy -NoNewline; write-host " in location U " -NoNewline; write-host $servertopUSlot -f Cyan
+        }
+        catch { 
+            
+            write-host "$($server.name)" -f Cyan -NoNewline; Write-Host " has been added successfully in managed mode but could not be placed back in rack " -NoNewline; write-host $rackname -f cy 
+ 
+        }
     }
+
 }
 
 Disconnect-HPOVMgmt
