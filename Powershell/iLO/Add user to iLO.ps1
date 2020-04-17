@@ -1,6 +1,6 @@
 # -------------------------------------------------------------------------------------------------------
 # by lionel.jullien@hpe.com
-# Appril 2020
+# April 2020
 #
 # Create a User account in iLO4/iLO5 managed by OneView without using the iLO Administrator local account
 #
