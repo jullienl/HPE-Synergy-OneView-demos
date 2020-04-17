@@ -1,4 +1,12 @@
-# Script to move all DL servers from OneView monitoring to OneView managed mode and place the server back to its rack location
+#########################################################################################################################################
+#     Script to move all DL servers from OneView Monitored to OneView Managed mode and place the server back to its rack location       #
+#                                                                                                                                       #
+#   - Monitored mode does not require a license and allows only basic monitoring features                                               #
+#   - Managed mode (requires a OneView Advanced license) unlocks all features available in OneView                                      #
+#                                                                                                                                       #
+#   This move requires servers to be removed from OneView management then added back in OneView in managed mode                         #
+#   The script makes sure the server is re-imported in the same rack and same U position (if any)                                       #
+#########################################################################################################################################
 
 
 #Set here the OneView license type: 
