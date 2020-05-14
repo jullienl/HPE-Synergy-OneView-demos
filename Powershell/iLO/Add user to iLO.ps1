@@ -41,7 +41,7 @@ $IP = "192.168.1.110"
 
 # iLO User/password to create 
 $newiLOLoginName = "Ilouser"
-$newiLOPassword = "Ilouser1!"
+$newiLOPassword = "Ilouserpassword"
 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
