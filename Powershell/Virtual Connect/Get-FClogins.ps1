@@ -1,6 +1,6 @@
 # This script provides FC Logins information found on the Synergy Virtual Connect interconnect module for all Fibre Channel uplink ports 
 #
-# The script tells you how many servers are logged in to a given FC uplink port and what server profiles they are. 
+# The script provides how many servers are logged in to a given FC uplink port and what are the server profiles. 
 #
 #
 # Example of the output :
