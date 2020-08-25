@@ -109,9 +109,9 @@ function Failure {
 # Filter the servers where you want to generate a new CA-Signed certificate
 # Use any filter to limit to only the correct resources
 
-# $servers = Get-OVServer
+$servers = Get-OVServer
 # $servers = Get-OVServer | select -first 1
-$servers = Get-OVServer -Name "Frame1, bay 5"
+# $servers = Get-OVServer -Name "Frame1, bay 5"
 
 
 ForEach ($server in $servers) {
