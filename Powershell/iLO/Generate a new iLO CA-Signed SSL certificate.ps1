@@ -5,13 +5,15 @@ This PowerShell script generates a new iLO CA-Signed SSL certificate to all serv
 
 Steps: 
 
-A first iLO RedFish command is used to create a Certificate Signing Request in iLO 
+1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 137-146
 
-The CSR is submitted to an available Certificate Autority server and the new signed certificate is downloaded
+2- The CSR is submitted to an available Certificate Autority server 
 
-A second RedFish command is used to import the new CA-Signed certificate into iLO which triggers the iLO to restart
+3- The new CA-signed certificate is downloaded locally
 
-Then the new certificate is imported into OneView and a OneView refresh takes place to update the status of the server using the new certificate.
+4- A second RedFish command is used to import the new CA-signed certificate into iLO which triggers a iLO reset
+
+5- The new certificate is detected by OneView and OneView triggers a refresh to update the status of the server using the new certificate.
 
 
 Requirements: Latest HPEOneView and PSPKI libraries - OneView administrator account.
@@ -132,7 +134,8 @@ ForEach ($server in $servers) {
        
     # Creation of the body content to pass to iLO to request a CSR
 
-    # Taking the Synergy server name "Frame1, bay 5" to generate the iLO name ilo-Frame1bay5.lj.lab
+    # Certificate Signing Request information
+    ## Taking the Synergy server name "Frame1, bay 5" to generate the iLO name ilo-Frame1bay5.lj.lab
     $servername_withoutspaceandcomma = (($server.name).replace(' ', '')).replace(',', '')
     $CommonName = "ilo-" + $servername_withoutspaceandcomma + ".lj.lab"
  
