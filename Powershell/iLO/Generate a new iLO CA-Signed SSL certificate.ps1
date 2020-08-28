@@ -4,7 +4,7 @@ This PowerShell script generates a new iLO CA-Signed SSL certificate to all serv
 
 Steps: 
 
-1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 137-146
+1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 138-145
 
 2- The CSR is submitted to an available Certificate Autority server 
 
