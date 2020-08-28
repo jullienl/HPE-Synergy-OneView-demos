@@ -2,7 +2,6 @@
 
 This PowerShell script generates a new iLO CA-Signed SSL certificate to all servers managed by OneView 
 
-
 Steps: 
 
 1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 137-146
@@ -15,6 +14,7 @@ Steps:
 
 5- The new certificate is detected by OneView and OneView triggers a refresh to update the status of the server using the new certificate.
 
+The script has been tested with OneView 5.30
 
 Requirements: Latest HPEOneView and PSPKI libraries - OneView administrator account.
 Management Processor support: iLO4 and iLO5
@@ -62,7 +62,6 @@ import-module HPEOneView.530
 
 If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
 import-module PSPKI
-
 
 
 # OneView Credentials and IP
@@ -186,7 +185,11 @@ ForEach ($server in $servers) {
 
         Write-Host "`nGenerating CSR on iLo $iloIP. Please wait..."
     }
-    Catch { failure }     
+    Catch { 
+        failure
+        write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Generate Certificate Signing Request failure !" -ForegroundColor red
+        break
+    }     
      
     # Collecting CSR from iLO
 
@@ -236,7 +239,11 @@ ForEach ($server in $servers) {
     Try {
         $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/" -Headers $headerilo -Body $bodyiloParams -Method Post  
     }
-    Catch { failure }
+    Catch { 
+        failure 
+        write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Import CA-Signed certificate failure !" -ForegroundColor red
+        break 
+    }
 
     Write-Host "`nImport Certificate Successful on iLo $iloIP `nPlease wait, iLO Reset in Progress..."
        
