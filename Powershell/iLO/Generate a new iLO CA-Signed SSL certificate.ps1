@@ -4,7 +4,7 @@ This PowerShell script generates a new iLO CA-Signed SSL certificate to all serv
 
 Steps: 
 
-1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 138-145
+1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 137-143
 
 2- The CSR is submitted to an available Certificate Autority server 
 
@@ -14,7 +14,6 @@ Steps:
 
 5- The new certificate is detected by OneView and OneView triggers a refresh to update the status of the server using the new certificate.
 
-The script has been tested with OneView 5.30
 
 Requirements: Latest HPEOneView and PSPKI libraries - OneView administrator account.
 Management Processor support: iLO4 and iLO5
@@ -62,6 +61,7 @@ import-module HPEOneView.530
 
 If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
 import-module PSPKI
+
 
 
 # OneView Credentials and IP
@@ -112,7 +112,7 @@ function Failure {
 
 $servers = Get-OVServer
 # $servers = Get-OVServer | select -first 1
-# $servers = Get-OVServer -Name "Frame1, bay 5"
+# $server = Get-OVServer -Name "Frame1, bay 5"
 
 
 ForEach ($server in $servers) {
@@ -120,6 +120,7 @@ ForEach ($server in $servers) {
     $iloSession = $server | Get-OVIloSso -IloRestSession
   
     $iloIP = $server  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+    $Ilohostname = $server  | % { $_.mpHostInfo.mpHostName }
     $iloModel = $server  | % mpmodel
         
     $ilosessionkey = $iloSession."X-Auth-Token"
@@ -134,10 +135,7 @@ ForEach ($server in $servers) {
     # Creation of the body content to pass to iLO to request a CSR
 
     # Certificate Signing Request information
-    ## Taking the Synergy server name "Frame1, bay 5" to generate the iLO name ilo-Frame1bay5.lj.lab
-    $servername_withoutspaceandcomma = (($server.name).replace(' ', '')).replace(',', '')
-    $CommonName = "ilo-" + $servername_withoutspaceandcomma + ".lj.lab"
- 
+    $CommonName = $Ilohostname
     $city = "Houston"
     $Country = "US"
     $OrgName = "HPE"
@@ -163,6 +161,7 @@ ForEach ($server in $servers) {
             } | ConvertTo-Json 
 
             $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR" -Headers $headerilo -Body $bodyilo5Params -Method Post  
+      
         }
 
         #iLO4
@@ -240,7 +239,7 @@ ForEach ($server in $servers) {
         $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/" -Headers $headerilo -Body $bodyiloParams -Method Post  
     }
     Catch { 
-        failure 
+        failure
         write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Import CA-Signed certificate failure !" -ForegroundColor red
         break 
     }
