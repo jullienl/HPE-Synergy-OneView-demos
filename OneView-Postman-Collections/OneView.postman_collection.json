@@ -1,10 +1,163 @@
 {
 	"info": {
-		"_postman_id": "78f8ce92-4189-40b2-ad7b-ba1f291696e0",
+		"_postman_id": "525f7596-a659-556e-ea26-332682d540d2",
 		"name": "OneView",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "Server Profiles",
+			"item": [
+				{
+					"name": "1- Login-sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f6c80625-7557-46fd-ab15-faa964b348b9",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "1000"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/login-sessions",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"login-sessions"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "2-Create an advanced Gen10 profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2074c121-8c07-4b63-a843-131960f57e6b",
+								"exec": [
+									"var locationhttpheader = postman.getResponseHeader(\"Location\");",
+									"",
+									"",
+									"//Display Location value in test results",
+									"tests[\"Location task result can be seen here: \" + locationhttpheader ] = true; ",
+									"",
+									"postman.setEnvironmentVariable(\"taskresult\", locationhttpheader);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}",
+								"type": "text"
+							},
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n    {\r\n        \"type\" : \"ServerProfileV11\",\r\n        \"name\" : \"Profile-3\",\r\n        \"serverHardwareUri\" : \"/rest/server-hardware/33343538-3435-4A32-3230-313130364752\",\r\n        \"affinity\" : \"Bay\",\r\n        \"macType\" : \"Virtual\",\r\n        \"serialNumberType\" : \"Virtual\",\r\n        \"wwnType\" : \"Virtual\",\r\n        \"hideUnusedFlexNics\" : true,\r\n        \"connectionSettings\" : {\r\n            \"connections\" : [{\r\n                    \"id\" : 1,\r\n                    \"name\" : \"connection1\",\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:1-a\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/ethernet-networks/f39ae9da-ced8-4803-bb5c-477e153a19f6\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"Primary\",\r\n                        \"ethernetBootType\" : \"PXE\"\r\n                    }\r\n                }, {\r\n                    \"id\" : 2,\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:2-a\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/ethernet-networks/f39ae9da-ced8-4803-bb5c-477e153a19f6\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"Secondary\",\r\n                        \"ethernetBootType\" : \"PXE\"\r\n                    }\r\n                }, {\r\n                    \"id\" : 3,\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:1-c\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/network-sets/a19ffed5-67e0-4cdd-be0d-e4004a9f381e\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"NotBootable\"\r\n                    }\r\n                }, {\r\n                    \"id\" : 4,\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:2-c\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/network-sets/a19ffed5-67e0-4cdd-be0d-e4004a9f381e\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"NotBootable\"\r\n                }\r\n                }\r\n            ]\r\n        },\r\n        \"bootMode\" : {\r\n            \"manageMode\" : true,\r\n            \"mode\" : \"UEFIOptimized\",\r\n            \"secureBoot\":  \"Unmanaged\"\r\n        },\r\n        \"boot\" : {\r\n            \"manageBoot\" : true,\r\n            \"order\" : [\r\n                    \"HardDisk\"\r\n             \r\n            ]\r\n        },\r\n        \"bios\" : {\r\n            \"manageBios\" : true,\r\n            \"overriddenSettings\" : []\r\n        },\r\n        \"localStorage\" : {\r\n            \"sasLogicalJBODs\" : [],\r\n            \"controllers\" : [\r\n            \t  {\r\n                            \"deviceSlot\":  \"Embedded\",\r\n                            \"mode\":  \"Mixed\",\r\n                            \"initialize\":  false,\r\n                            \"importConfiguration\":  false,\r\n                            \"driveWriteCache\":  \"Unmanaged\",\r\n                            \"predictiveSpareRebuild\":  \"Unmanaged\",\r\n                            \"logicalDrives\":  [\r\n                                                  {\r\n                                                      \"name\":  \"OS_RAID1\",\r\n                                                      \"raidLevel\":  \"RAID1\",\r\n                                                      \"bootable\":  true,\r\n                                                      \"numPhysicalDrives\":  2,\r\n                                                      \"driveTechnology\":  null,\r\n                                                      \"sasLogicalJBODId\":  null,\r\n                                                      \"accelerator\":  \"Unmanaged\",\r\n                                                      \"numSpareDrives\":  null\r\n                                                      \r\n                                                  }\r\n                                              ]\r\n                    }\r\n            \t\r\n            \t],\r\n            \"reapplyState\":  \"NotApplying\"\r\n        },\r\n        \"sanStorage\":  {\r\n                       \"manageSanStorage\":  false,\r\n                       \"volumeAttachments\":  [\r\n\r\n                                             ],\r\n                       \"sanSystemCredentials\":  [\r\n\r\n                                                ],\r\n                       \"reapplyState\":  \"NotApplying\"\r\n                   },\r\n        \"firmware\" : {}\r\n    }"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profiles",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profiles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Task-object-Result",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b095cca7-ccbe-47d5-8969-f8534f7cfead",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/{{taskresult}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"{{taskresult}}"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
 		{
 			"name": "Logs",
 			"item": [
@@ -294,7 +447,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Reserved VLAN range",
@@ -328,7 +482,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
 						},
 						"url": {
 							"raw": "https://{{composer}}/rest/login-sessions",
@@ -380,10 +534,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/version",
 							"protocol": "https",
@@ -444,10 +594,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/fabrics/",
 							"protocol": "https",
@@ -549,10 +695,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/{{taskresult}}",
 							"protocol": "https",
@@ -597,10 +739,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/{{fabricid}}/reserved-vlan-range",
 							"protocol": "https",
@@ -616,19 +754,31 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "eFuse",
 			"item": [
 				{
 					"name": "1- Login-sessions",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true,
+							"content-length": true,
+							"host": true,
+							"user-agent": true,
+							"accept": true,
+							"accept-encoding": true,
+							"connection": true
+						}
+					},
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "X-API-Version",
-								"value": "300"
+								"value": "2000"
 							},
 							{
 								"key": "Content-Type",
@@ -637,7 +787,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
 						},
 						"url": {
 							"raw": "https://{{composer}}/rest/login-sessions",
@@ -689,10 +839,6 @@
 								"value": "{{sessionID}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{composer}}/rest/version",
 							"protocol": "https",
@@ -1161,535 +1307,825 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Associations",
 			"item": [
 				{
-					"name": "1- Login-sessions",
-					"event": [
+					"name": "Rack Mount",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"id": "f6c80625-7557-46fd-ab15-faa964b348b9",
-								"exec": [
-									"var jsonData = JSON.parse(responseBody);\r",
-									"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"value": "300"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/login-sessions",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"login-sessions"
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				},
-				{
-					"name": "2- Get-X-API-Version",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
-								"exec": [
-									"var jsonData = JSON.parse(responseBody);",
-									"",
-									"//Get Fabric URI",
-									"var xapiversion =  jsonData.currentVersion;",
-									"",
-									"//Set environment variable",
-									"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
-									"",
-									"//Display X-API-version in test results",
-									"tests[\"X API version = \" + xapiversion ] = true; "
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"value": "300"
-							},
-							{
-								"key": "Auth",
-								"value": "{{sessionID}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/version",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"version"
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				},
-				{
-					"name": "3- Get-SPT",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "d4092448-b7a5-446f-9304-6eef8b9b8e0d",
-								"exec": [
-									"var jsonData = JSON.parse(responseBody);",
-									"",
-									"//Get SPT URI",
-									"var spturi =  jsonData.members[0].uri;",
-									"",
-									"//Set environment variable",
-									"postman.setEnvironmentVariable(\"spturi\", spturi);",
-									"",
-									"//Display X-API-version in test results",
-									"tests[\"SPT uri = \" + spturi ] = true; "
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"key": "Auth",
-								"value": "{{sessionID}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name matches 'Template for Prod-ESX servers'\"",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"server-profile-templates"
-							],
-							"query": [
+							"name": "1- Login-sessions",
+							"event": [
 								{
-									"key": "filter",
-									"value": "\"name matches 'Template for Prod-ESX servers'\""
+									"listen": "test",
+									"script": {
+										"id": "d263fef8-8e06-493a-af53-92fb6392f14b",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				},
-				{
-					"name": "4- Get-Enclosures",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "e2d749dc-e95d-4265-9614-14dc410a2d28",
-								"exec": [
-									"var jsonData = JSON.parse(responseBody);",
-									"",
-									"var enclosure = jsonData.members;",
-									"var enclosurenumber = jsonData.total;",
-									"",
-									"//Get Enclosure URIs",
-									"var encl = [];",
-									"for (i = 0; i < enclosurenumber; ++i) {",
-									"    //tests[\"Enclosure uri = \" + enclosure[i].uri] = true; ",
-									"    var enclname = \"encl\" + (i+1);",
-									"    //Set environment variable",
-									"    postman.setEnvironmentVariable(enclname, enclosure[i].uri );",
-									"    tests[enclname + \"= \" + enclosure[i].uri] = true; ",
-									"    ",
-									"}",
-									"",
-									""
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "300"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
 								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "auth",
-								"type": "text",
-								"value": "{{sessionID}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/enclosures",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"enclosures"
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				},
-				{
-					"name": "5- GET-SPTtoSP-association",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"type": "text",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"key": "auth",
-								"type": "text",
-								"value": "{{sessionID}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"index",
-								"associations"
-							],
-							"query": [
-								{
-									"key": "parentUri",
-									"value": "{{encl1}}"
+								"body": {
+									"mode": "raw",
+									"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
 								},
+								"url": {
+									"raw": "https://{{composer}}/rest/login-sessions",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"login-sessions"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "2- Get-X-API-Version",
+							"event": [
 								{
-									"key": "name",
-									"value": "ENCLOSURE_TO_BLADE"
+									"listen": "test",
+									"script": {
+										"id": "19157f44-4405-4978-8080-8dbf99914576",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"//Get Fabric URI",
+											"var xapiversion =  jsonData.currentVersion;",
+											"",
+											"//Set environment variable",
+											"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+											"",
+											"//Display X-API-version in test results",
+											"tests[\"X API version = \" + xapiversion ] = true; "
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "300"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/version",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"version"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "3- Get-Server-Hardware-ESX5-0-uri",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4746cec8-bbb9-4c46-97dc-9ba69ad90349",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"//Get Server Hardware URI",
+											"var shuri =  jsonData.members[0].uri;",
+											"",
+											"//Set environment variable",
+											"postman.setEnvironmentVariable(\"shuri\", shuri);",
+											"",
+											"//Display SH URI in test results",
+											"tests[\"Server Hardware uri = \" + shuri ] = true; ",
+											"",
+											"//Get Server Hardware iLO IP",
+											"var iloip =  jsonData.members[0].mpHostInfo.mpIpAddresses[0].address;",
+											"",
+											"//Set environment variable",
+											"postman.setEnvironmentVariable(\"iloip\", iloip);",
+											"",
+											"//Display SH URI in test results",
+											"tests[\"Server Hardware iLO IP = \" + iloip ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+								},
+								"url": {
+									"raw": "https://{{composer}}/rest/server-hardware?filter=\"name matches 'ESX5-0-ilo.etc.fr.comm.hpecorp.net'\"",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"server-hardware"
+									],
+									"query": [
+										{
+											"key": "filter",
+											"value": "\"name matches 'ESX5-0-ilo.etc.fr.comm.hpecorp.net'\""
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "4- GET-Rack-URI-using-association",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c0ee53ee-287e-470d-a546-679b79e2a779",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get Rack URI\r",
+											"var rackuri =  jsonData.members[0].parentUri;\r",
+											"\r",
+											"//Set environment variable\r",
+											"postman.setEnvironmentVariable(\"rackuri\", rackuri);\r",
+											"\r",
+											"//Display Rack URI in test results\r",
+											"tests[\"Rack uri = \" + rackuri ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"type": "text",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/index/associations?childUri={{shuri}}&name=RACK_TO_PHYSICAL_DEVICE",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"index",
+										"associations"
+									],
+									"query": [
+										{
+											"key": "childUri",
+											"value": "{{shuri}}"
+										},
+										{
+											"key": "name",
+											"value": "RACK_TO_PHYSICAL_DEVICE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "5- GET-Rack-Ressource-Name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d3f957a2-7219-4393-9723-5c3073a395dd",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get Rack name\r",
+											"var rackname =  jsonData.name;\r",
+											"\r",
+											"//Set environment variable\r",
+											"postman.setEnvironmentVariable(\"rackname\", rackname);\r",
+											"\r",
+											"//Display Rack URI in test results\r",
+											"tests[\"Rack name = \" + rackname ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"type": "text",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/{{rackuri}}",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"{{rackuri}}"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
 				},
 				{
-					"name": "5- GET-SPTtoSP-association Ressource",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"type": "text",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"key": "auth",
-								"type": "text",
-								"value": "{{sessionID}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/index/associations?parentUri={{spturi}}&name=server_profile_template_to_server_profiles",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"index",
-								"associations"
-							],
-							"query": [
+					"name": "Synergy Servers",
+					"item": [
+						{
+							"name": "1- Login-sessions",
+							"event": [
 								{
-									"key": "parentUri",
-									"value": "{{spturi}}"
-								},
-								{
-									"key": "name",
-									"value": "server_profile_template_to_server_profiles"
+									"listen": "test",
+									"script": {
+										"id": "f6c80625-7557-46fd-ab15-faa964b348b9",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "6- GET-EnclosuretoServerhardware-association",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"type": "text",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"key": "auth",
-								"type": "text",
-								"value": "{{sessionID}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
 							],
-							"path": [
-								"rest",
-								"index",
-								"associations"
-							],
-							"query": [
-								{
-									"key": "parentUri",
-									"value": "{{encl1}}"
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "800"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
 								},
+								"url": {
+									"raw": "https://{{composer}}/rest/login-sessions",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"login-sessions"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "2- Get-X-API-Version",
+							"event": [
 								{
-									"key": "name",
-									"value": "ENCLOSURE_TO_BLADE"
+									"listen": "test",
+									"script": {
+										"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"//Get Fabric URI",
+											"var xapiversion =  jsonData.currentVersion;",
+											"",
+											"//Set environment variable",
+											"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+											"",
+											"//Display X-API-version in test results",
+											"tests[\"X API version = \" + xapiversion ] = true; "
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "300"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/version",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"version"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "3- Get-SPT - ESXi 6.5U3 - Gen10 deployment with I3S",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d4092448-b7a5-446f-9304-6eef8b9b8e0d",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"//Get SPT URI",
+											"var spturi =  jsonData.members[0].uri;",
+											"",
+											"//Set environment variable",
+											"postman.setEnvironmentVariable(\"spturi\", spturi);",
+											"",
+											"//Display in test results",
+											"tests[\"SPT uri = \" + spturi ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+								},
+								"url": {
+									"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name matches 'ESXi 6.5U3 - Gen10 deployment with I3S'\"",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"server-profile-templates"
+									],
+									"query": [
+										{
+											"key": "filter",
+											"value": "\"name matches 'ESXi 6.5U3 - Gen10 deployment with I3S'\""
+										}
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "3- Get-SPT - Win2016 deployment with Streamer - Gen9",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "41e52bbc-993c-4b44-9489-3d46708afa69",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"//Get SPT URI",
+											"var spturi =  jsonData.members[0].uri;",
+											"",
+											"//Set environment variable",
+											"postman.setEnvironmentVariable(\"spturi\", spturi);",
+											"",
+											"//Display in test results",
+											"tests[\"SPT uri = \" + spturi ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+								},
+								"url": {
+									"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name matches 'Win2016 deployment with Streamer - Gen9'\"",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"server-profile-templates"
+									],
+									"query": [
+										{
+											"key": "filter",
+											"value": "\"name matches 'Win2016 deployment with Streamer - Gen9'\""
+										}
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "4- Get-Enclosures",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e2d749dc-e95d-4265-9614-14dc410a2d28",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"var enclosure = jsonData.members;",
+											"var enclosurenumber = jsonData.total;",
+											"",
+											"//Get Enclosure URIs",
+											"var encl = [];",
+											"for (i = 0; i < enclosurenumber; ++i) {",
+											"    //tests[\"Enclosure uri = \" + enclosure[i].uri] = true; ",
+											"    var enclname = \"encl\" + (i+1);",
+											"    //Set environment variable",
+											"    postman.setEnvironmentVariable(enclname, enclosure[i].uri );",
+											"    tests[enclname + \"= \" + enclosure[i].uri] = true; ",
+											"    ",
+											"}",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://{{composer}}/rest/enclosures",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"enclosures"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "5- GET-SPTtoSP-association Ressource",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cb17f4e4-7b18-456e-978a-8197173c600f",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get Child URIs\r",
+											"\r",
+											"var spttosp = jsonData.members;\r",
+											"//Get the number of Server Profiles associated with the SPT\r",
+											"var profilenumber = jsonData.total;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"Number of SP associated with this SPT = \" + profilenumber ] = true; \r",
+											"\r",
+											"//Get Server Profile URIs\r",
+											"var SP = [];\r",
+											"for (i = 0; i < profilenumber; ++i) {\r",
+											"    //tests[\"SP uri = \" + enclosure[i].uri] = true; \r",
+											"    var profilename = \"Profile\" + (i+1);\r",
+											"    //Set environment variable\r",
+											"    postman.setEnvironmentVariable(profilename, spttosp[i].childuri );\r",
+											"    tests[ profilename + \"= \" + spttosp[i].childUri ] = true; \r",
+											"    \r",
+											"}\r",
+											"\r",
+											"\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"type": "text",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/index/associations?parentUri={{spturi}}&name=server_profile_template_to_server_profiles",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"index",
+										"associations"
+									],
+									"query": [
+										{
+											"key": "parentUri",
+											"value": "{{spturi}}"
+										},
+										{
+											"key": "name",
+											"value": "server_profile_template_to_server_profiles"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "6- GET-First SP names associated with SPT",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e93b494a-7aec-4903-b2b1-fd9925177c9c",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get the first Server Profile name associated with the SPT\r",
+											"var SPname =  jsonData.members[0].name;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"First Server Profile name associated with this SPT = \" + SPname ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"type": "text",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/server-profiles?parentUri={{profile1}}",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"server-profiles"
+									],
+									"query": [
+										{
+											"key": "parentUri",
+											"value": "{{profile1}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "7- GET-Second SP names associated with SPT",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8a9bbcb1-0021-4172-8983-65088fe5ff3c",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get the first Server Profile name associated with the SPT\r",
+											"var SPname =  jsonData.members[0].name;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"First Server Profile name associated with this SPT = \" + SPname ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"type": "text",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/server-profiles?parentUri={{profile2}}",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"server-profiles"
+									],
+									"query": [
+										{
+											"key": "parentUri",
+											"value": "{{profile2}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "6- GET-Enclosure-to-Server-hardware-association",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"type": "text",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "auth",
+										"type": "text",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/index/associations?parentUri={{encl1}}&name=ENCLOSURE_TO_BLADE",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"index",
+										"associations"
+									],
+									"query": [
+										{
+											"key": "parentUri",
+											"value": "{{encl1}}"
+										},
+										{
+											"key": "name",
+											"value": "ENCLOSURE_TO_BLADE"
+										}
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
 				}
-			]
-		},
-		{
-			"name": "Server Profiles",
-			"item": [
-				{
-					"name": "1- Login-sessions",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "f6c80625-7557-46fd-ab15-faa964b348b9",
-								"exec": [
-									"var jsonData = JSON.parse(responseBody);\r",
-									"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"value": "1000"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/login-sessions",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"login-sessions"
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				},
-				{
-					"name": "2-Create an advanced Gen10 profile",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "2074c121-8c07-4b63-a843-131960f57e6b",
-								"exec": [
-									"var locationhttpheader = postman.getResponseHeader(\"Location\");",
-									"",
-									"",
-									"//Display Location value in test results",
-									"tests[\"Location task result can be seen here: \" + locationhttpheader ] = true; ",
-									"",
-									"postman.setEnvironmentVariable(\"taskresult\", locationhttpheader);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Auth",
-								"value": "{{sessionID}}",
-								"type": "text"
-							},
-							{
-								"key": "X-API-Version",
-								"value": "{{xapiversion}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "\r\n    {\r\n        \"type\" : \"ServerProfileV11\",\r\n        \"name\" : \"Profile-3\",\r\n        \"serverHardwareUri\" : \"/rest/server-hardware/33343538-3435-4A32-3230-313130364752\",\r\n        \"affinity\" : \"Bay\",\r\n        \"macType\" : \"Virtual\",\r\n        \"serialNumberType\" : \"Virtual\",\r\n        \"wwnType\" : \"Virtual\",\r\n        \"hideUnusedFlexNics\" : true,\r\n        \"connectionSettings\" : {\r\n            \"connections\" : [{\r\n                    \"id\" : 1,\r\n                    \"name\" : \"connection1\",\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:1-a\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/ethernet-networks/f39ae9da-ced8-4803-bb5c-477e153a19f6\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"Primary\",\r\n                        \"ethernetBootType\" : \"PXE\"\r\n                    }\r\n                }, {\r\n                    \"id\" : 2,\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:2-a\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/ethernet-networks/f39ae9da-ced8-4803-bb5c-477e153a19f6\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"Secondary\",\r\n                        \"ethernetBootType\" : \"PXE\"\r\n                    }\r\n                }, {\r\n                    \"id\" : 3,\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:1-c\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/network-sets/a19ffed5-67e0-4cdd-be0d-e4004a9f381e\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"NotBootable\"\r\n                    }\r\n                }, {\r\n                    \"id\" : 4,\r\n                    \"functionType\" : \"Ethernet\",\r\n                    \"portId\" : \"Mezz 3:2-c\",\r\n                    \"requestedMbps\" : 2500,\r\n                    \"networkUri\" : \"/rest/network-sets/a19ffed5-67e0-4cdd-be0d-e4004a9f381e\",\r\n                    \"boot\" : {\r\n                        \"priority\" : \"NotBootable\"\r\n                }\r\n                }\r\n            ]\r\n        },\r\n        \"bootMode\" : {\r\n            \"manageMode\" : true,\r\n            \"mode\" : \"UEFIOptimized\",\r\n            \"secureBoot\":  \"Unmanaged\"\r\n        },\r\n        \"boot\" : {\r\n            \"manageBoot\" : true,\r\n            \"order\" : [\r\n                    \"HardDisk\"\r\n             \r\n            ]\r\n        },\r\n        \"bios\" : {\r\n            \"manageBios\" : true,\r\n            \"overriddenSettings\" : []\r\n        },\r\n        \"localStorage\" : {\r\n            \"sasLogicalJBODs\" : [],\r\n            \"controllers\" : [\r\n            \t  {\r\n                            \"deviceSlot\":  \"Embedded\",\r\n                            \"mode\":  \"Mixed\",\r\n                            \"initialize\":  false,\r\n                            \"importConfiguration\":  false,\r\n                            \"driveWriteCache\":  \"Unmanaged\",\r\n                            \"predictiveSpareRebuild\":  \"Unmanaged\",\r\n                            \"logicalDrives\":  [\r\n                                                  {\r\n                                                      \"name\":  \"OS_RAID1\",\r\n                                                      \"raidLevel\":  \"RAID1\",\r\n                                                      \"bootable\":  true,\r\n                                                      \"numPhysicalDrives\":  2,\r\n                                                      \"driveTechnology\":  null,\r\n                                                      \"sasLogicalJBODId\":  null,\r\n                                                      \"accelerator\":  \"Unmanaged\",\r\n                                                      \"numSpareDrives\":  null\r\n                                                      \r\n                                                  }\r\n                                              ]\r\n                    }\r\n            \t\r\n            \t],\r\n            \"reapplyState\":  \"NotApplying\"\r\n        },\r\n        \"sanStorage\":  {\r\n                       \"manageSanStorage\":  false,\r\n                       \"volumeAttachments\":  [\r\n\r\n                                             ],\r\n                       \"sanSystemCredentials\":  [\r\n\r\n                                                ],\r\n                       \"reapplyState\":  \"NotApplying\"\r\n                   },\r\n        \"firmware\" : {}\r\n    }"
-						},
-						"url": {
-							"raw": "https://{{composer}}/rest/server-profiles",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"server-profiles"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "3- Get-Task-object-Result",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "b095cca7-ccbe-47d5-8969-f8534f7cfead",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Version",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"key": "Auth",
-								"value": "{{sessionID}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://{{composer}}/{{taskresult}}",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"{{taskresult}}"
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "1- Login-sessions",
@@ -1706,12 +2142,17 @@
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
 			"request": {
 				"method": "POST",
 				"header": [
 					{
 						"key": "X-API-Version",
-						"value": "1000"
+						"value": "1600"
 					},
 					{
 						"key": "Content-Type",
@@ -1720,7 +2161,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+					"raw": "{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
 				},
 				"url": {
 					"raw": "https://{{composer}}/rest/login-sessions",
@@ -1772,10 +2213,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/version",
 					"protocol": "https",
@@ -1793,22 +2230,32 @@
 		},
 		{
 			"name": "Profile Templates",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "aa9dee3a-8d33-45a6-aaa5-9ac5240d1a5d",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [
 					{
+						"disabled": false,
 						"key": "X-API-Version",
 						"value": "{{xapiversion}}"
 					},
 					{
+						"disabled": false,
 						"key": "Auth",
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/server-profile-templates",
 					"protocol": "https",
@@ -1826,9 +2273,6 @@
 		},
 		{
 			"name": "Get-Ethernet-Networks",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
 				"method": "GET",
 				"header": [
@@ -1841,10 +2285,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/ethernet-networks",
 					"protocol": "https",
@@ -1861,7 +2301,7 @@
 			"response": []
 		},
 		{
-			"name": "Get-Datacenters",
+			"name": "Get-Static-routes",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -1874,19 +2314,45 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
-					"raw": "https://{{composer}}/rest/datacenters",
+					"raw": "https://{{composer}}/rest/appliance/static-routes",
 					"protocol": "https",
 					"host": [
 						"{{composer}}"
 					],
 					"path": [
 						"rest",
-						"datacenters"
+						"appliance",
+						"static-routes"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Licenses",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{composer}}/rest/licenses",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"licenses"
 					]
 				},
 				"description": "Login Session"
@@ -1907,10 +2373,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/os-deployment-plans/",
 					"protocol": "https",
@@ -1941,10 +2403,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/hypervisor-managers",
 					"protocol": "https",
@@ -1974,10 +2432,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/hypervisor-cluster-profiles",
 					"protocol": "https",
@@ -2034,7 +2488,7 @@
 						{
 							"key": "File",
 							"type": "file",
-							"src": ""
+							"src": []
 						}
 					]
 				},
@@ -2070,10 +2524,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/interconnects/",
 					"protocol": "https",
@@ -2104,10 +2554,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/interconnects/19c01938-6414-4705-9e4e-075cb3e8f433",
 					"protocol": "https",
@@ -2137,10 +2583,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/interconnects/19c01938-6414-4705-9e4e-075cb3e8f433/ports/19c01938-6414-4705-9e4e-075cb3e8f433:Q4:1",
 					"protocol": "https",
@@ -2172,10 +2614,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/interconnects/06aa031d-436c-44fb-b078-f6b883bed280/ports/06aa031d-436c-44fb-b078-f6b883bed280:Q4:1",
 					"protocol": "https",
@@ -2208,10 +2646,6 @@
 						"value": "{{sessionID}}"
 					}
 				],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
 				"url": {
 					"raw": "https://{{composer}}/rest/metrics/capability",
 					"protocol": "https",
@@ -2227,6 +2661,95 @@
 				"description": "Login Session"
 			},
 			"response": []
+		},
+		{
+			"name": "Get-Logical-Interconnect-Group",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{composer}}/rest/logical-interconnect-groups/",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"logical-interconnect-groups",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST LIG",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"//Get Fabric URI",
+							"var xapiversion =  jsonData.currentVersion;",
+							"",
+							"//Set environment variable",
+							"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+							"",
+							"//Display X-API-version in test results",
+							"tests[\"X API version = \" + xapiversion ] = true; "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "1600"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"enclosureIndexes\": [\r\n1,\r\n2,\r\n3\r\n],\r\n\"ethernetSettings\": {\r\n\"enableFastMacCacheFailover\": true,\r\n\"enableNetworkLoopProtection\": true,\r\n\"enablePauseFloodProtection\": false,\r\n\"macRefreshInterval\": 5,\r\n\"type\": \"EthernetInterconnectSettingsV7\"\r\n},\r\n\"interconnectBaySet\": 3,\r\n\"interconnectMapTemplate\": {\r\n\"interconnectMapEntryTemplates\": [\r\n{\r\n\"enclosureIndex\": 1,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/890eb49a-5c92-4639-a678-1cb874dbba1b\"\r\n},\r\n{\r\n\"enclosureIndex\": 3,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 3,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 2,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/890eb49a-5c92-4639-a678-1cb874dbba1b\"\r\n},\r\n{\r\n\"enclosureIndex\": 1,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 2,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n}\r\n]\r\n},\r\n\"name\": \"LIG-FlexFabric\",\r\n\"qosConfiguration\": {\r\n\"activeQosConfig\": {\r\n\"configType\": \"Passthrough\",\r\n\"qosTrafficClassifiers\": [],\r\n\"type\": \"QosConfiguration\"\r\n},\r\n\"type\": \"qos-aggregated-configuration\"\r\n},\r\n\"redundancyType\": \"HighlyAvailable\",\r\n\"snmpConfiguration\": {\r\n\"type\": \"snmp-configuration\",\r\n\"v3Enabled\": true\r\n},\r\n\"telemetryConfiguration\": {\r\n\"enableTelemetry\": true,\r\n\"sampleCount\": 12,\r\n\"sampleInterval\": 300,\r\n\"type\": \"CanonicalTelemetryConfiguration\"\r\n},\r\n\"type\": \"logical-interconnect-groupV8\",\r\n\"uplinkSets\": [\r\n{\r\n\"ethernetNetworkType\": \"Tagged\",\r\n\"lacpTimer\": \"Short\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 63,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n},\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 63,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"Mgmt\",\r\n\"networkType\": \"Ethernet\",\r\n\"networkUris\": [\r\n\"/rest/ethernet-networks/6f9cbcd4-06c3-46cb-94da-f6bd337b9553\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"Tagged\",\r\n\"lacpTimer\": \"Short\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 65,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n},\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 65,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"Prod\",\r\n\"networkType\": \"Ethernet\",\r\n\"networkUris\": [\r\n\"/rest/ethernet-networks/2c902e47-3221-42bd-8614-746cd3ea6910\",\r\n\"/rest/ethernet-networks/7bb7461b-c770-4e9b-a4fe-b9e339a9fffb\",\r\n\"/rest/ethernet-networks/8f38ae69-8d67-42c9-a07c-9335282b1255\",\r\n\"/rest/ethernet-networks/e9a5d204-f6c2-4baf-81a1-effc20571532\",\r\n\"/rest/ethernet-networks/20d425e2-57ec-4c99-bfd4-3e56ca4db742\",\r\n\"/rest/ethernet-networks/ee870312-603e-4f4d-888a-8db0a89e0e5c\",\r\n\"/rest/ethernet-networks/30f20780-b5bf-4848-8d0b-b3c6e4db85a2\",\r\n\"/rest/ethernet-networks/736ce75d-3c0d-4567-9155-72c112a0a194\",\r\n\"/rest/ethernet-networks/8d0e6475-d7c7-4add-90a8-0f4e3b56b086\",\r\n\"/rest/ethernet-networks/78457b57-b498-401c-b7f9-1e279bc2bd20\",\r\n\"/rest/ethernet-networks/51c9fbf6-08c4-43c4-aad6-de59a04e4c63\",\r\n\"/rest/ethernet-networks/dd9de825-0d70-4493-865b-f6bd43a70666\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"NotApplicable\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 67,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"SAN-B-FC\",\r\n\"networkType\": \"FibreChannel\",\r\n\"networkUris\": [\r\n\"/rest/fc-networks/082554c7-845a-4222-93ac-75235e737770\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"NotApplicable\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 67,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"SAN-A-FC\",\r\n\"networkType\": \"FibreChannel\",\r\n\"networkUris\": [\r\n\"/rest/fc-networks/d9c4dc04-c994-422b-8e96-4f203ebf0236\"\r\n]\r\n}\r\n],\r\n\"uri\": \"/rest/logical-interconnect-groups/1e401c4c-67f8-4fbd-a0a6-e1591ac03ced\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{composer}}/rest/logical-interconnect-groups/098a98f5-4891-4987-ad7d-9296ca37c7c0",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"logical-interconnect-groups",
+						"098a98f5-4891-4987-ad7d-9296ca37c7c0"
+					]
+				}
+			},
+			"response": []
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

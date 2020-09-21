@@ -1,0 +1,2346 @@
+{
+	"info": {
+		"_postman_id": "019f9e85-6afa-4fc7-aa5d-9c13a07398a7",
+		"name": "Redfish with iLO",
+		"description": "Redfish in Houston B172",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Gen9",
+			"item": [
+				{
+					"name": "Create Session with iLO Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1eb9a163-e871-4ec0-b843-82c96d7d14f4",
+								"exec": [
+									"pm.environment.set(\"Token\", postman.getResponseHeader(\"X-Auth-Token\"));",
+									"pm.environment.set(\"SessionLocation\", postman.getResponseHeader(\"Location\"));",
+									"",
+									"",
+									"console.log(\"Token:\", pm.variables.get(\"Token\")); ",
+									"console.log(\"SessionLocation:\", pm.variables.get(\"SessionLocation\")); "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"UserName\": \"{{iloUser}}\",\n\"Password\": \"{{iloPasswd}}\"}\n"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"SessionService",
+								"Sessions",
+								""
+							]
+						},
+						"description": "Get Session Token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sessions w/ BasicAuthentication",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{iloPasswd}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{iloUser}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"SessionService",
+								"Sessions",
+								""
+							]
+						},
+						"description": "Get Sessions using Basic Authentication"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b2b25c1e-241f-4abe-afe8-159806c51c49",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{SessionLocation}}",
+							"host": [
+								"{{SessionLocation}}"
+							]
+						},
+						"description": "DELETE Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Systems/1/",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								""
+							]
+						},
+						"description": "Get the list of all the Redfish services, at root level"
+					},
+					"response": []
+				},
+				{
+					"name": "Patch SecureBoot",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b279b2ff-ff19-4821-a609-ffd5e1b56542",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"SecureBootEnable\": false}\n"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/SecureBoot/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								"SecureBoot",
+								""
+							]
+						},
+						"description": "Patch HostName in ComputerSystem"
+					},
+					"response": []
+				},
+				{
+					"name": "POST Generate CSR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "211129be-28ec-401f-ae68-affb950fd739",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \r\n    \"City\":  \"Houston\",\r\n    \"CommonName\":  \"ilo-ABCD.lj.lab\",\r\n    \"OrgName\":  \"HPE\",\r\n    \"State\":  \"Texas\",\r\n    \"OrgUnit\":  \"Synergy\",\r\n    \"Country\":  \"US\",\r\n    \"Action\" : \"GenerateCSR\"\r\n}"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"SecurityService",
+								"HttpsCert",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Get CSR",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "06446dd1-aafe-4802-a9a7-75be297c6d21",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"SecurityService",
+								"HttpsCert",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET iLO NIC IP Address",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b26c4f25-f7af-4ce3-bc37-320c0921edba",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//Get IP Address\r",
+									"var IPv4Address =  jsonData.IPv4Addresses[0].Address;\r",
+									"\r",
+									"//Display in test results\r",
+									"tests[\"iLO IPv4 address = \" + IPv4Address ] = true; \r",
+									"\r",
+									"//Get IP Address Origin\r",
+									"var IPv4AddressOrigin =  jsonData.IPv4Addresses[0].AddressOrigin;\r",
+									"\r",
+									"//Display in test results\r",
+									"tests[\"iLO IPv4 address mode = \" + IPv4AddressOrigin ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"IPv4Addresses\": [\n        {\n            \"AddressOrigin\": \"DHCP\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"EthernetInterfaces",
+								"1",
+								""
+							]
+						},
+						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH iLO NIC to DHCP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9a7c3396-cfaa-4306-8ab2-9ea71f9a3d9e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"IPv4Addresses\": [\n        {\n            \"AddressOrigin\": \"DHCP\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"EthernetInterfaces",
+								"1",
+								""
+							]
+						},
+						"description": "Trying to patch iLO NIC to DHCP. \nTo come back:\n\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH iLO NIC to IP Static",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3bdbb3a2-05f4-4617-9afe-caf96fcc07d0",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " { \n     \"IPv4Addresses\": \n    [ \n        { \n        \"Address\": \"192.168.0.8\", \n        \"AddressOrigin\": \"Static\", \n        \"Gateway\": \"192.168.1.1\", \n        \"SubnetMask\": \"255.255.252.0\" \n        } \n    ] \n}\n\n"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"EthernetInterfaces",
+								"1",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST iLO Reset",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "09dec081-87c4-4ac9-bbd9-82862789a397",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"Action\": \"reset\"}"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								""
+							]
+						},
+						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Gen10",
+			"item": [
+				{
+					"name": "Using OneView iLOSSO",
+					"item": [
+						{
+							"name": "1- Login-sessions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4a69a301-4ceb-43ad-b492-dd46ed615e04",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);",
+											"",
+											" tests[\"sessionID = \" + jsonData.sessionID] = true;  ",
+											" ",
+											" "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "800"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
+								},
+								"url": {
+									"raw": "https://composer.lj.lab/rest/login-sessions",
+									"protocol": "https",
+									"host": [
+										"composer",
+										"lj",
+										"lab"
+									],
+									"path": [
+										"rest",
+										"login-sessions"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "2- Get Server hardware UUID for \"F1-B9\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3647609c-3197-4f65-aea8-ef401625cc75",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"//var loop_count = 0;",
+											"",
+											"for (count = 0; count < jsonData.members.length; count++)",
+											"{",
+											"    if (jsonData.members[count].name == \"Frame1, bay 5\")",
+											"    {",
+											"        var server_hardware_uuid =  jsonData.members[count].uuid;",
+											"        postman.setEnvironmentVariable(\"server_hardware_uuid\", server_hardware_uuid);",
+											"        tests[\"server_hardware_uuid = \" + jsonData.members[count].uuid] = true;  ",
+											"    }",
+											"}",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "600"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://composer.lj.lab/rest/server-hardware",
+									"protocol": "https",
+									"host": [
+										"composer",
+										"lj",
+										"lab"
+									],
+									"path": [
+										"rest",
+										"server-hardware"
+									]
+								},
+								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "3- Get iLO SSO URL",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "99f71418-0605-408d-a8c8-ce6eb3afe023",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"var ilossourl =  jsonData.iloSsoUrl;",
+											"",
+											"postman.setEnvironmentVariable(\"ilossourl\", ilossourl);",
+											"",
+											"tests[\"ilossourl = \" + ilossourl] = true; ",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "600"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://composer.lj.lab/rest/server-hardware/{{server_hardware_uuid}}/iloSsoUrl",
+									"protocol": "https",
+									"host": [
+										"composer",
+										"lj",
+										"lab"
+									],
+									"path": [
+										"rest",
+										"server-hardware",
+										"{{server_hardware_uuid}}",
+										"iloSsoUrl"
+									]
+								},
+								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "4- Get iLO SSO Auth key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "32aa7dca-d70e-494a-bc60-6e3a574fd120",
+										"type": "text/javascript",
+										"exec": [
+											"var auth =  postman.getResponseCookie(\"sessionkey\").value;",
+											"",
+											"postman.setEnvironmentVariable(\"X-Auth-Token\", auth);",
+											"",
+											"tests[\"X-Auth-Token = \" + auth] = true; ",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "600"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "{{ilossourl}}",
+									"host": [
+										"{{ilossourl}}"
+									]
+								},
+								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "5-Get RedFish Sessions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{X-Auth-Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"SessionService",
+										"Sessions",
+										""
+									]
+								},
+								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "6- Get Logical drives Settings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "44c07e3d-374b-4c52-b2b2-a37e4df9fb39",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{X-Auth-Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/systems/1/smartstorageconfig/settings/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"systems",
+										"1",
+										"smartstorageconfig",
+										"settings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "7- Get Logical drives",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "44c07e3d-374b-4c52-b2b2-a37e4df9fb39",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{X-Auth-Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/systems/1/smartstorageconfig/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"systems",
+										"1",
+										"smartstorageconfig",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "8- Get ServiceRoot",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{X-Auth-Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										""
+									]
+								},
+								"description": "Get the list of all the Redfish services, at root level"
+							},
+							"response": []
+						},
+						{
+							"name": "9- Get Users",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{X-Auth-Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/accountservice/accounts/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"accountservice",
+										"accounts",
+										""
+									]
+								},
+								"description": "Get the list of all the Redfish services, at root level"
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Using iLO Credentials",
+					"item": [
+						{
+							"name": "Service Events",
+							"item": [
+								{
+									"name": "Gen9: Event Subscription",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "9283e1d2-8bb6-4097-b382-68a3a0c9de74",
+												"type": "text/javascript",
+												"exec": [
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "OData-Version",
+												"value": "4.0"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "X-Auth-Token",
+												"value": "{{Token}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n\"Destination\": \"https://{{EventListener}}/RedfishEvents/EventReceiver.php\",\r\n\"EventTypes\": [\r\n    \"StatusChange\",\r\n     \"ResourceUpdated\",\r\n     \"ResourceAdded\",\r\n      \"ResourceRemoved\",\r\n      \"Alert\"\r\n],\r\n\"HttpHeaders\": {\r\n    \"Content-Type\": \"Application/JSON\",\r\n    \"OData-Version\": \"4.0\"\r\n},\r\n\"TTLCount\": 14400,\r\n\"TTLUnits\": \"minutes\",\r\n\"Context\": \"context string\",\r\n\"Oem\": {\r\n    \"Hp\": {\r\n        \"DeliveryRetryIntervalInSeconds\": 30,\r\n        \"RequestedMaxEventsToQueue\": 20,\r\n        \"DeliveryRetryAttempts\": 5,\r\n        \"RetireOldEventInMinutes\": 10\r\n    }\r\n}}\r\n"
+										},
+										"url": {
+											"raw": "{{iloURI}}/redfish/v1/EventService/EventSubscriptions/",
+											"host": [
+												"{{iloURI}}"
+											],
+											"path": [
+												"redfish",
+												"v1",
+												"EventService",
+												"EventSubscriptions",
+												""
+											]
+										},
+										"description": "Event Subscription on a Gen9 server"
+									},
+									"response": []
+								},
+								{
+									"name": "Gen10: Event Subscription",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"id": "9283e1d2-8bb6-4097-b382-68a3a0c9de74",
+												"type": "text/javascript",
+												"exec": [
+													""
+												]
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "OData-Version",
+												"value": "4.0"
+											},
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "X-Auth-Token",
+												"value": "{{Token}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n\"Destination\": \"https://{{EventListener}}/RedfishEvents/EventReceiver.php\",\r\n\"EventTypes\": [\r\n    \"StatusChange\",\r\n     \"ResourceUpdated\",\r\n     \"ResourceAdded\",\r\n      \"ResourceRemoved\",\r\n      \"Alert\"\r\n],\r\n\"HttpHeaders\": {\r\n    \"Content-Type\": \"Application/JSON\",\r\n    \"OData-Version\": \"4.0\"\r\n},\r\n\"Context\": \"context string\",\r\n\"Oem\": {\r\n    \"Hpe\": {\r\n        \"DeliveryRetryIntervalInSeconds\": 30,\r\n        \"RequestedMaxEventsToQueue\": 20,\r\n        \"DeliveryRetryAttempts\": 5,\r\n        \"RetireOldEventInMinutes\": 10\r\n    }\r\n}}\r\n"
+										},
+										"url": {
+											"raw": "{{iloURI}}/redfish/v1/EventService/EventSubscriptions/",
+											"host": [
+												"{{iloURI}}"
+											],
+											"path": [
+												"redfish",
+												"v1",
+												"EventService",
+												"EventSubscriptions",
+												""
+											]
+										},
+										"description": "Event Subscription on a Gen10 server:\n\nDifference with Gen9:\nRemoved TTLCount and TTLUnit\n\nReplaced Oem/hp with Oem/hpe"
+									},
+									"response": []
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "Create Session with iLO Credentials",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ffa13411-096a-42f9-b420-e31c5dfb6484",
+										"type": "text/javascript",
+										"exec": [
+											"pm.environment.set(\"Token\", postman.getResponseHeader(\"X-Auth-Token\"));",
+											"pm.environment.set(\"SessionLocation\", postman.getResponseHeader(\"Location\"));",
+											"",
+											"",
+											"console.log(\"Token:\", pm.variables.get(\"Token\")); ",
+											"console.log(\"SessionLocation:\", pm.variables.get(\"SessionLocation\")); ",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"UserName\": \"{{iloUser}}\",\n\"Password\": \"{{iloPasswd}}\"}\n"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"SessionService",
+										"Sessions",
+										""
+									]
+								},
+								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "Get RedFish Sessions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"SessionService",
+										"Sessions",
+										""
+									]
+								},
+								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Sessions w/ BasicAuthentication",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{iloPasswd}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{iloUser}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"SessionService",
+										"Sessions",
+										""
+									]
+								},
+								"description": "Get Sessions using Basic Authentication"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Session",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "b2b25c1e-241f-4abe-afe8-159806c51c49",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{SessionLocation}}",
+									"host": [
+										"{{SessionLocation}}"
+									]
+								},
+								"description": "DELETE Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Get RedFish ServiceRoot",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										""
+									]
+								},
+								"description": "Get the list of all the Redfish services, at root level"
+							},
+							"response": []
+						},
+						{
+							"name": "GET iLO NIC IP Address",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "205b131d-f613-4ad0-ada9-b8409b15bd7a",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get IP Address\r",
+											"var IPv4Address =  jsonData.IPv4Addresses[0].Address;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"iLO IPv4 address = \" + IPv4Address ] = true; \r",
+											"\r",
+											"//Get IP Address Origin\r",
+											"var IPv4AddressOrigin =  jsonData.IPv4Addresses[0].AddressOrigin;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"iLO IPv4 address mode = \" + IPv4AddressOrigin ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"IPv4Addresses\": [\n        {\n            \"AddressOrigin\": \"DHCP\"\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"EthernetInterfaces",
+										"1",
+										""
+									]
+								},
+								"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH iLO NIC to DHCP",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\"IPv4Addresses\": [\n        {\n            \"AddressOrigin\": \"DHCP\"\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"EthernetInterfaces",
+										"1",
+										""
+									]
+								},
+								"description": "Trying to patch iLO NIC to DHCP. \nTo come back:\n\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH iLO NIC to IP Static",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ebc239fc-c2e0-42db-80f3-4a6d72acf1e0",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": " { \n     \"IPv4Addresses\": \n    [ \n        { \n        \"Address\": \"192.168.0.8\", \n        \"AddressOrigin\": \"Static\", \n        \"Gateway\": \"192.168.1.1\", \n        \"SubnetMask\": \"255.255.252.0\" \n        } \n    ] \n}\n\n"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"EthernetInterfaces",
+										"1",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET iLO - How to find actions options?",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "09d06c16-5ebc-4dc0-9297-c627c8e30c3f",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get IP Address\r",
+											"var IPv4Address =  jsonData.IPv4Addresses[0].Address;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"iLO IPv4 address = \" + IPv4Address ] = true; \r",
+											"\r",
+											"//Get IP Address Origin\r",
+											"var IPv4AddressOrigin =  jsonData.IPv4Addresses[0].AddressOrigin;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"iLO IPv4 address mode = \" + IPv4AddressOrigin ] = true; "
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										""
+									]
+								},
+								"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+							},
+							"response": []
+						},
+						{
+							"name": "POST iLO Reset",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "7b3c25c5-70a1-42e0-abd1-cb2aa940111e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/Actions/Manager.Reset",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"Actions",
+										"Manager.Reset"
+									]
+								},
+								"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+							},
+							"response": []
+						},
+						{
+							"name": "Systems/1/Bios/Settings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/Bios/Settings/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"Bios",
+										"Settings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Systems/1/SmartStorageConfig/settings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/SmartStorageConfig/settings/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"SmartStorageConfig",
+										"settings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Logical drives",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "44c07e3d-374b-4c52-b2b2-a37e4df9fb39",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/systems/1/smartstorageconfig/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"systems",
+										"1",
+										"smartstorageconfig",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Logical drives Settings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "44c07e3d-374b-4c52-b2b2-a37e4df9fb39",
+										"type": "text/javascript",
+										"exec": [
+											"",
+											"",
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/systems/1/smartstorageconfig/settings/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"systems",
+										"1",
+										"smartstorageconfig",
+										"settings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Delete all Logical drives and clear controller config",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\t\r\n\t\"Actions\": [\r\n\t\t{\r\n\t\t\t\"Action\": \"ClearConfigurationMetadata\"\r\n\t\t\t\r\n\t\t}\r\n\t\t],\r\n\t\t\r\n   \"LogicalDrives\": [],\r\n   \"DataGuard\": \"Disabled\"\r\n    \r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/systems/1/smartstorageconfig/settings/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"systems",
+										"1",
+										"smartstorageconfig",
+										"settings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Create Logical drives",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "43481402-97ba-4d30-9a28-bc6e14228909",
+										"type": "text/javascript",
+										"exec": [
+											""
+										]
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0",
+										"disabled": true
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"LogicalDrives\": [\r\n       {\r\n          \"Raid\": \"Raid1\",\r\n          \"LogicalDriveName\": \"LD_RAID1-2DISKS\",\r\n          \"DataDrives\": [\r\n                \"3I:1:1\",\r\n                \"3I:1:2\"\r\n          ]\r\n\r\n           \r\n       }\r\n    ],\r\n    \"DataGuard\": \"Disabled\"\r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/systems/1/smartstorageconfig/settings/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"systems",
+										"1",
+										"smartstorageconfig",
+										"settings",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET CA-signed certificate Actions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cdb8feb2-fa0d-413d-9465-b682cc2921a0",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\"Certificate\": \"\"\r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"SecurityService",
+										"HttpsCert",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST Generate CSR",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "24d9088d-4ac7-4826-8af9-3ea8cb2d4913",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{ \r\n    \"City\":  \"Houston\",\r\n    \"CommonName\":  \"ilo-ABCD.lj.lab\",\r\n    \"OrgName\":  \"HPE\",\r\n    \"State\":  \"Texas\",\r\n    \"OrgUnit\":  \"Synergy\",\r\n    \"Country\":  \"US\"\r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"SecurityService",
+										"HttpsCert",
+										"Actions",
+										"HpeHttpsCert.GenerateCSR"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Get CSR",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1abf9eb0-9036-4260-8906-5e4d7bcc7832",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"SecurityService",
+										"HttpsCert",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST Import CA-signed certificate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cdb8feb2-fa0d-413d-9465-b682cc2921a0",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\"Certificate\": \"\"\r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Managers",
+										"1",
+										"SecurityService",
+										"HttpsCert",
+										"Actions",
+										"HpeHttpsCert.ImportCertificate"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

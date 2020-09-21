@@ -30,21 +30,19 @@
 					},
 					{
 						"key": "X-API-Version",
-						"value": "2",
+						"value": "{{xapiversion}}",
 						"type": "text"
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
+					"raw": "{\n\t\"userName\":\"{{username}}\",\n\t\"password\":\"{{password}}\",\n\t\"authLoginDomain\":\"local\"\n\t\n}"
 				},
 				"url": {
-					"raw": "https://oneview-global-dashboard.lj.lab/rest/login-sessions",
+					"raw": "https://{{globaldashboard}}/rest/login-sessions",
 					"protocol": "https",
 					"host": [
-						"oneview-global-dashboard",
-						"lj",
-						"lab"
+						"{{globaldashboard}}"
 					],
 					"path": [
 						"rest",
@@ -55,7 +53,83 @@
 			"response": []
 		},
 		{
+			"name": "Get-X-API-Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ff372d2e-20e0-4518-9898-2750d0b46d43",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"//Get Fabric URI",
+							"var xapiversion =  jsonData.currentVersion;",
+							"",
+							"//Set environment variable",
+							"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+							"",
+							"//Display X-API-version in test results",
+							"tests[\"X API version = \" + xapiversion ] = true; "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "300"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/version",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"version"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
 			"name": "Get-Appliances",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2f0d2ff7-a4b4-418d-906b-af2b0cc5b902",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"var appliance =  jsonData.members;\r",
+							"var appliancenumber = jsonData.total;\r",
+							"\r",
+							"//Get Enclosure URIs\r",
+							"var appl = [];\r",
+							"for (i = 0; i < appliancenumber; ++i) {\r",
+							"    //tests[\"Enclosure uri = \" + enclosure[i].uri] = true; \r",
+							"    var appliancename = \"appliance-\" + (i+1);\r",
+							"    //Set environment variable\r",
+							"    postman.setEnvironmentVariable(appliancename, appliance[i].hostname );\r",
+							"    tests[appliancename + \" = \" + appliance[i].hostname] = true; \r",
+							"    \r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -64,7 +138,7 @@
 				"header": [
 					{
 						"key": "x-api-version",
-						"value": "2",
+						"value": "{{xapiversion}}",
 						"type": "text"
 					},
 					{
@@ -75,15 +149,13 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
+					"raw": ""
 				},
 				"url": {
-					"raw": "https://oneview-global-dashboard.lj.lab/rest/appliances",
+					"raw": "https://{{globaldashboard}}/rest/appliances",
 					"protocol": "https",
 					"host": [
-						"oneview-global-dashboard",
-						"lj",
-						"lab"
+						"{{globaldashboard}}"
 					],
 					"path": [
 						"rest",
@@ -103,7 +175,7 @@
 				"header": [
 					{
 						"key": "x-api-version",
-						"value": "2",
+						"value": "{{xapiversion}}",
 						"type": "text"
 					},
 					{
@@ -117,12 +189,10 @@
 					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
 				},
 				"url": {
-					"raw": "https://oneview-global-dashboard.lj.lab/rest/resource-alerts",
+					"raw": "https://{{globaldashboard}}/rest/resource-alerts",
 					"protocol": "https",
 					"host": [
-						"oneview-global-dashboard",
-						"lj",
-						"lab"
+						"{{globaldashboard}}"
 					],
 					"path": [
 						"rest",
@@ -132,5 +202,6 @@
 			},
 			"response": []
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }
