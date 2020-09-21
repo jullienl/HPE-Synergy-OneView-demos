@@ -180,7 +180,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{composer}}/rest/audit-logs?start=0&count=150&filter=\"date>='2019-04-01'\"",
@@ -230,7 +230,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{composer}}/rest/audit-logs/settings",
@@ -355,7 +355,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+							"raw": ""
 						},
 						"url": {
 							"raw": "https://{{composer}}/rest/remote-syslog",
@@ -473,7 +473,7 @@
 						"header": [
 							{
 								"key": "X-API-Version",
-								"value": "300"
+								"value": "{{xapiversion}}"
 							},
 							{
 								"key": "Content-Type",
@@ -527,7 +527,7 @@
 						"header": [
 							{
 								"key": "X-API-Version",
-								"value": "300"
+								"value": "800"
 							},
 							{
 								"key": "Auth",
@@ -778,7 +778,7 @@
 						"header": [
 							{
 								"key": "X-API-Version",
-								"value": "2000"
+								"value": "800"
 							},
 							{
 								"key": "Content-Type",
@@ -832,7 +832,7 @@
 						"header": [
 							{
 								"key": "X-API-Version",
-								"value": "300"
+								"value": "800"
 							},
 							{
 								"key": "Auth",
@@ -1336,7 +1336,7 @@
 								"header": [
 									{
 										"key": "X-API-Version",
-										"value": "300"
+										"value": "800"
 									},
 									{
 										"key": "Content-Type",
@@ -1390,7 +1390,7 @@
 								"header": [
 									{
 										"key": "X-API-Version",
-										"value": "300"
+										"value": "800"
 									},
 									{
 										"key": "Auth",
@@ -1461,7 +1461,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "\r\n{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"password\",\r\n\"userName\":\"administrator\"\r\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "https://{{composer}}/rest/server-hardware?filter=\"name matches 'ESX5-0-ilo.etc.fr.comm.hpecorp.net'\"",
@@ -1676,7 +1676,7 @@
 								"header": [
 									{
 										"key": "X-API-Version",
-										"value": "300"
+										"value": "800"
 									},
 									{
 										"key": "Auth",
@@ -1838,7 +1838,6 @@
 											"var enclosurenumber = jsonData.total;",
 											"",
 											"//Get Enclosure URIs",
-											"var encl = [];",
 											"for (i = 0; i < enclosurenumber; ++i) {",
 											"    //tests[\"Enclosure uri = \" + enclosure[i].uri] = true; ",
 											"    var enclname = \"encl\" + (i+1);",
@@ -2152,7 +2151,7 @@
 				"header": [
 					{
 						"key": "X-API-Version",
-						"value": "1600"
+						"value": "800"
 					},
 					{
 						"key": "Content-Type",
@@ -2206,7 +2205,7 @@
 				"header": [
 					{
 						"key": "X-API-Version",
-						"value": "300"
+						"value": "800"
 					},
 					{
 						"key": "Auth",

@@ -1527,7 +1527,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\"IPv4Addresses\": [\n        {\n            \"AddressOrigin\": \"DHCP\"\n        }\n    ]\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "{{iloURI}}/redfish/v1/Managers/1/EthernetInterfaces/1/",
@@ -2144,7 +2144,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n\"Certificate\": \"\"\r\n}"
+									"raw": ""
 								},
 								"url": {
 									"raw": "{{iloURI}}/redfish/v1/Managers/1/SecurityService/HttpsCert/",
