@@ -186,7 +186,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"userName\":\"team1\",\n\t\"password\":\"Passwordteam1\",\n\t\"authLoginDomain\":\"lj.lab\"\n\t\n}"
+					"raw": ""
 				},
 				"url": {
 					"raw": "https://{{globaldashboard}}/rest/resource-alerts",
