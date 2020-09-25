@@ -2127,6 +2127,973 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Interconnect",
+			"item": [
+				{
+					"name": "Get-Interconnect",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a6e27147-9e4f-4cf0-a324-3acbbd8cccdd",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"// Get Interconnect URI\r",
+									"for (count = 0; count < jsonData.members.length; count++)\r",
+									"\t{\r",
+									"\t    if (jsonData.members[count].model == \"Virtual Connect SE 40Gb F8 Module for Synergy\")\r",
+									"\t    {\r",
+									"\t        \r",
+									"            var interconnectname =  \"VC-\" + jsonData.members[count].name.replace(/ /g,'').replace(/,/g, '-') + \"_uri\";\r",
+									"            var interconnect_uri =  jsonData.members[count].uri;\r",
+									"\t        postman.setEnvironmentVariable(interconnectname, interconnect_uri);\r",
+									"\t        tests[interconnectname + \"= \" + jsonData.members[count].uri] = true;  \r",
+									"\t    }\r",
+									"}\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/interconnects/",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"interconnects",
+								""
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": " Get-interconnect VC40G Frame1-bay3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f57b518f-ceca-475c-bd10-c3ba68f22ef5",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"// Get Q4:1 Port URI\r",
+									"for (count = 0; count < jsonData.ports.length; count++)\r",
+									"\t{\r",
+									"\t    if (jsonData.ports[count].portName == \"Q4:1\")\r",
+									"\t    {\r",
+									"\t        var portname = jsonData.ports[count].interconnectName.replace(/ /g,'').replace(/,/g, '-') + \"-\" + jsonData.ports[count].portName\r",
+									"            var port_uri =  jsonData.ports[count].uri;\r",
+									"\t        postman.setEnvironmentVariable(portname, port_uri);\r",
+									"\t        tests[portname + \"= \" + port_uri] = true;  \r",
+									"\t    }\r",
+									"}\r",
+									"\r",
+									"// Get Q1 Port URI\r",
+									"for (count = 0; count < jsonData.ports.length; count++)\r",
+									"\t{\r",
+									"\t    if (jsonData.ports[count].portName == \"Q1\")\r",
+									"\t    {\r",
+									"\t        var portname = jsonData.ports[count].interconnectName.replace(/ /g,'').replace(/,/g, '-') + \"-\" + jsonData.ports[count].portName\r",
+									"            var port_uri =  jsonData.ports[count].uri;\r",
+									"\t        postman.setEnvironmentVariable(portname, port_uri);\r",
+									"\t        tests[portname + \"= \" + port_uri] = true;  \r",
+									"\t    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-interconnect VC40G Frame2-bay6",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3a3c63b5-fff2-40cd-8932-283029c568a8",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"// Get Q4:1 Port URI\r",
+									"for (count = 0; count < jsonData.ports.length; count++)\r",
+									"\t{\r",
+									"\t    if (jsonData.ports[count].portName == \"Q4:1\")\r",
+									"\t    {\r",
+									"\t        var portname = jsonData.ports[count].interconnectName.replace(/ /g,'').replace(/,/g, '-') + \"-\" + jsonData.ports[count].portName\r",
+									"            var port_uri =  jsonData.ports[count].uri;\r",
+									"\t        postman.setEnvironmentVariable(portname, port_uri);\r",
+									"\t        tests[portname + \"= \" + port_uri] = true;  \r",
+									"\t    }\r",
+									"}\r",
+									"\r",
+									"// Get Q1 Port URI\r",
+									"for (count = 0; count < jsonData.ports.length; count++)\r",
+									"\t{\r",
+									"\t    if (jsonData.ports[count].portName == \"Q1\")\r",
+									"\t    {\r",
+									"\t        var portname = jsonData.ports[count].interconnectName.replace(/ /g,'').replace(/,/g, '-') + \"-\" + jsonData.ports[count].portName\r",
+									"            var port_uri =  jsonData.ports[count].uri;\r",
+									"\t        postman.setEnvironmentVariable(portname, port_uri);\r",
+									"\t        tests[portname + \"= \" + port_uri] = true;  \r",
+									"\t    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-FC Port Q4:1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "582937c0-41b9-4567-80f9-53438e09e6e8",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									"tests[\"Connector Type = \" + jsonData.connectorType] = true;  \r",
+									"\r",
+									"tests[\"Remote System Name = \" + jsonData.remoteSystemName] = true;  \r",
+									"\r",
+									"tests[\"Remote System Name = \" + jsonData.remoteSystemName] = true; \r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{Frame1-interconnect3-Q4:1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{Frame1-interconnect3-Q4:1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-FC Port Q4:1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "72163bb2-3f28-40de-9374-62e582b8e200",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"\r",
+									"\t        \r",
+									"           // var interconnectname =  \"VC-\" + jsonData.members[count].name.replace(/ /g,'').replace(/,/g, '-') + \"_uri\";\r",
+									"           // var interconnect_uri =  jsonData.members[count].uri;\r",
+									"\t      //  postman.setEnvironmentVariable(interconnectname, interconnect_uri);\r",
+									"//tests[interconnectname + \"= \" + jsonData.members[count].uri] = true;  \r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{Frame2-interconnect6-Q4:1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{Frame2-interconnect6-Q4:1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-FC Port Q4:1 Logins",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "cef84f71-e476-47e7-8d89-bb0ba0008f83",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"tests[\"Number of FC logins = \" + jsonData.fcPortProperties.loginsCount] = true;  \r",
+									"\r",
+									"tests[\"FC logins = \" + jsonData.fcPortProperties.logins] = true;"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{Frame1-interconnect3-Q4:1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{Frame1-interconnect3-Q4:1}}"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-FC Port Q4:1 Logins",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0e9b2b5c-f219-4ddf-9f9a-f9a631ca3972",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"tests[\"Number of FC logins = \" + jsonData.fcPortProperties.loginsCount] = true;  \r",
+									"\r",
+									"tests[\"FC logins = \" + jsonData.fcPortProperties.logins] = true;  "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{Frame2-interconnect6-Q4:1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{Frame2-interconnect6-Q4:1}}"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-port Q1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d761b32c-3aed-4d65-8cb9-8966dd35f91e",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									"tests[\"Connector Type = \" + jsonData.connectorType] = true;  \r",
+									"\r",
+									"tests[\"Remote System Name = \" + jsonData.neighbor.remoteSystemName] = true;  \r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{Frame1-interconnect3-Q1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{Frame1-interconnect3-Q1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-port Q1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b5f98b66-8679-4eea-bfe9-1b1b601e6cc6",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									"tests[\"Connector Type = \" + jsonData.connectorType] = true;  \r",
+									"\r",
+									"tests[\"Remote System Name = \" + jsonData.neighbor.remoteSystemName] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{Frame2-interconnect6-Q1}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{Frame2-interconnect6-Q1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c04c68b6-9d0b-48d7-b22b-160e9d058877",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}/statistics",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							],
+							"path": [
+								"statistics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-Port Q1 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "57c440cb-afdd-425c-b094-13566c1b7103",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}/statistics/q1",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							],
+							"path": [
+								"statistics",
+								"q1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-Port d1 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2ae9b065-650a-4ff3-9a9a-772c1818a8ac",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}/statistics/d1",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							],
+							"path": [
+								"statistics",
+								"d1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-Port d1-Subport 1 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "804772ec-3556-4794-a585-1cbfc386e5e6",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}/statistics/d1/subport/1",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							],
+							"path": [
+								"statistics",
+								"d1",
+								"subport",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame1-Bay3-Port d1-Subport 2 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b472ace6-51b4-4334-b9cf-c97d5865178a",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}/statistics/d1/subport/2",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							],
+							"path": [
+								"statistics",
+								"d1",
+								"subport",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3cc9a70d-665d-49a6-a3e8-526457be8062",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}/statistics",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							],
+							"path": [
+								"statistics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-Port Q1 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b5d395dc-1b2d-4667-88a7-6c48b9c979d4",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}/statistics/q1",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							],
+							"path": [
+								"statistics",
+								"q1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-Port d1 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "fbe19118-02c6-4ee6-95bd-9bfa49c346df",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}/statistics/d1",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							],
+							"path": [
+								"statistics",
+								"d1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-Port d1-Subport 1 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b552113e-e562-4d38-87e8-30cb9f7cbeff",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}/statistics/d1/subport/1",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							],
+							"path": [
+								"statistics",
+								"d1",
+								"subport",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Interconnect VC40G Frame2-Bay6-Port d1-Subport 2 Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "90459be1-21f0-4333-bfe9-ba0336e4ed60",
+								"exec": [
+									"//var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}/statistics/d1/subport/2",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							],
+							"path": [
+								"statistics",
+								"d1",
+								"subport",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-interconnect VC40G Frame1-bay3 cpu and memory Utilization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a511907a-caf7-4af5-95d1-89ef10f7af65",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}/utilization",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							],
+							"path": [
+								"utilization"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-interconnect VC40G Frame2-bay6 cpu and memory Utilization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "480d5d2f-402b-4e58-9c6e-c157d6932682",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}/utilization",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							],
+							"path": [
+								"utilization"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "1- Login-sessions",
 			"event": [
 				{
@@ -2359,6 +3326,36 @@
 			"response": []
 		},
 		{
+			"name": "Get-Metrics-capability",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{composer}}/rest/metrics/capability",
+					"protocol": "https",
+					"host": [
+						"{{composer}}"
+					],
+					"path": [
+						"rest",
+						"metrics",
+						"capability"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
 			"name": "Get the OS Deployment plans from OneView",
 			"request": {
 				"method": "GET",
@@ -2503,158 +3500,6 @@
 						"ca",
 						"Symantec Class 3 Secure Server SHA256 SSL CA",
 						"crl"
-					]
-				},
-				"description": "Login Session"
-			},
-			"response": []
-		},
-		{
-			"name": "Get-Interconnect",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/interconnects/",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"interconnects",
-						""
-					]
-				},
-				"description": "Login Session"
-			},
-			"response": []
-		},
-		{
-			"name": " Get-interconnect VC40G Frame1-bay3",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/interconnects/19c01938-6414-4705-9e4e-075cb3e8f433",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"interconnects",
-						"19c01938-6414-4705-9e4e-075cb3e8f433"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": " Get-Interconnect VC40G Frame1-Bay3-port Q4:1",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/interconnects/19c01938-6414-4705-9e4e-075cb3e8f433/ports/19c01938-6414-4705-9e4e-075cb3e8f433:Q4:1",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"interconnects",
-						"19c01938-6414-4705-9e4e-075cb3e8f433",
-						"ports",
-						"19c01938-6414-4705-9e4e-075cb3e8f433:Q4:1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get-Interconnect FC logins",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/interconnects/06aa031d-436c-44fb-b078-f6b883bed280/ports/06aa031d-436c-44fb-b078-f6b883bed280:Q4:1",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"interconnects",
-						"06aa031d-436c-44fb-b078-f6b883bed280",
-						"ports",
-						"06aa031d-436c-44fb-b078-f6b883bed280:Q4:1"
-					]
-				},
-				"description": "Login Session"
-			},
-			"response": []
-		},
-		{
-			"name": "Get-Metrics-capability",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/metrics/capability",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"metrics",
-						"capability"
 					]
 				},
 				"description": "Login Session"
