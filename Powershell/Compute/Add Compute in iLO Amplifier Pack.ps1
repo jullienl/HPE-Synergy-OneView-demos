@@ -45,8 +45,8 @@ import-module HPEOneView.530
 
 # OneView Credentials and IP
 $username = "Administrator" 
-$password = "P@ssw0rd" 
-$IP = "192.168.1.110"
+$password = "password" 
+$IP = "192.168.x.x"
 
 # iLO Username and password to create in iLO for iLO Amplifier Pack authentication
 $newiLOLoginName = "iLO_Amplifier"
@@ -54,8 +54,8 @@ $newiLOPassword = "iLO_Amplifier_password"
 
 # iLO Amplifier Credentials and IP
 $iLOAmplifierusername = "Administrator" 
-$iLOAmplifierpassword = "P@ssw0rd" 
-$iLOAmplifierIP = "192.168.0.5"
+$iLOAmplifierpassword = "password" 
+$iLOAmplifierIP = "192.168.x.x"
 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
@@ -217,7 +217,7 @@ if ($computes) {
 
     # ADDING COMPUTE IN ILO AMPLIFIER PACK
      
-    $headeriloAmplifier = @{
+    $BodyiloAmplifier = @{
         "UserName" = $iLOAmplifierusername;
         "Password" = $iLOAmplifierpassword
     } | ConvertTo-Json
@@ -227,7 +227,7 @@ if ($computes) {
     try {
            
         $error.clear()
-        $iLOAmplifiersession = Invoke-WebRequest -Uri "https://$iLOAmplifierIP/redfish/v1/SessionService/Sessions/" -body $headeriloAmplifier -ContentType "application/json"  -Method POST  
+        $iLOAmplifiersession = Invoke-WebRequest -Uri "https://$iLOAmplifierIP/redfish/v1/SessionService/Sessions/" -body $BodyiloAmplifier -ContentType "application/json"  -Method POST  
         $iloAmplifier_token = $iLOAmplifiersession.headers["X-Auth-Token"]
 
     }
