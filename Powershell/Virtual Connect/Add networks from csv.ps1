@@ -75,106 +75,16 @@ $networksetname = "Production_network_set"
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 
-# Import the OneView 5.00 library
-Function Import-ModuleAdv {
-    
-    # Import a module that can be imported
-    # If it cannot, the module is installed
-    # When -update parameter is used, the module is updated 
-    # to the latest version available on the PowerShell library
-    #
-    # ex: import-moduleAdv hponeview.500
-    
-    param ( 
-        $module, 
-        [switch]$update 
-    )
-   
-    if (get-module $module -ListAvailable) {
+# MODULES TO INSTALL/IMPORT
 
-        if ($update.IsPresent) {
-            
-            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
-            
-            Try {
-                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
-            }
-            Catch {
-                Write-Warning "Error: No internet connection to update $module ! `
-                `nCheck your network connection, you might need to configure a proxy if you are connected to a corporate network!"
-                return 
-            }
-
-            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
-
-            #If ( ( $Compare.SideIndicator -eq '==') ) {
-            
-            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
-                Try {
-                    # not using update-module as it keeps the old version of the module
-                    #Remove existing version
-                    Get-Module $Module -ListAvailable | Uninstall-Module 
-
-                    #Install latest one from PSGallery
-                    Install-Module -Name $Module
-                }
-                Catch {
-                    write-warning "Error: $module cannot be updated !"
-                    return
-                }
-           
-            }
-            Else {
-                Write-host "You are using the latest version of $module !" 
-            }
-        }
-            
-        Import-module $module
-            
-    }
-
-
-    Else {
-        Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
-
-        
-        If ( !(get-PSRepository).name -eq "PSGallery" )
-        { Register-PSRepository -Default }
-                
-        Try {
-            find-module -Name $module -ErrorAction Stop | out-Null
-                
-            Try {
-                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
-                Write-host "`nInstalling $Module ..." 
-                Import-module $module
-               
-            }
-            catch {
-                Write-Warning "$Module cannot be installed!" 
-                $error[0] | FL * -force
-                pause
-                exit
-            }
-
-        }
-        catch {
-            write-warning "Error: $module cannot be found in the online PSGallery !"
-            return
-        }
-            
-    }
-
-}
-
-Import-ModuleAdv HPOneview.500 #-update
-
-  
+# HPEONEVIEW
+If (-not (get-module HPEOneView.530 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
+import-module HPEOneView.530
 
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
 
 # Connection to the Synergy Composer
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 # Import of the CSV file containing VLAN name and VLAN ID
 $data = (Import-Csv $csvfile)
@@ -184,23 +94,23 @@ $data = (Import-Csv $csvfile)
 #              Creating Networks and adding them to the LIG uplink Set          #
 #################################################################################
 
-#$LIGname = (Get-HPOVLogicalInterconnectGroup | where { $_.uri -eq (Get-HPOVLogicalInterconnect).logicalInterconnectGroupUri }).name
-$LIGURI = (Get-HPOVLogicalInterconnect).logicalInterconnectGroupUri
+#$LIGname = (Get-OVLogicalInterconnectGroup | where { $_.uri -eq (Get-OVLogicalInterconnect).logicalInterconnectGroupUri }).name
+$LIGURI = (Get-OVLogicalInterconnect).logicalInterconnectGroupUri
 
-#$NewNetwork = Get-HPOVNetwork -Name "Produc*"  #Get the Network resource
+#$NewNetwork = Get-OVNetwork -Name "Produc*"  #Get the Network resource
 
-$LIG = Get-HPOVLogicalInterconnectGroup | Where-Object { $_.uri -eq $LIGURI }
+$LIG = Get-OVLogicalInterconnectGroup | Where-Object { $_.uri -eq $LIGURI }
 
 
 if (!(($LIG | Measure-Object).Count -eq 1 )) { Write-Host "Failed to filter down to one LIG" -ForegroundColor Red | Break }
 
 
 ForEach ($VLAN In $data) {
-    New-HPOVNetwork -Name $VLAN.NetName -Type Ethernet -VLANId $VLAN.VLAN_ID -SmartLink $True | out-Null
+    New-OVNetwork -Name $VLAN.NetName -Type Ethernet -VLANId $VLAN.VLAN_ID -SmartLink $True | out-Null
     Write-host "`nCreating Network: " -NoNewline
     Write-host -f Cyan ($VLAN.netName) -NoNewline
 
-    (($LIG.uplinkSets | where-object name -eq $LIG_UplinkSet | Where-Object { $_.ethernetNetworkType -eq "Tagged" }).networkUris) += (Get-HPOVNetwork -Name $VLAN.NetName).uri #Add NewNetwork to the networkUris Array
+    (($LIG.uplinkSets | where-object name -eq $LIG_UplinkSet | Where-Object { $_.ethernetNetworkType -eq "Tagged" }).networkUris) += (Get-OVNetwork -Name $VLAN.NetName).uri #Add NewNetwork to the networkUris Array
     Write-host "`nAdding Network: " -NoNewline
     Write-host -f Cyan ($VLAN.netName) -NoNewline
     Write-host " to Uplink Set: " -NoNewline
@@ -211,7 +121,7 @@ ForEach ($VLAN In $data) {
 
 
 try {
-    Set-HPOVResource $LIG -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+    Set-OVResource $LIG -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
     Write-Output $_ #.Exception
@@ -223,13 +133,13 @@ catch {
 #                            Updating LI from LIG                               #
 #################################################################################
 
-$LI = ((Get-HPOVLogicalInterconnect) | where-object logicalInterconnectGroupUri -eq $LIG.uri)
+$LI = ((Get-OVLogicalInterconnect) | where-object logicalInterconnectGroupUri -eq $LIG.uri)
 
 
 # Making sure the LI is not in updating state before we run a LI Update
 
 do {
-    $Interconnectstate = (((Get-HPOVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $LI.uri).state 
+    $Interconnectstate = (((Get-OVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $LI.uri).state 
 
     if ($Interconnectstate -notcontains "Configured") {
 
@@ -248,7 +158,7 @@ Write-host "`nPlease wait..."
 
 
 try {
-    Get-HPOVLogicalInterconnect -Name $LI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+    Get-OVLogicalInterconnect -Name $LI.name | Update-OVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
     Write-Output $_ #.Exception
@@ -270,14 +180,14 @@ ForEach ($VLAN In $data) {
     Write-host -f Cyan $networksetname
   
     
-    $VLANuri = (Get-HPOVNetwork -Name $VLAN.NetName).uri
-    $networkset = Get-HPOVNetworkSet -Name $networksetname
+    $VLANuri = (Get-OVNetwork -Name $VLAN.NetName).uri
+    $networkset = Get-OVNetworkSet -Name $networksetname
    
-    $networkset.networkUris += (Get-HPOVNetwork -Name $VLAN.NetName).uri
+    $networkset.networkUris += (Get-OVNetwork -Name $VLAN.NetName).uri
 
   
     try {
-        Set-HPOVNetworkSet $networkset -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
+        Set-OVNetworkSet $networkset -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
     }
     catch {
         Write-Output $_
@@ -285,7 +195,7 @@ ForEach ($VLAN In $data) {
  
  
  
-    if ( (Get-HPOVNetworkSet -Name $NetworkSetname).networkUris -ccontains $VLANuri) {
+    if ( (Get-OVNetworkSet -Name $NetworkSetname).networkUris -ccontains $VLANuri) {
         Write-host "`nThe network VLAN ID: " -NoNewline
         Write-host -f Cyan $VLAN.NetName -NoNewline
         Write-host " has been added successfully to all Server Profiles that are using the Network Set: " -NoNewline
@@ -297,5 +207,5 @@ ForEach ($VLAN In $data) {
 
 }
     
-$ConnectedSessions | Disconnect-HPOVMgmt | Out-Null
+Disconnect-OVMgmt
  
