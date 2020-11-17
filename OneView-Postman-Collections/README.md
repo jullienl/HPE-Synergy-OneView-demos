@@ -1,4 +1,4 @@
-# OneView API Postman Collection
+# HPE API Postman Collections
 
 This repository holds various Postman collection demonstrating use cases for:
 - [HPE OneView REST API](http://h17007.www1.hpe.com/docs/enterprise/servers/oneview4.2/cicf-api/en/index.html)
