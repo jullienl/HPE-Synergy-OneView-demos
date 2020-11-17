@@ -42,7 +42,7 @@ Each collection comes with a Postman [environment](https://learning.postman.com/
 
    ![image](https://user-images.githubusercontent.com/13134334/99395092-3d3b1680-28e0-11eb-873a-e3d0d211402b.png)
 
-   Note: The **iLO Gen10** and **iLO Gen9** environments can both be used with the **Redfish with iLO** collection to run call requests upon different generation of iLOs.
+  > Note: The **iLO Gen10** and **iLO Gen9** environments can both be used with the **Redfish with iLO** collection to run call requests upon different generation of iLOs.
 
 8- Select a collection folder then before running any request, select the environment matching with your collection using the **environment** menu. 
 
