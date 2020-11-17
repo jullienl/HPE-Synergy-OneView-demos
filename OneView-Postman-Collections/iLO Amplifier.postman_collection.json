@@ -1,0 +1,233 @@
+{
+	"info": {
+		"_postman_id": "cfce36d7-6674-40b6-a3f8-c8f0b541a68b",
+		"name": "iLO Amplifier",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1- Login-sessions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "6f27b9ec-bac2-4b57-9896-c4b9f00ca80d",
+						"exec": [
+							"var token = postman.getResponseHeader(\"X-Auth-Token\");\r",
+							"\r",
+							"postman.setEnvironmentVariable(\"Token\", token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"Password\":\"{{Password}}\",\r\n\"UserName\":\"{{Username}}\"\r\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://{{ILO_Amplifier}}/redfish/v1/SessionService/Sessions/",
+					"protocol": "https",
+					"host": [
+						"{{ILO_Amplifier}}"
+					],
+					"path": [
+						"redfish",
+						"v1",
+						"SessionService",
+						"Sessions",
+						""
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "2- Get-sessions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "20fdfa38-7ea5-4562-b9c7-7a7ba4126b9f",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Auth-Token",
+						"value": "{{Token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://{{ILO_Amplifier}}/redfish/v1/AggregatorService/ManagedSystems",
+					"protocol": "https",
+					"host": [
+						"{{ILO_Amplifier}}"
+					],
+					"path": [
+						"redfish",
+						"v1",
+						"AggregatorService",
+						"ManagedSystems"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Managers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f34be759-f43c-4486-8cba-e059359ec352",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Auth-Token",
+						"value": "{{Token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://{{ILO_Amplifier}}/redfish/v1/Managers",
+					"protocol": "https",
+					"host": [
+						"{{ILO_Amplifier}}"
+					],
+					"path": [
+						"redfish",
+						"v1",
+						"Managers"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "3- Add an iLO",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "aa413478-9257-4584-86ca-938a09cd5c1b",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-Auth-Token",
+						"value": "{{Token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"ManagerAddress\":\"{iLOAddress}\",\r\n\"UserName\":\"{iLOUsername}\",\r\n\"Password\":\"{iLOPassword}\"\r\n}",
+					"options": {
+						"raw": {}
+					}
+				},
+				"url": {
+					"raw": "https://{{ILO_Amplifier}}/redfish/v1/AggregatorService/ManagedSystems/ ",
+					"protocol": "https",
+					"host": [
+						"{{ILO_Amplifier}}"
+					],
+					"path": [
+						"redfish",
+						"v1",
+						"AggregatorService",
+						"ManagedSystems",
+						" "
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

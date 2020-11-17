@@ -3094,6 +3094,269 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Security",
+			"item": [
+				{
+					"name": "1- Login-sessions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a7b66bdf-df0a-4d36-b024-fb83d8ba70cf",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "800"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"authLoginDomain\":\"Local\",\r\n\"password\":\"{{password}}\",\r\n\"userName\":\"administrator\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/login-sessions",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"login-sessions"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "2- Get-X-API-Version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d39425da-ee3c-4879-9325-f7d065fcd626",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get Fabric URI",
+									"var xapiversion =  jsonData.currentVersion;",
+									"",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+									"",
+									"//Display X-API-version in test results",
+									"tests[\"X API version = \" + xapiversion ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "800"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/version",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"version"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Protocols",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "053ea043-58c0-4740-95fa-03f90ef0b087",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/protocols",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"protocols"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "4- Put-Security-Protocols_TLS1.2-only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7a7ef949-46e2-4114-901c-dd0bbe2c74d7",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "    [  \r\n        {\r\n        \"protocolName\":\"TLSv1\",\r\n        \"enabled\":false\r\n        },\r\n        {\r\n        \"protocolName\":\"TLSv1.1\",\r\n        \"enabled\":false\r\n        },\r\n        {\r\n        \"protocolName\":\"TLSv1.2\",\r\n        \"enabled\":true\r\n        }\r\n  ]"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/protocols",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"protocols"
+							]
+						},
+						"description": "Be careful, this command reboots OneView !"
+					},
+					"response": []
+				},
+				{
+					"name": "4- Put-Security-Protocols-Remove-insecure-ciphers-in-TLSv1.2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "91166ffb-350b-483d-9e34-a3c45f4ee7b1",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " [  \r\n        {\r\n        \"protocolName\":\"TLSv1\",\r\n        \"enabled\":false\r\n        },\r\n        {\r\n        \"protocolName\":\"TLSv1.1\",\r\n        \"enabled\":false\r\n        },\r\n        {\r\n        \"protocolName\": \"TLSv1.2\",\r\n        \"enabled\": true,\r\n        \"cipherSuites\": [\r\n            {\r\n                \"type\": \"SecurityCipherSuiteV1\",\r\n                \"cipherSuiteName\": \"TLS_RSA_WITH_AES_128_CBC_SHA256\",\r\n                \"enabled\": false\r\n            },\r\n            {\r\n                \"type\": \"SecurityCipherSuiteV1\",\r\n                \"cipherSuiteName\": \"TLS_RSA_WITH_AES_256_CBC_SHA256\",\r\n                \"enabled\": false\r\n            }  \r\n        ]\r\n    }\r\n ]"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/protocols",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"protocols"
+							]
+						},
+						"description": "Fixes insecured TLS/SSL Server Supports The Use of Static Key Ciphers"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "1- Login-sessions",
 			"event": [
 				{
