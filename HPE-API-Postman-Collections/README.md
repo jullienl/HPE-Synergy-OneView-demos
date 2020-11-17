@@ -14,15 +14,19 @@ These Postman collections provide many REST and Redfish call examples. Most of t
 
 Each collection comes with a Postman [environment](https://learning.postman.com/docs/sending-requests/managing-environments/). An environment is a set of variables [[more info here](https://learning.getpostman.com/docs/postman/environments_and_globals/variables/)] you can use with Postman to set different values like IP addresses, usernames and passwords. 
 
-## Installation:
+## Installation
 
-1- Download Postman from [www.getpostman.com](https://www.getpostman.com/).
+1- Download/install Postman from [www.getpostman.com](https://www.getpostman.com/).
 
 2- Clone this GitHub repository
 
-3- Open the Postman utility and select the **Import** option to import the collections and variable environments then select the **Folder** tab from the dialog and drag and drop the cloned **HPE-API-Postman-Collections** repository folder into the target.
+3- Open the Postman utility 
 
-4- Once the import is completed, select the **Manage Environments** icon to customize each environment with your own IP addresses and credentials. 
+4- Select the **Import** option to import the collections and variable environments then select the **Folder** tab from the dialog 
 
-5- Select a collection folder then before running any request, select the environment matching with your collection using the environment menu. 
+5- Drag and drop the cloned **HPE-API-Postman-Collections** repository folder into the target
+
+6- Once the import is completed, select the **Manage Environments** icon to customize each environment with your own IP addresses and credentials. 
+
+7- Select a collection folder then before running any request, select the environment matching with your collection using the environment menu. 
 
