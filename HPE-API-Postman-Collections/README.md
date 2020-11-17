@@ -10,9 +10,9 @@ This repository holds various Postman collection demonstrating use cases for:
 
 More information about HPE APIs can be found on https://www.hpe.com/us/en/solutions/developers/composable.html.
 
-These Postman collections provide many REST and Redfish call examples. Most of these calls use Javascripts test scripts [[more info here](https://learning.getpostman.com/docs/postman/scripts/test_scripts/)] to generate automatically environment variables like *SessionID*, *X-API-Version* that are then used for next calls. They also use JSON body response manipulation to extract values and provide some nice outputs in the Postman *Test Results* console.  
+These Postman collections provide many REST and Redfish call examples. Most of these calls use Javascripts [test scripts](https://learning.getpostman.com/docs/postman/scripts/test_scripts/) to generate automatically environment variables like *SessionID*, *X-API-Version* that are then used for next calls. They also use JSON body response manipulation to extract values and provide some nice outputs in the Postman *Test Results* console.  
 
-Each collection comes with a Postman [environment](https://learning.postman.com/docs/sending-requests/managing-environments/). An environment is a set of variables [[more info here](https://learning.getpostman.com/docs/postman/environments_and_globals/variables/)] you can use with Postman to set different values like IP addresses, usernames and passwords. 
+Each collection comes with a Postman [environment](https://learning.postman.com/docs/sending-requests/managing-environments/). An environment is a set of [variables](https://learning.getpostman.com/docs/postman/environments_and_globals/variables/) you can use with Postman to set different values like IP addresses, usernames and passwords. 
 
 ## Installation
 
