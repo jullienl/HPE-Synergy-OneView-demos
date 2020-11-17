@@ -1,6 +1,6 @@
 # HPE API Postman Collections
 
-This repository holds various Postman collection demonstrating use cases for:
+This repository holds various Postman collections demonstrating use cases for:
 - [HPE OneView REST API](http://h17007.www1.hpe.com/docs/enterprise/servers/oneview4.2/cicf-api/en/index.html)
 - [HPE iLO5 RESTful/RedFish API](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/)
 - [HPE iLO4 RESTful/RedFish API](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/)
@@ -28,5 +28,5 @@ Each collection comes with a Postman [environment](https://learning.postman.com/
 
 6- Once the import is completed, select the **Manage Environments** icon to customize each environment with your own IP addresses and credentials. 
 
-7- Select a collection folder then before running any request, select the environment matching with your collection using the environment menu. 
+7- Select a collection folder then before running any request, select the environment matching with your collection using the **environment** menu. 
 
