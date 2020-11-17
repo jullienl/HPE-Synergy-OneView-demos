@@ -16,9 +16,9 @@ Each collection comes with a Postman [environment](https://learning.postman.com/
 
 ## Installation
 
-1- Download/install Postman from [www.getpostman.com](https://www.getpostman.com/).
+1- Clone this GitHub repository on your computer
 
-2- Clone this GitHub repository
+2- Download/install Postman from [www.getpostman.com](https://www.getpostman.com/)
 
 3- Open the Postman utility 
 
