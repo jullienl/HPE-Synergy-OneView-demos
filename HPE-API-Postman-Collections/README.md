@@ -26,7 +26,24 @@ Each collection comes with a Postman [environment](https://learning.postman.com/
 
 5- Drag and drop the cloned **HPE-API-Postman-Collections** repository folder into the target
 
-6- Once the import is completed, select the **Manage Environments** icon to customize each environment with your own IP addresses and credentials. 
+6- Once the import is completed, you should see in **Collections** the new imported collections
 
-7- Select a collection folder then before running any request, select the environment matching with your collection using the **environment** menu. 
+![image](https://user-images.githubusercontent.com/13134334/99395951-6dcf8000-28e1-11eb-939d-b4cec2903c17.png)
 
+7- Select the **Manage Environments** icon  
+
+   ![image](https://user-images.githubusercontent.com/13134334/99394563-6018fb00-28df-11eb-8335-53ee30259338.png)
+
+8- A list of environments should be displayed 
+
+   ![image](https://user-images.githubusercontent.com/13134334/99396198-bbe48380-28e1-11eb-94e3-91629a3e0b1e.png)
+
+9- Select and customize each environment with your own appropriate IP addresses and credentials.
+
+   ![image](https://user-images.githubusercontent.com/13134334/99395092-3d3b1680-28e0-11eb-873a-e3d0d211402b.png)
+
+   Note: The **iLO Gen10** and **iLO Gen9** environments can both be used with the **Redfish with iLO** collection to run call requests upon different generation of iLOs.
+
+8- Select a collection folder then before running any request, select the environment matching with your collection using the **environment** menu. 
+
+   ![image](https://user-images.githubusercontent.com/13134334/99394796-bf770b00-28df-11eb-9369-fc94b811cef8.png)
