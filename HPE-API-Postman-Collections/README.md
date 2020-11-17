@@ -20,7 +20,7 @@ Each collection comes with a Postman [environment](https://learning.postman.com/
 
 2- Clone this GitHub repository
 
-3- Open the Postman utility and select the **Import** option to import the collections and variable environments then select the **Folder** tab from the dialog and drag and drop the cloned repository folder into the target.
+3- Open the Postman utility and select the **Import** option to import the collections and variable environments then select the **Folder** tab from the dialog and drag and drop the cloned **HPE-API-Postman-Collections** repository folder into the target.
 
 4- Once the import is completed, select the **Manage Environments** icon to customize each environment with your own IP addresses and credentials. 
 
