@@ -24,12 +24,11 @@ import urllib3
 import requests
 import json
 import sys
-import time
 
 
 def Add_host_to_vcenter(HostIP, HostPassword, vcenter, vcenteruser, vcenterpassword):
     """
-    To run this script use: 
+    To run this script use:
 
     python3 Add_host_to_vcenter.py 192.168.3.191 HPE_invent 192.168.1.35 Administrator@vsphere.local password
 
@@ -41,22 +40,17 @@ def Add_host_to_vcenter(HostIP, HostPassword, vcenter, vcenteruser, vcenterpassw
     # CREATE SESSION
     url = "https://" + vcenter + "/rest/com/vmware/cis/session"
 
-    response = ''
-    while response == '':
-        try:
-            response = requests.request(
-                "POST", url, verify=False, auth=(vcenteruser, vcenterpassword))
-            print("Connected to vcenter !")
-            break
-        except:
-            print("Cannot connect !")
-            time.sleep(2)
-            continue
+    try:
+        response = requests.request(
+            "POST", url, verify=False, auth=(vcenteruser, vcenterpassword))
+        print("Connected to vcenter " + vcenter)
+    except requests.exceptions.RequestException as err:
+        print("Error ! Cannot connect to the vcenter server " + vcenter)
+        raise SystemExit(err)
 
     # print(response.text)
     sessionid = (response.json())['value']
-
-    print("The session ID is " + sessionid)
+    # print("The session ID is " + sessionid)
 
     # LIST FOLDERS
 
@@ -66,15 +60,13 @@ def Add_host_to_vcenter(HostIP, HostPassword, vcenter, vcenteruser, vcenterpassw
         'vmware-api-session-id': sessionid
 
     }
-    response = ''
-    while response == '':
-        try:
-            response = requests.request(
-                "GET", url, headers=headers, verify=False)
-            break
-        except:
-            time.sleep(2)
-            continue
+
+    try:
+        response = requests.request(
+            "GET", url, headers=headers, verify=False)
+    except requests.exceptions.RequestException as err:
+        print("Error! Cannot list vcenter folders!")
+        raise SystemExit(err)
 
     # print(response.text)
     resp = (response.json())['value']
@@ -110,127 +102,14 @@ def Add_host_to_vcenter(HostIP, HostPassword, vcenter, vcenteruser, vcenterpassw
     }
 
     # print(payload)
-    response = ''
-    while response == '':
-        try:
-            response = requests.post(url, headers=headers,
-                                     verify=False, json=payload)
-            break
-        except:
-            time.sleep(2)
-            continue
 
-    # print(response.text)
-    if response.status_code == 200:
+    try:
+        response = requests.post(url, headers=headers,
+                                 verify=False, json=payload)
         print("Host added successfully !")
-    else:
-        print("Host cannot be added !")
-
-
-if __name__ == "__main__":
-    HostIP = str(sys.argv[1])
-    HostPassword = str(sys.argv[2])
-    vcenter = str(sys.argv[3])
-    vcenteruser = str(sys.argv[4])
-    vcenterpassword = str(sys.argv[5])
-    Add_host_to_vcenter(HostIP, HostPassword, vcenter,
-                        vcenteruser, vcenterpassword)
-
-
-def Add_host_to_vcenter(HostIP, HostPassword, vcenter, vcenteruser, vcenterpassword):
-
-    # VARIABLES
-
-    # Suppress InsecureRequestWarning for REST calls
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-    # CREATE SESSION
-    url = "https://" + vcenter + "/rest/com/vmware/cis/session"
-
-    response = ''
-    while response == '':
-        try:
-            response = requests.request(
-                "POST", url, verify=False, auth=(vcenteruser, vcenterpassword))
-            print("Connected to vcenter !")
-            break
-        except:
-            print("Cannot connect !")
-            time.sleep(2)
-            continue
-
-    # print(response.text)
-    sessionid = (response.json())['value']
-
-    print("The session ID is " + sessionid)
-
-    # LIST FOLDERS
-
-    url = "https://" + vcenter + "/rest/vcenter/folder"
-
-    headers = {
-        'vmware-api-session-id': sessionid
-
-    }
-    response = ''
-    while response == '':
-        try:
-            response = requests.request(
-                "GET", url, headers=headers, verify=False)
-            break
-        except:
-            time.sleep(2)
-            continue
-
-    # print(response.text)
-    resp = (response.json())['value']
-    # print(resp)
-
-    # Get HOST folder name
-    for item in resp:
-        if item['type'] == 'HOST':
-            foldername = item['folder']
-
-    print("The Folder name for hosts is " + foldername)
-
-    # CREATE HOST
-
-    url = "https://" + vcenter + "/rest/vcenter/host"
-
-    headers = {
-        'vmware-api-session-id': sessionid,
-        'Content-Type': 'application/json'
-
-    }
-
-    # print(headers)
-
-    payload = {
-        "spec": {
-            "folder": foldername,
-            "hostname": HostIP,
-            "password": HostPassword,
-            "thumbprint_verification": "NONE",
-            "user_name": "root"
-        }
-    }
-
-    # print(payload)
-    response = ''
-    while response == '':
-        try:
-            response = requests.post(url, headers=headers,
-                                     verify=False, json=payload)
-            break
-        except:
-            time.sleep(2)
-            continue
-
-    # print(response.text)
-    if response.status_code == 200:
-        print("Host added successfully !")
-    else:
-        print("Host cannot be added !")
+    except requests.exceptions.RequestException as err:
+        print("Error ! Host cannot be added to " + vcenter)
+        raise SystemExit(err)
 
 
 if __name__ == "__main__":
