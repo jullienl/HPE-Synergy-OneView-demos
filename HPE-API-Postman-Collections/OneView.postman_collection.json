@@ -3627,6 +3627,100 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Logical Interconnect Group",
+			"item": [
+				{
+					"name": "Get-Logical-Interconnect-Group",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/logical-interconnect-groups/",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"logical-interconnect-groups",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST LIG",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"",
+									"//Get Fabric URI",
+									"var xapiversion =  jsonData.currentVersion;",
+									"",
+									"//Set environment variable",
+									"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+									"",
+									"//Display X-API-version in test results",
+									"tests[\"X API version = \" + xapiversion ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "1600"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"enclosureIndexes\": [\r\n1,\r\n2,\r\n3\r\n],\r\n\"ethernetSettings\": {\r\n\"enableFastMacCacheFailover\": true,\r\n\"enableNetworkLoopProtection\": true,\r\n\"enablePauseFloodProtection\": false,\r\n\"macRefreshInterval\": 5,\r\n\"type\": \"EthernetInterconnectSettingsV7\"\r\n},\r\n\"interconnectBaySet\": 3,\r\n\"interconnectMapTemplate\": {\r\n\"interconnectMapEntryTemplates\": [\r\n{\r\n\"enclosureIndex\": 1,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/890eb49a-5c92-4639-a678-1cb874dbba1b\"\r\n},\r\n{\r\n\"enclosureIndex\": 3,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 3,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 2,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/890eb49a-5c92-4639-a678-1cb874dbba1b\"\r\n},\r\n{\r\n\"enclosureIndex\": 1,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 2,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n}\r\n]\r\n},\r\n\"name\": \"LIG-FlexFabric\",\r\n\"qosConfiguration\": {\r\n\"activeQosConfig\": {\r\n\"configType\": \"Passthrough\",\r\n\"qosTrafficClassifiers\": [],\r\n\"type\": \"QosConfiguration\"\r\n},\r\n\"type\": \"qos-aggregated-configuration\"\r\n},\r\n\"redundancyType\": \"HighlyAvailable\",\r\n\"snmpConfiguration\": {\r\n\"type\": \"snmp-configuration\",\r\n\"v3Enabled\": true\r\n},\r\n\"telemetryConfiguration\": {\r\n\"enableTelemetry\": true,\r\n\"sampleCount\": 12,\r\n\"sampleInterval\": 300,\r\n\"type\": \"CanonicalTelemetryConfiguration\"\r\n},\r\n\"type\": \"logical-interconnect-groupV8\",\r\n\"uplinkSets\": [\r\n{\r\n\"ethernetNetworkType\": \"Tagged\",\r\n\"lacpTimer\": \"Short\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 63,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n},\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 63,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"Mgmt\",\r\n\"networkType\": \"Ethernet\",\r\n\"networkUris\": [\r\n\"/rest/ethernet-networks/6f9cbcd4-06c3-46cb-94da-f6bd337b9553\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"Tagged\",\r\n\"lacpTimer\": \"Short\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 65,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n},\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 65,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"Prod\",\r\n\"networkType\": \"Ethernet\",\r\n\"networkUris\": [\r\n\"/rest/ethernet-networks/2c902e47-3221-42bd-8614-746cd3ea6910\",\r\n\"/rest/ethernet-networks/7bb7461b-c770-4e9b-a4fe-b9e339a9fffb\",\r\n\"/rest/ethernet-networks/8f38ae69-8d67-42c9-a07c-9335282b1255\",\r\n\"/rest/ethernet-networks/e9a5d204-f6c2-4baf-81a1-effc20571532\",\r\n\"/rest/ethernet-networks/20d425e2-57ec-4c99-bfd4-3e56ca4db742\",\r\n\"/rest/ethernet-networks/ee870312-603e-4f4d-888a-8db0a89e0e5c\",\r\n\"/rest/ethernet-networks/30f20780-b5bf-4848-8d0b-b3c6e4db85a2\",\r\n\"/rest/ethernet-networks/736ce75d-3c0d-4567-9155-72c112a0a194\",\r\n\"/rest/ethernet-networks/8d0e6475-d7c7-4add-90a8-0f4e3b56b086\",\r\n\"/rest/ethernet-networks/78457b57-b498-401c-b7f9-1e279bc2bd20\",\r\n\"/rest/ethernet-networks/51c9fbf6-08c4-43c4-aad6-de59a04e4c63\",\r\n\"/rest/ethernet-networks/dd9de825-0d70-4493-865b-f6bd43a70666\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"NotApplicable\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 67,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"SAN-B-FC\",\r\n\"networkType\": \"FibreChannel\",\r\n\"networkUris\": [\r\n\"/rest/fc-networks/082554c7-845a-4222-93ac-75235e737770\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"NotApplicable\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 67,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"SAN-A-FC\",\r\n\"networkType\": \"FibreChannel\",\r\n\"networkUris\": [\r\n\"/rest/fc-networks/d9c4dc04-c994-422b-8e96-4f203ebf0236\"\r\n]\r\n}\r\n],\r\n\"uri\": \"/rest/logical-interconnect-groups/1e401c4c-67f8-4fbd-a0a6-e1591ac03ced\"\r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/logical-interconnect-groups/098a98f5-4891-4987-ad7d-9296ca37c7c0",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"logical-interconnect-groups",
+								"098a98f5-4891-4987-ad7d-9296ca37c7c0"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "1- Login-sessions",
 			"event": [
 				{
@@ -4036,94 +4130,6 @@
 					]
 				},
 				"description": "Login Session"
-			},
-			"response": []
-		},
-		{
-			"name": "Get-Logical-Interconnect-Group",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/logical-interconnect-groups/",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"logical-interconnect-groups",
-						""
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "POST LIG",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "c68f2562-d358-46f4-ad05-abdffd90adf1",
-						"exec": [
-							"var jsonData = JSON.parse(responseBody);",
-							"",
-							"//Get Fabric URI",
-							"var xapiversion =  jsonData.currentVersion;",
-							"",
-							"//Set environment variable",
-							"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
-							"",
-							"//Display X-API-version in test results",
-							"tests[\"X API version = \" + xapiversion ] = true; "
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "X-API-Version",
-						"value": "1600"
-					},
-					{
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n\"enclosureIndexes\": [\r\n1,\r\n2,\r\n3\r\n],\r\n\"ethernetSettings\": {\r\n\"enableFastMacCacheFailover\": true,\r\n\"enableNetworkLoopProtection\": true,\r\n\"enablePauseFloodProtection\": false,\r\n\"macRefreshInterval\": 5,\r\n\"type\": \"EthernetInterconnectSettingsV7\"\r\n},\r\n\"interconnectBaySet\": 3,\r\n\"interconnectMapTemplate\": {\r\n\"interconnectMapEntryTemplates\": [\r\n{\r\n\"enclosureIndex\": 1,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/890eb49a-5c92-4639-a678-1cb874dbba1b\"\r\n},\r\n{\r\n\"enclosureIndex\": 3,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 3,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 2,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/890eb49a-5c92-4639-a678-1cb874dbba1b\"\r\n},\r\n{\r\n\"enclosureIndex\": 1,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n},\r\n{\r\n\"enclosureIndex\": 2,\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n}\r\n]\r\n},\r\n\"permittedInterconnectTypeUri\": \"/rest/interconnect-types/84f3bcd5-c412-4174-aa04-bf22e5bc1d60\"\r\n}\r\n]\r\n},\r\n\"name\": \"LIG-FlexFabric\",\r\n\"qosConfiguration\": {\r\n\"activeQosConfig\": {\r\n\"configType\": \"Passthrough\",\r\n\"qosTrafficClassifiers\": [],\r\n\"type\": \"QosConfiguration\"\r\n},\r\n\"type\": \"qos-aggregated-configuration\"\r\n},\r\n\"redundancyType\": \"HighlyAvailable\",\r\n\"snmpConfiguration\": {\r\n\"type\": \"snmp-configuration\",\r\n\"v3Enabled\": true\r\n},\r\n\"telemetryConfiguration\": {\r\n\"enableTelemetry\": true,\r\n\"sampleCount\": 12,\r\n\"sampleInterval\": 300,\r\n\"type\": \"CanonicalTelemetryConfiguration\"\r\n},\r\n\"type\": \"logical-interconnect-groupV8\",\r\n\"uplinkSets\": [\r\n{\r\n\"ethernetNetworkType\": \"Tagged\",\r\n\"lacpTimer\": \"Short\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 63,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n},\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 63,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"Mgmt\",\r\n\"networkType\": \"Ethernet\",\r\n\"networkUris\": [\r\n\"/rest/ethernet-networks/6f9cbcd4-06c3-46cb-94da-f6bd337b9553\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"Tagged\",\r\n\"lacpTimer\": \"Short\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 65,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n},\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 65,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"Prod\",\r\n\"networkType\": \"Ethernet\",\r\n\"networkUris\": [\r\n\"/rest/ethernet-networks/2c902e47-3221-42bd-8614-746cd3ea6910\",\r\n\"/rest/ethernet-networks/7bb7461b-c770-4e9b-a4fe-b9e339a9fffb\",\r\n\"/rest/ethernet-networks/8f38ae69-8d67-42c9-a07c-9335282b1255\",\r\n\"/rest/ethernet-networks/e9a5d204-f6c2-4baf-81a1-effc20571532\",\r\n\"/rest/ethernet-networks/20d425e2-57ec-4c99-bfd4-3e56ca4db742\",\r\n\"/rest/ethernet-networks/ee870312-603e-4f4d-888a-8db0a89e0e5c\",\r\n\"/rest/ethernet-networks/30f20780-b5bf-4848-8d0b-b3c6e4db85a2\",\r\n\"/rest/ethernet-networks/736ce75d-3c0d-4567-9155-72c112a0a194\",\r\n\"/rest/ethernet-networks/8d0e6475-d7c7-4add-90a8-0f4e3b56b086\",\r\n\"/rest/ethernet-networks/78457b57-b498-401c-b7f9-1e279bc2bd20\",\r\n\"/rest/ethernet-networks/51c9fbf6-08c4-43c4-aad6-de59a04e4c63\",\r\n\"/rest/ethernet-networks/dd9de825-0d70-4493-865b-f6bd43a70666\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"NotApplicable\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 2,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 6,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 67,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"SAN-B-FC\",\r\n\"networkType\": \"FibreChannel\",\r\n\"networkUris\": [\r\n\"/rest/fc-networks/082554c7-845a-4222-93ac-75235e737770\"\r\n]\r\n},\r\n{\r\n\"ethernetNetworkType\": \"NotApplicable\",\r\n\"logicalPortConfigInfos\": [\r\n{\r\n\"desiredSpeed\": \"Auto\",\r\n\"logicalLocation\": {\r\n\"locationEntries\": [\r\n{\r\n\"relativeValue\": 1,\r\n\"type\": \"Enclosure\"\r\n},\r\n{\r\n\"relativeValue\": 3,\r\n\"type\": \"Bay\"\r\n},\r\n{\r\n\"relativeValue\": 67,\r\n\"type\": \"Port\"\r\n}\r\n]\r\n}\r\n}\r\n],\r\n\"mode\": \"Auto\",\r\n\"name\": \"SAN-A-FC\",\r\n\"networkType\": \"FibreChannel\",\r\n\"networkUris\": [\r\n\"/rest/fc-networks/d9c4dc04-c994-422b-8e96-4f203ebf0236\"\r\n]\r\n}\r\n],\r\n\"uri\": \"/rest/logical-interconnect-groups/1e401c4c-67f8-4fbd-a0a6-e1591ac03ced\"\r\n}"
-				},
-				"url": {
-					"raw": "https://{{composer}}/rest/logical-interconnect-groups/098a98f5-4891-4987-ad7d-9296ca37c7c0",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"logical-interconnect-groups",
-						"098a98f5-4891-4987-ad7d-9296ca37c7c0"
-					]
-				}
 			},
 			"response": []
 		}
