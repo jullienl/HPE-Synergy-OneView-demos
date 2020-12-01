@@ -3429,9 +3429,31 @@
 							"response": []
 						},
 						{
-							"name": "Unmount SPP ISO",
+							"name": "Find if SPP ISO ejected",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "56f435e4-6322-49aa-80a5-04dce4d25909",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);\r",
+											"\r",
+											"//Get CD Mount\r",
+											"var Mounted =  jsonData.Inserted;\r",
+											"\r",
+											"//Display in test results\r",
+											"tests[\"iLO Virtual Media Mounted  = \" + Mounted ] = true; \r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
 							"request": {
-								"method": "POST",
+								"method": "GET",
 								"header": [
 									{
 										"key": "OData-Version",
@@ -3451,7 +3473,7 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{iloURI}}/redfish/v1/Managers/1/VirtualMedia/2/Actions/VirtualMedia.EjectMedia/",
+									"raw": "{{iloURI}}/redfish/v1/Managers/1/VirtualMedia/2/",
 									"host": [
 										"{{iloURI}}"
 									],
@@ -3462,11 +3484,10 @@
 										"1",
 										"VirtualMedia",
 										"2",
-										"Actions",
-										"VirtualMedia.EjectMedia",
 										""
 									]
-								}
+								},
+								"description": "Ejecting the SPP ISO from iLO Virtual Media is not needed as when exiting SUM ejects it automatically"
 							},
 							"response": []
 						}
@@ -3686,6 +3707,49 @@
 									]
 								},
 								"description": "Get Session Token"
+							},
+							"response": []
+						},
+						{
+							"name": "UEFI Boot Order/Settings",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/BIOS/Boot/Settings/?$expand=.",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"BIOS",
+										"Boot",
+										"Settings",
+										""
+									],
+									"query": [
+										{
+											"key": "$expand",
+											"value": "."
+										}
+									]
+								}
 							},
 							"response": []
 						},
@@ -4702,6 +4766,62 @@
 								"redfish",
 								"v1",
 								""
+							]
+						},
+						"description": "Get the list of all the Redfish services, at root level"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Remote Support Service",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5b42fcdf-6666-45a4-8e34-6d5677bac526",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/remotesupportservice?$expand=.",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"remotesupportservice"
+							],
+							"query": [
+								{
+									"key": "$expand",
+									"value": "."
+								}
 							]
 						},
 						"description": "Get the list of all the Redfish services, at root level"

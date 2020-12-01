@@ -55,6 +55,49 @@
 					"response": []
 				},
 				{
+					"name": "Get Profiles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3e03f675-bc7a-4471-b4b6-e4e52b369d0d",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profiles",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profiles"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
 					"name": "2-Create an advanced Gen10 profile",
 					"event": [
 						{
@@ -2247,6 +2290,51 @@
 					"response": []
 				},
 				{
+					"name": "PATCH-interconnect VC40G Frame1-bay3-Set-Netop-user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "25c3488f-a88d-48d7-9d6d-2996f6416072",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"path\":  \"/netOpPasswd\",\r\n        \"op\":  \"replace\",\r\n        \"value\":  \"netoppwd\"\r\n    }\r\n]\r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame1-interconnect3_uri}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame1-interconnect3_uri}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get-interconnect VC40G Frame2-bay6",
 					"event": [
 						{
@@ -2296,6 +2384,51 @@
 								"value": "{{sessionID}}"
 							}
 						],
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH-interconnect VC40G Frame2-bay6-Set-Netop-user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bf971918-eae9-42c6-bce4-670bb72720d6",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"path\":  \"/netOpPasswd\",\r\n        \"op\":  \"replace\",\r\n        \"value\":  \"netoppwd\"\r\n    }\r\n]\r\n"
+						},
 						"url": {
 							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}",
 							"protocol": "https",
@@ -2361,14 +2494,13 @@
 								"exec": [
 									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
+									"tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
 									"\r",
-									"\t        \r",
-									"           // var interconnectname =  \"VC-\" + jsonData.members[count].name.replace(/ /g,'').replace(/,/g, '-') + \"_uri\";\r",
-									"           // var interconnect_uri =  jsonData.members[count].uri;\r",
-									"\t      //  postman.setEnvironmentVariable(interconnectname, interconnect_uri);\r",
-									"//tests[interconnectname + \"= \" + jsonData.members[count].uri] = true;  \r",
+									"tests[\"Connector Type = \" + jsonData.connectorType] = true;  \r",
 									"\r",
+									"tests[\"Remote System Name = \" + jsonData.remoteSystemName] = true;  \r",
 									"\r",
+									"tests[\"Remote System Name = \" + jsonData.remoteSystemName] = true; \r",
 									""
 								],
 								"type": "text/javascript"
@@ -2572,10 +2704,6 @@
 							"script": {
 								"id": "c04c68b6-9d0b-48d7-b22b-160e9d058877",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2615,10 +2743,6 @@
 							"script": {
 								"id": "57c440cb-afdd-425c-b094-13566c1b7103",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2659,10 +2783,6 @@
 							"script": {
 								"id": "2ae9b065-650a-4ff3-9a9a-772c1818a8ac",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2703,10 +2823,6 @@
 							"script": {
 								"id": "804772ec-3556-4794-a585-1cbfc386e5e6",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2795,9 +2911,6 @@
 							"script": {
 								"id": "3cc9a70d-665d-49a6-a3e8-526457be8062",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
 									"\r",
 									""
 								],
@@ -2838,10 +2951,6 @@
 							"script": {
 								"id": "b5d395dc-1b2d-4667-88a7-6c48b9c979d4",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2882,10 +2991,6 @@
 							"script": {
 								"id": "fbe19118-02c6-4ee6-95bd-9bfa49c346df",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2926,10 +3031,6 @@
 							"script": {
 								"id": "b552113e-e562-4d38-87e8-30cb9f7cbeff",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -2972,10 +3073,6 @@
 							"script": {
 								"id": "90459be1-21f0-4333-bfe9-ba0336e4ed60",
 								"exec": [
-									"//var jsonData = JSON.parse(responseBody);\r",
-									"\r",
-									"//tests[\"Operational Speed = \" + jsonData.operationalSpeed] = true;  \r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -3057,8 +3154,6 @@
 							"script": {
 								"id": "480d5d2f-402b-4e58-9c6e-c157d6932682",
 								"exec": [
-									"var jsonData = JSON.parse(responseBody);\r",
-									"\r",
 									""
 								],
 								"type": "text/javascript"
@@ -3350,6 +3445,181 @@
 							]
 						},
 						"description": "Fixes insecured TLS/SSL Server Supports The Use of Static Key Ciphers"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Volumes",
+			"item": [
+				{
+					"name": "Get-Volumes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a0f5567e-7d78-4584-8c16-ff8afb69a670",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//Get Storage Pool URI\r",
+									"var storagepooluri =  jsonData.members[0].storagePoolUri;\r",
+									"\r",
+									"//Set environment variable\r",
+									"postman.setEnvironmentVariable(\"storagepooluri\", storagepooluri);\r",
+									"\r",
+									"//Display  \r",
+									"tests[\"Storage Pool Uri = \" + storagepooluri ] = true; \r",
+									"\r",
+									"//Get Volume Template URI\r",
+									"var volumeTemplateUri =  jsonData.members[0].volumeTemplateUri\r",
+									"\r",
+									"//Set environment variable\r",
+									"postman.setEnvironmentVariable(\"volumeTemplateUri\", volumeTemplateUri);\r",
+									"\r",
+									"//Display \r",
+									"tests[\"Volume Template URI = \" + volumeTemplateUri ] = true; \r",
+									"\r",
+									"\r",
+									"//Get Snapshot Pool URI\r",
+									"var snapshotPoolUri =  jsonData.members[0].deviceSpecificAttributes.snapshotPoolUri\r",
+									"\r",
+									"//Set environment variable\r",
+									"postman.setEnvironmentVariable(\"snapshotPoolUri\", snapshotPoolUri);\r",
+									"\r",
+									"//Display \r",
+									"tests[\"Snapshot Pool URI = \" + snapshotPoolUri ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/storage-volumes",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"storage-volumes"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Create-Volume",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3f19871a-aab0-4045-b6dd-e5833d8501d7",
+								"exec": [
+									"var locationhttpheader = postman.getResponseHeader(\"Location\");\r",
+									"\r",
+									"\r",
+									"//Display Location value in test results\r",
+									"tests[\"Location task result can be seen here: \" + locationhttpheader ] = true; \r",
+									"\r",
+									"postman.setEnvironmentVariable(\"taskresult\", locationhttpheader);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"properties\": {\r\n        \"name\": \"Volume123\",\r\n        \"description\": \"volume description\",\r\n        \"storagePool\": \"{{storagepooluri}}\",\r\n        \"size\": 60000,\r\n        \"isShareable\": false,\r\n        \"snapshotPool\": \"{{snapshotPoolUri}}\",\r\n        \"isCompressed\": true,\r\n        \"isDeduplicated\": true,\r\n        \"templateVersion\": \"1.1\"\r\n    },\r\n    \"templateUri\": \"{{volumeTemplateUri}}\",\r\n    \"isPermanent\": true\r\n    \r\n}"
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/storage-volumes",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"storage-volumes"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Task-object-Result",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "2d91eaad-8db5-4bfb-b664-848af74ad1cb",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/{{taskresult}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"{{taskresult}}"
+							]
+						},
+						"description": "Login Session"
 					},
 					"response": []
 				}
