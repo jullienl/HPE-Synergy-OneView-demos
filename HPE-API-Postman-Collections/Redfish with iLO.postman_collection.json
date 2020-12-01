@@ -5001,91 +5001,91 @@
 						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
 					},
 					"response": []
+				},
+				{
+					"name": "GET Memory DIMMs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/Memory/?$expand=.",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								"Memory",
+								""
+							],
+							"query": [
+								{
+									"key": "$expand",
+									"value": "."
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET PCI devices",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/PCIDevices/?$expand=.",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								"PCIDevices",
+								""
+							],
+							"query": [
+								{
+									"key": "$expand",
+									"value": "."
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "GET PCI devices",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "OData-Version",
-						"value": "4.0"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "X-Auth-Token",
-						"value": "{{Token}}"
-					}
-				],
-				"url": {
-					"raw": "{{iloURI}}/redfish/v1/Systems/1/PCIDevices/?$expand=.",
-					"host": [
-						"{{iloURI}}"
-					],
-					"path": [
-						"redfish",
-						"v1",
-						"Systems",
-						"1",
-						"PCIDevices",
-						""
-					],
-					"query": [
-						{
-							"key": "$expand",
-							"value": "."
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "GET Memory DIMMs",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "OData-Version",
-						"value": "4.0"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					},
-					{
-						"key": "X-Auth-Token",
-						"value": "{{Token}}"
-					}
-				],
-				"url": {
-					"raw": "{{iloURI}}/redfish/v1/Systems/1/Memory/?$expand=.",
-					"host": [
-						"{{iloURI}}"
-					],
-					"path": [
-						"redfish",
-						"v1",
-						"Systems",
-						"1",
-						"Memory",
-						""
-					],
-					"query": [
-						{
-							"key": "$expand",
-							"value": "."
-						}
-					]
-				}
-			},
-			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}
