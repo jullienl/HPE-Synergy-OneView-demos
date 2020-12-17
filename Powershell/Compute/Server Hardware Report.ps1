@@ -20,7 +20,7 @@ RH75-SUT [Serial number: MXQ828048J - iLO: 192.168.0.9]:
 		PROC 1 DIMM 3: HPE DDR4 DRAM 16GB - Part number: 840756-091
 		PROC 1 DIMM 8: HPE DDR4 DRAM 16GB - Part number: 840756-091
 	Adapters configuration :
-		Synergy 3820C 10/20Gb CNA: Part number: 782833-001 - Number of ports: 5 - Position: NIC.Slot.3.1
+		1-Synergy 3820C 10/20Gb CNA: Part number: 782833-001 - Number of ports: 5 - Position: NIC.Slot.3.1
 
 ESX5-2.lj.lab [Serial number: MXQ828049J - iLO: 192.168.0.10]: 
 	Model: Synergy 480 Gen10
@@ -31,8 +31,8 @@ ESX5-2.lj.lab [Serial number: MXQ828049J - iLO: 192.168.0.10]:
 		PROC 2 DIMM 3: HPE DDR4 DRAM 64GB - Part number: 840759-091
 		PROC 1 DIMM 10: HPE DDR4 DRAM 64GB - Part number: 840759-091
 	Adapters configuration :
-		Synergy 3830C 16G FC HBA: Part number: 782829-001 - Number of ports: 0 - Position: PCI.Slot.2.1
-		Synergy 3820C 10/20Gb CNA: Part number: 782833-001 - Number of ports: 2 - Position: NIC.Slot.3.1
+		1-Synergy 3830C 16G FC HBA: Part number: 782829-001 - Number of ports: 0 - Position: PCI.Slot.2.1
+		2-Synergy 3820C 10/20Gb CNA: Part number: 782833-001 - Number of ports: 2 - Position: NIC.Slot.3.1
 <...>
 
 -------------------------------------------------------------------------------------------------------
@@ -88,6 +88,20 @@ $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
+# Adding this to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
+# when using Self-Signed Certificates
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
   
 # Capture iLO4 and iLO5 IP adresses managed by OneView
 $servers = Get-OVServer
@@ -161,11 +175,11 @@ Foreach ($iloIP in $iloIPs) {
         $adapters_data = @{}
 
         foreach ($adapter in $adapterinfo.Members.'@odata.id') {
-        
+            
             $adapter_data = @()    
             $adapterdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$adapter" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
-        
-            $AdapterName = $adapterdata.Name
+            
+            $AdapterName = $adapterdata.Id + "-" + $adapterdata.Name 
             $PartNumber = $adapterdata.PartNumber
             $StructuredName = $adapterdata.StructuredName
             $Numberofports = ($adapterdata.PhysicalPorts).Count
