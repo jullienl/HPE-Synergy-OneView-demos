@@ -26,7 +26,7 @@
 #############################################################################################################################
 
 #IP address of OneView
-$IP = "192.168.3.4"
+$IP = "192.168.3.4" 
 
 # OneView Credentials
 $username = "Administrator" 
@@ -38,11 +38,11 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
 Clear-Host
 
 # Import the OneView PowerShell module if needed
-# Import-Module hponeview.500
+# Import-Module hponeview.550
 
-$ApplianceConnection = Connect-HPOVMgmt -appliance $IP -Credential $credentials 
+$ApplianceConnection = Connect-OVMgmt -appliance $IP -Credential $credentials 
 
-$LinkedFCuplinkports = (Get-HPOVInterconnect | Where-Object { $_.model -match "40G" -or $_.model -match "100G" } ).ports | Where-Object { $_.configPortTypes -match "FibreChannel" -and $_.portstatus -eq "Linked" }
+$LinkedFCuplinkports = (Get-OVInterconnect | Where-Object { $_.model -match "40G" -or $_.model -match "100G" } ).ports | Where-Object { $_.configPortTypes -match "FibreChannel" -and $_.portstatus -eq "Linked" }
 
 foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
    
@@ -53,14 +53,14 @@ foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
     $association = "PORT_TO_INTERCONNECT"
     $uri = "/rest/index/associations?name={0}&parentUri={1}" -f $association, $LinkedFCuplinkport.uri
     Try {
-        $_IndexResults = Send-HPOVRequest -Uri $Uri -Hostname $ApplianceConnection
+        $_IndexResults = Send-OVRequest -Uri $Uri -Hostname $ApplianceConnection
     }
     Catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
   
     $childuri = $_IndexResults.members.childuri
-    $_FullIndexEntry = Send-HPOVRequest -Uri $childuri -Hostname $ApplianceConnection
+    $_FullIndexEntry = Send-OVRequest -Uri $childuri -Hostname $ApplianceConnection
 
     $myobject.productName = $_FullIndexEntry.productName
     $myobject._Name = $_FullIndexEntry.Name
@@ -73,7 +73,7 @@ foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
     $fclogins = @{ }
 
     foreach ($wwpn in $wwns) {
-        $serverprofilename = (Get-HPOVServerProfile | Where-Object { $_.connectionSettings.connections.wwpn -eq $wwpn }).name
+        $serverprofilename = (Get-OVServerProfile | Where-Object { $_.connectionSettings.connections.wwpn -eq $wwpn }).name
         $fclogins.add($wwpn, $serverprofilename)
     }
     
@@ -83,4 +83,4 @@ foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
 
 }
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt
