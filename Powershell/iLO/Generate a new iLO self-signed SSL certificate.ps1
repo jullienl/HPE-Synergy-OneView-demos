@@ -47,7 +47,7 @@ $password = "password"
 $IP = "192.168.1.110" 
 
 # Modules to import
-Import-Module HPOneview.500 
+#Import-Module HPOneview.540 
 Import-Module HPRESTCmdlets
    
 
@@ -56,11 +56,11 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 # Connection to the Synergy Composer
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
                
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
+import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -78,13 +78,14 @@ add-type -TypeDefinition  @"
 
 
 
-$servers = Get-HPOVServer
-#$servers = Get-HPOVServer | select -first 1
+$servers = Get-OVServer
+#$servers = Get-OVServer | select -first 1
 
 $serverstoimport = New-Object System.Collections.ArrayList
 
+#$s = $servers
 ForEach ($s in $servers) {
-    $iloSession = $s | Get-HPOVIloSso -IloRestSession
+    $iloSession = $s | Get-OVIloSso -IloRestSession
 
     $cert = Get-HPRESTDataRaw -href 'rest/v1/Managers/1/SecurityService/HttpsCert' -session $iLOsession
 
@@ -107,11 +108,11 @@ ForEach ($s in $servers) {
 
             $serverstoimport.Add($s)
 
-            $iloIP = Get-HPOVServer -Name $s.name | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+            $iloIP = Get-OVServer -Name $s.name | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[-1].address }
 
        
 
-            $ilosessionkey = (Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[-1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+            $ilosessionkey = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[-1].address -eq $iloIP } | Get-OVIloSso -IloRestSession)."X-Auth-Token"
  
             # Creation of the header using the SSO Session Key 
             $headerilo = @{ } 
@@ -156,15 +157,15 @@ If ($serverstoimport) {
     Sleep 60
 }
 
-
+#$server =$serverstoimport
 ForEach ($server in $serverstoimport) {
     #Importing the new iLO certificates
-    $iloIP = Get-HPOVServer -Name $server.name | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[-1].address }
-    Add-HPOVApplianceTrustedCertificate -ComputerName $iloIP
+    $iloIP = Get-OVServer -Name $server.name | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+    Add-OVApplianceTrustedCertificate -ComputerName $iloIP
     write-host "`nThe new generated iLO Self-Signed SSL certificate of $($server.name) using iLO $iloIP has been imported in OneView "
         
     #Refreshing Compute modules 
-    Get-HPOVServer -Name $server.name | Update-HPOVServer -Async | Out-Null
+    Get-OVServer -Name $server.name | Update-OVServer -Async | Out-Null
 
     Write-host "`nOneView is refreshing $($server.name) to update the status of the server using the new certificate..." -ForegroundColor Yellow
 }
@@ -173,4 +174,4 @@ ForEach ($server in $serverstoimport) {
 
 Read-Host -Prompt "`nOperation done ! Hit return to close" 
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt

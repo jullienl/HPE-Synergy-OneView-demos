@@ -51,8 +51,8 @@ Management Processor support: iLO4 and iLO5
 # MODULES TO INSTALL/IMPORT
 
 # HPEONEVIEW
-If (-not (get-module HPEOneView.530 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
-import-module HPEOneView.530
+#If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
+#import-module HPEOneView.550
 
 # PSPKI
 # CA scripts -
@@ -77,7 +77,7 @@ Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP }) 
+#import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP }) 
 
 add-type -TypeDefinition  @"
         using System.Net;
