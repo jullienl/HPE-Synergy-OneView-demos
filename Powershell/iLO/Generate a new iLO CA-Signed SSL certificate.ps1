@@ -6,7 +6,7 @@ Steps:
 
 1- A first iLO RedFish command is used to create a Certificate Signing Request in iLO using parameters in lines 137-143
 
-2- The CSR is submitted to an available Certificate Autority server 
+2- The CSR is submitted to an available Certificate Authority server 
 
 3- The new CA-signed certificate is downloaded locally
 
@@ -112,171 +112,181 @@ function Failure {
 
 $servers = Get-OVServer
 # $servers = Get-OVServer | select -first 1
-# $server = Get-OVServer -Name "Frame1, bay 5"
+# $servers = Get-OVServer -Name "Frame1, bay 6"
 
 
-ForEach ($server in $servers) {
+## Finding the first Certification Authority server available on the network
+## Note: this command only works if the machine from where you execute this script is in a domain)
 
-    $iloSession = $server | Get-OVIloSso -IloRestSession
+$CA = Get-CertificationAuthority | select -First 1 | % Computername
+
+If ($CA -eq $Null) {
+    write-warning "Error, a certificate Authority Server cannot be found on the network ! Canceling task..."
+}
+else {
+
+    ForEach ($server in $servers) {
+
+        $iloSession = $server | Get-OVIloSso -IloRestSession
   
-    $iloIP = $server  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
-    $Ilohostname = $server  | % { $_.mpHostInfo.mpHostName }
-    $iloModel = $server  | % mpmodel
+        $iloIP = $server  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+        $Ilohostname = $server  | % { $_.mpHostInfo.mpHostName }
+        $iloModel = $server  | % mpmodel
         
-    $ilosessionkey = $iloSession."X-Auth-Token"
+        $ilosessionkey = $iloSession."X-Auth-Token"
  
-    # Creation of the header using the SSO Session Key 
+        # Creation of the header using the SSO Session Key 
 
-    $headerilo = @{} 
-    $headerilo["Content-Type"] = "application/json" 
-    $headerilo["X-Auth-Token"] = $ilosessionkey 
-    $headerilo["OData-Version"] = "4.0"
+        $headerilo = @{} 
+        $headerilo["Content-Type"] = "application/json" 
+        $headerilo["X-Auth-Token"] = $ilosessionkey 
+        $headerilo["OData-Version"] = "4.0"
        
-    # Creation of the body content to pass to iLO to request a CSR
+        # Creation of the body content to pass to iLO to request a CSR
 
-    # Certificate Signing Request information
-    $CommonName = $Ilohostname
-    $city = "Houston"
-    $Country = "US"
-    $OrgName = "HPE"
-    $OrgUnit = "Synergy"
-    $State = "Texas"
+        # Certificate Signing Request information
+        $CommonName = $Ilohostname
+        $city = "Houston"
+        $Country = "US"
+        $OrgName = "HPE"
+        $OrgUnit = "Synergy"
+        $State = "Texas"
 
  
-    # Sending the request to iLO to generate a CSR
+        # Sending the request to iLO to generate a CSR
  
-    Try {
+        Try {
    
-        #iLO5
-        if ($iloModel -eq "iLO5") {
+            #iLO5
+            if ($iloModel -eq "iLO5") {
 
-            $bodyilo5Params = @{
-                City       = $city;
-                CommonName = $CommonName;
-                Country    = $Country;
-                OrgName    = $OrgName;
-                OrgUnit    = $OrgUnit;
-                State      = $State; 
-                IncludeIP  = $true
-            } | ConvertTo-Json 
+                $bodyilo5Params = @{
+                    City       = $city;
+                    CommonName = $CommonName;
+                    Country    = $Country;
+                    OrgName    = $OrgName;
+                    OrgUnit    = $OrgUnit;
+                    State      = $State; 
+                    IncludeIP  = $true
+                } | ConvertTo-Json 
 
-            $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR" -Headers $headerilo -Body $bodyilo5Params -Method Post  
+                $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR" -Headers $headerilo -Body $bodyilo5Params -Method Post  
       
+            }
+
+            #iLO4
+            if ($iloModel -eq "iLO4") {
+
+                $bodyilo4Params = @{
+                    Action     = "GenerateCSR";
+                    City       = $city;
+                    CommonName = $CommonName;
+                    Country    = $Country;
+                    OrgName    = $OrgName;
+                    OrgUnit    = $OrgUnit;
+                    State      = $State; 
+                    IncludeIP  = $true
+                } | ConvertTo-Json 
+
+                $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo -Body $bodyilo4Params -Method Post  
+            }
+
+
+            Write-Host "`nGenerating CSR on iLo $iloIP. Please wait..."
         }
-
-        #iLO4
-        if ($iloModel -eq "iLO4") {
-
-            $bodyilo4Params = @{
-                Action     = "GenerateCSR";
-                City       = $city;
-                CommonName = $CommonName;
-                Country    = $Country;
-                OrgName    = $OrgName;
-                OrgUnit    = $OrgUnit;
-                State      = $State; 
-                IncludeIP  = $true
-            } | ConvertTo-Json 
-
-            $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo -Body $bodyilo4Params -Method Post  
-        }
-
-
-        Write-Host "`nGenerating CSR on iLo $iloIP. Please wait..."
-    }
-    Catch { 
-        failure
-        write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Generate Certificate Signing Request failure !" -ForegroundColor red
-        break
-    }     
+        Catch { 
+            failure
+            write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Generate Certificate Signing Request failure !" -ForegroundColor red
+            break
+        }     
      
-    # Collecting CSR from iLO
+        # Collecting CSR from iLO
 
-    do {
+        do {
       
-        $restCSR = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo -Method Get 
-        $CertificateSigningRequest = ($restCSR.Content | ConvertFrom-Json).CertificateSigningRequest 
-        sleep 3
+            $restCSR = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo -Method Get 
+            $CertificateSigningRequest = ($restCSR.Content | ConvertFrom-Json).CertificateSigningRequest 
+            sleep 3
    
-    }
-    until ($CertificateSigningRequest)
+        }
+        until ($CertificateSigningRequest)
     
-    # Saving CSR to a local file
+        # Saving CSR to a local file
 
-    $CertificateSigningRequest | Out-File "C:\temp\request.csr"
+        $CertificateSigningRequest | Out-File "C:\temp\request.csr"
 
 
-    # Generating CA-Signed certificate from an available CA using the iLO CSR
+        # Generating CA-Signed certificate from an available CA using the iLO CSR
   
-    ## Finding the first CA server available on the network (this command only works if the machine from where you execute this script is in a domain)
-    $CA = Get-CertificationAuthority | select -First 1 | % Computername
+ 
   
-    ## Submitting the CSR using the default webServer certificate template
-    Submit-CertificateRequest -path C:\temp\request.csr -CertificationAuthority (Get-CertificationAuthority $CA) -Attribute CertificateTemplate:WebServer | Out-Null
-    ### To get the correct certificate template name, use: 
-    ### (get-catemplate -CertificationAuthority $ca).Templates.Name
+        ## Submitting the CSR using the default webServer certificate template
+        Submit-CertificateRequest -path C:\temp\request.csr -CertificationAuthority (Get-CertificationAuthority $CA) -Attribute CertificateTemplate:WebServer | Out-Null
+        ### To get the correct certificate template name, use: 
+        ### (get-catemplate -CertificationAuthority $ca).Templates.Name
   
-    ## Building the certificate 
-    "-----BEGIN CERTIFICATE-----" | Out-File C:\temp\mycert.cer
-    (Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA) -Property "RawCertificate" | select -Last 1).RawCertificate.trim("`r`n") | Out-File C:\Temp\mycert.cer -Append
-    "-----END CERTIFICATE-----" | Out-File C:\temp\mycert.cer -Append
+        ## Building the certificate 
+        "-----BEGIN CERTIFICATE-----" | Out-File C:\temp\mycert.cer
+        (Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA) -Property "RawCertificate" | select -Last 1).RawCertificate.trim("`r`n") | Out-File C:\Temp\mycert.cer -Append
+        "-----END CERTIFICATE-----" | Out-File C:\temp\mycert.cer -Append
 
-    ## Formatting the built certificate for the JSON body content
-    $certificate = Get-Content C:\temp\mycert.cer -raw
+        ## Formatting the built certificate for the JSON body content
+        $certificate = Get-Content C:\temp\mycert.cer -raw
 
-    $certificate = $certificate -join "`n"
+        $certificate = $certificate -join "`n"
 
-    $bodyiloParams = @"
+        $bodyiloParams = @"
      {
         "Certificate": "$certificate"
 }
 "@
  
 
-    # Importing new certificate in iLO
+        # Importing new certificate in iLO
   
-    Try {
-        $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/" -Headers $headerilo -Body $bodyiloParams -Method Post  
-    }
-    Catch { 
-        failure
-        write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Import CA-Signed certificate failure !" -ForegroundColor red
-        break 
-    }
+        Try {
+            $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/" -Headers $headerilo -Body $bodyiloParams -Method Post  
+        }
+        Catch { 
+            failure
+            write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Import CA-Signed certificate failure !" -ForegroundColor red
+            break 
+        }
 
-    Write-Host "`nImport Certificate Successful on iLo $iloIP `nPlease wait, iLO Reset in Progress..."
+        Write-Host "`nImport Certificate Successful on iLo $iloIP `nPlease wait, iLO Reset in Progress..."
        
  
-    # Importing the new iLO certificates in OneView
+        # Importing the new iLO certificates in OneView
   
-    ## This step is done automatically when OneView detects an iLO reset
-    ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
+        ## This step is done automatically when OneView detects an iLO reset
+        ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
   
 
-    ## Waiting for the iLO reset to complete
-    $nowminus20mn = ((get-date).AddMinutes(-20))
+        ## Waiting for the iLO reset to complete
+        $nowminus20mn = ((get-date).AddMinutes(-20))
   
-    Do {
-        $successfulresetalert = Get-OVServer -Name $server.name | `
-            Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
-            ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
+        Do {
+            $successfulresetalert = Get-OVServer -Name $server.name | `
+                Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
+                ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
+        }
+        Until ($successfulresetalert)
+  
+        Write-Host "`niLO Reset completed"
+
+        ## Waiting for the new refresh to complete
+        Do {
+            $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
+        }
+        Until ($Runningrefreshtask)
+
+        Write-host "`nOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
+
+
+
     }
-    Until ($successfulresetalert)
-  
-    Write-Host "`niLO Reset completed"
-
-    ## Waiting for the new refresh to complete
-    Do {
-        $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
-    }
-    Until ($Runningrefreshtask)
-
-    Write-host "`nOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
-
-
-
 }
 
 Disconnect-OVMgmt
 
-Read-Host -Prompt "`nOperation done ! Hit return to close" 
+Read-Host -Prompt "`Hit return to close" 
