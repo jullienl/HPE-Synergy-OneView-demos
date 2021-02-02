@@ -96,7 +96,7 @@ Date:   Nov 2020
 
 # OneView Credentials and IP
 $username = "Administrator" 
-$password = "P@ssw0rd" 
+$password = "password" 
 $IP = "192.168.1.110"
 
 $file = "Server_HW_Report.txt"
