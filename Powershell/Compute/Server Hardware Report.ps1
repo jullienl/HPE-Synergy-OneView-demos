@@ -6,58 +6,73 @@ and generate a text file report providing the following information:
 -------------------------------------------------------------------------------------------------------
 Report generated on 11/25/2020 13:56:08
 
-esx-1.lj.lab [Serial number: CN76010B6J - iLO: 192.168.1.186]: 
+RH [Serial number: CN76010B73 - iLO: 192.168.1.203]: 
 	Model: Synergy 480 Gen9
+	Total Memory: 64GB
+	Memory configuration:
+		PROC 1 DIMM 12: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 1 DIMM 9: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 2 DIMM 1: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 2 DIMM 4: HP RDIMM DDR4 16GB - Part Number=752369-081
+	Adapters configuration:
+		1-Synergy 3820C 10/20Gb CNA: Part Number=777430-B21 - Number of ports=6 - Position=NIC.Slot.3.1
+	Array Controllers configuration:
+		1-Smart Array P542D Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 1
+
+ESX-2.lj.lab [Serial number: CN76010B6R - iLO: 192.168.1.162]: 
+	Model: Synergy 480 Gen9
+	Total Memory: 64GB
+	Memory configuration:
+		PROC 1 DIMM 12: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 1 DIMM 9: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 2 DIMM 1: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 2 DIMM 4: HP RDIMM DDR4 16GB - Part Number=752369-081
+	Adapters configuration:
+		1-Synergy 3820C 10/20Gb CNA: Part Number=777430-B21 - Number of ports=4 - Position=NIC.Slot.3.1
+	Array Controllers configuration:
+		1-Smart Array P240nr Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 0
+		2-Smart Array P542D Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 1
+
+WIN-V9SBMGIUTGH [Serial number: MXQ828048H - iLO: 192.168.0.8]: 
+	Model: Synergy 480 Gen10
 	Total Memory: 128GB
-	Memory configuration :
-		PROC 2 DIMM 9: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 2 DIMM 12: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 1 DIMM 12: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 2 DIMM 4: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 1 DIMM 4: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 1 DIMM 9: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 1 DIMM 1: HP RDIMM DDR4 16GB - PN:752369-081
-		PROC 2 DIMM 1: HP RDIMM DDR4 16GB - PN:752369-081
-	Adapters configuration :
-		1-Synergy 3820C 10/20Gb CNA: PN:777430-B21 - Number of ports:6 - Position:NIC.Slot.3.1
-	Array Controllers configuration :
-		1-Smart Array P240nr Controller: PN:Not available - Number of Logical Drives:0 - Position:Slot 0
-		2-Smart Array P542D Controller: PN:Not available - Number of Logical Drives:0 - Position:Slot 1
+	Memory configuration:
+		PROC 1 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
+	Adapters configuration:
+		1-Synergy 3820C 10/20Gb CNA: Part Number=782833-001 - Number of ports=4 - Position=NIC.Slot.3.1
+	Array Controllers configuration:
+		1-HPE Smart Array P416ie-m SR G10: Part Number=836275-001 - Logical Drives=3 [LD-1: Capacity=279GB Disks=1 Status=OK RAID=0 State=Enabled Encrypted=False] [LD-2: Capacity=279GB Disks=1 Status=OK RAID=0 State=Enabled Encrypted=False] [LD-3: Capacity=279GB Disks=2 Status=OK RAID=1 State=Enabled Encrypted=False] - Position=Slot 1
 
 WIN-GMMTHDS7JEK [Serial number: MXQ828048J - iLO: 192.168.0.2]: 
 	Model: Synergy 480 Gen10
 	Total Memory: 128GB
-	Memory configuration :
-		PROC 1 DIMM 10: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 2 DIMM 5: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 1 DIMM 5: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 2 DIMM 10: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 2 DIMM 3: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 2 DIMM 8: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 1 DIMM 3: HPE DDR4 DRAM 16GB - PN:840756-091
-		PROC 1 DIMM 8: HPE DDR4 DRAM 16GB - PN:840756-091
-	Adapters configuration :
-		1-Synergy 3820C 10/20Gb CNA: PN:782833-001 - Number of ports:4 - Position:NIC.Slot.3.1
-	Array Controllers configuration :
-		1-HPE Smart Array P416ie-m SR G10: PN:836275-001 - Number of Logical Drives:2 [LD-1: Capacity:279GB - Number of disks:2 - RAID:1] [LD-2: Capacity:559GB - Number of disks:4 - RAID:10] - Position:Slot 1
+	Memory configuration:
+		PROC 1 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
+	Adapters configuration:
+		1-Synergy 3820C 10/20Gb CNA: Part Number=782833-001 - Number of ports=4 - Position=NIC.Slot.3.1
+	Array Controllers configuration:
+		1-HPE Smart Array P416ie-m SR G10: Part Number=836275-001 - Logical Drives=2 [LD-1: Capacity=279GB Disks=2 Status=OK RAID=1 State=Enabled Encrypted=False] [LD-2: Capacity=559GB Disks=4 Status=OK RAID=10 State=Enabled Encrypted=False] - Position=Slot 1
 
-ESX5-2.lj.lab [Serial number: MXQ828049J - iLO: 192.168.0.10]: 
-	Model: Synergy 480 Gen10
-	Total Memory: 256GB
-	Memory configuration :
-		PROC 2 DIMM 5: HPE DDR4 DRAM 64GB - PN:840759-091
-		PROC 1 DIMM 8: HPE DDR4 DRAM 64GB - PN:840759-091
-		PROC 2 DIMM 3: HPE DDR4 DRAM 64GB - PN:840759-091
-		PROC 1 DIMM 10: HPE DDR4 DRAM 64GB - PN:840759-091
-	Adapters configuration :
-		1-Synergy 3830C 16G FC HBA: PN:782829-001 - Number of ports:0 - Position:PCI.Slot.2.1
-		2-Synergy 3820C 10/20Gb CNA: PN:782833-001 - Number of ports:3 - Position:NIC.Slot.3.1
-	Array Controllers configuration :
-		1-HPE Smart Array P204i-c SR Gen10: PN:836274-001 - Number of Logical Drives:0 - Position:Slot 0
  
 <...>
 
 -------------------------------------------------------------------------------------------------------
+
+All information is collected using the iLO RedFish API. OneView is only used to collect the IPs of all iLOs managed by OneView.
 
 Requirements:
 - OneView administrator account is required. 
@@ -96,7 +111,7 @@ Date:   Nov 2020
 
 # OneView Credentials and IP
 $username = "Administrator" 
-$password = "password" 
+$password = "P@ssw0rd" 
 $IP = "192.168.1.110"
 
 $file = "Server_HW_Report.txt"
@@ -174,7 +189,7 @@ Foreach ($iloIP in $iloIPs) {
                 $SizeGB = $memorydata.CapacityMiB / 1024 
                 $DIMMlocator = $memorydata.DeviceLocator
 
-                $dimm_data = $Manufacturer + " " + $DIMMTechnology + " " + $DIMMType + " " + $SizeGB + "GB" + " - PN:" + $PartNumber
+                $dimm_data = $Manufacturer + " " + $DIMMTechnology + " " + $DIMMType + " " + $SizeGB + "GB" + " - Part Number=" + $PartNumber
                 $memory_data.Add($DIMMlocator, $dimm_data)
             }
             if ($iloModel -eq "iLO4") {
@@ -184,7 +199,7 @@ Foreach ($iloIP in $iloIPs) {
                 $SizeGB = $memorydata.SizeMB / 1024
                 $DIMMlocator = $memorydata.SocketLocator
 
-                $dimm_data = $Manufacturer + " " + $DIMMTechnology + " " + $DIMMType + " " + $SizeGB + "GB" + " - PN:" + $PartNumber
+                $dimm_data = $Manufacturer + " " + $DIMMTechnology + " " + $DIMMType + " " + $SizeGB + "GB" + " - Part Number=" + $PartNumber
                 $memory_data.Add($DIMMlocator, $dimm_data)
             }
             
@@ -214,7 +229,7 @@ Foreach ($iloIP in $iloIPs) {
             $StructuredName = $adapterdata.StructuredName
             $Numberofports = ($adapterdata.PhysicalPorts).Count
 
-            $adapter_data = "PN:" + $PartNumber + " - Number of ports:" + $Numberofports + " - Position:" + $StructuredName
+            $adapter_data = "Part Number=" + $PartNumber + " - Number of ports=" + $Numberofports + " - Position=" + $StructuredName
             $adapters_data.Add($AdapterName, $adapter_data)
         }
 
@@ -256,8 +271,11 @@ Foreach ($iloIP in $iloIPs) {
                 $uri = "https://$iloIP$logicaldrive" + "DataDrives/"
                 $logicaldrive_nb_of_disk = ((Invoke-webrequest -Method GET -Uri $uri  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json ).'Members@odata.count'
                 $logicaldrive_raid = $logicaldrivedata.raid
+                $logicaldrive_status = $logicaldrivedata.Status.Health
+                $logicaldrive_encrypted = $logicaldrivedata.LogicalDriveEncryption
+                $logicaldrive_enabled = $logicaldrivedata.Status.state
                 
-                $logicaldriveinfo = "Capacity:" + $logicaldrivecapacityGB + "GB - Number of disks:" + $logicaldrive_nb_of_disk + " - RAID:" + $logicaldrive_raid
+                $logicaldriveinfo = "Capacity=" + $logicaldrivecapacityGB + "GB Disks=" + $logicaldrive_nb_of_disk + " Status=" + $logicaldrive_status + " RAID=" + $logicaldrive_raid + " State=" + $logicaldrive_enabled + " Encrypted=" + $logicaldrive_encrypted
                 $Logicaldrives_data.Add($logicaldriveid, $logicaldriveinfo)
 
             }
@@ -267,7 +285,7 @@ Foreach ($iloIP in $iloIPs) {
                 $logical_drives += " [LD-$($item.Name): $($item.Value)]" 
             } 
 
-            $ArrayController_data = "PN:" + $PartNumber + " - Number of Logical Drives:" + $logicaldrives_nb + $logical_drives + " - Position:" + $ArrayControllerdata.location
+            $ArrayController_data = "Part Number=" + $PartNumber + " - Logical Drives=" + $logicaldrives_nb + $logical_drives + " - Position=" + $ArrayControllerdata.location
             $ArrayControllers_data.Add($ArrayControllerName, $ArrayController_data)
 
 
@@ -276,21 +294,21 @@ Foreach ($iloIP in $iloIPs) {
 
         # Creation of the report
 
-        "`n" + $hostname + ": `n`tModel: " + $model + "`n`tTotal Memory: " + $memoryinGB + "GB" + "`n`tMemory configuration :"  | Out-File $file -Append
+        "`n" + $hostname + ": `n`tModel: " + $model + "`n`tTotal Memory: " + $memoryinGB + "GB" + "`n`tMemory configuration:"  | Out-File $file -Append
     
-        ForEach ($item in $memory_data.GetEnumerator()) {
+        ForEach ($item in ($memory_data.GetEnumerator()) | Sort-Object -Property Name  ) {
       
             "`t`t$($item.Name): $($item.Value)"  | Out-File $file -Append
         } 
 
-        "`tAdapters configuration :"  | Out-File $file -Append
+        "`tAdapters configuration:"  | Out-File $file -Append
 
         ForEach ($item in $adapters_data.GetEnumerator()) {
       
             "`t`t$($item.Name): $($item.Value)"  | Out-File $file -Append
         } 
 
-        "`tArray Controllers configuration :"  | Out-File $file -Append
+        "`tArray Controllers configuration:"  | Out-File $file -Append
 
         ForEach ($item in ($ArrayControllers_data.GetEnumerator()) | Sort-Object -Property Name ) {
       
@@ -309,7 +327,7 @@ write-host "Hardware report has been generated in $pwd\$file" -ForegroundColor G
 
 Disconnect-OVMgmt
 
-#Read-Host -Prompt "Operation done ! Hit return to close" 
+Read-Host -Prompt "Operation done ! Hit return to close" 
 
 
 
