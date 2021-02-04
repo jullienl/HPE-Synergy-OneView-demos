@@ -6,67 +6,63 @@ and generate a text file report providing the following information:
 -------------------------------------------------------------------------------------------------------
 Report generated on 11/25/2020 13:56:08
 
-RH [Serial number: CN76010B73 - iLO: 192.168.1.203]: 
-	Model: Synergy 480 Gen9
-	Total Memory: 64GB
-	Memory configuration:
-		PROC 1 DIMM 12: HP RDIMM DDR4 16GB - Part Number=752369-081
-		PROC 1 DIMM 9: HP RDIMM DDR4 16GB - Part Number=752369-081
-		PROC 2 DIMM 1: HP RDIMM DDR4 16GB - Part Number=752369-081
-		PROC 2 DIMM 4: HP RDIMM DDR4 16GB - Part Number=752369-081
-	Adapters configuration:
-		1-Synergy 3820C 10/20Gb CNA: Part Number=777430-B21 - Number of ports=6 - Position=NIC.Slot.3.1
-	Array Controllers configuration:
-		1-Smart Array P542D Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 1
-
-ESX-2.lj.lab [Serial number: CN76010B6R - iLO: 192.168.1.162]: 
-	Model: Synergy 480 Gen9
-	Total Memory: 64GB
-	Memory configuration:
-		PROC 1 DIMM 12: HP RDIMM DDR4 16GB - Part Number=752369-081
-		PROC 1 DIMM 9: HP RDIMM DDR4 16GB - Part Number=752369-081
-		PROC 2 DIMM 1: HP RDIMM DDR4 16GB - Part Number=752369-081
-		PROC 2 DIMM 4: HP RDIMM DDR4 16GB - Part Number=752369-081
-	Adapters configuration:
-		1-Synergy 3820C 10/20Gb CNA: Part Number=777430-B21 - Number of ports=4 - Position=NIC.Slot.3.1
-	Array Controllers configuration:
-		1-Smart Array P240nr Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 0
-		2-Smart Array P542D Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 1
-
 WIN-V9SBMGIUTGH [Serial number: MXQ828048H - iLO: 192.168.0.8]: 
 	Model: Synergy 480 Gen10
 	Total Memory: 128GB
+	CPU: 1 x Intel(R) Xeon(R) Gold 6130 CPU @ 2.10GHz
 	Memory configuration:
-		PROC 1 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
 		PROC 1 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
 		PROC 1 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
 		PROC 1 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 2 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
 		PROC 2 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
 		PROC 2 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
 		PROC 2 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 2 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
 	Adapters configuration:
 		1-Synergy 3820C 10/20Gb CNA: Part Number=782833-001 - Number of ports=4 - Position=NIC.Slot.3.1
 	Array Controllers configuration:
-		1-HPE Smart Array P416ie-m SR G10: Part Number=836275-001 - Logical Drives=3 [LD-1: Capacity=279GB Disks=1 Status=OK RAID=0 State=Enabled Encrypted=False] [LD-2: Capacity=279GB Disks=1 Status=OK RAID=0 State=Enabled Encrypted=False] [LD-3: Capacity=279GB Disks=2 Status=OK RAID=1 State=Enabled Encrypted=False] - Position=Slot 1
+		1-HPE Smart Array P416ie-m SR G10: Part Number=836275-001 - Logical Drives=3 - Position=Slot 1
+			Logical drive-1: Capacity=279GB Disks=1 Status=OK RAID=0 State=Enabled Boot=No Encrypted=False
+				Drive-1: Capacity=300GB Model=EG0300JFCKA Location=Port4I,Box1,Bay1
+			Logical drive-2: Capacity=279GB Disks=1 Status=OK RAID=0 State=Enabled Boot=No Encrypted=False
+				Drive-1: Capacity=300GB Model=EG0300JFCKA Location=Port4I,Box1,Bay2
+			Logical drive-3: Capacity=279GB Disks=2 Status=OK RAID=1 State=Enabled Boot=Yes Encrypted=False
+				Drive-1: Capacity=300GB Model=EG0300JFCKA Location=Port11,Box1,Bay1
+				Drive-2: Capacity=300GB Model=EG0300JFCKA Location=Port11,Box1,Bay3
 
-WIN-GMMTHDS7JEK [Serial number: MXQ828048J - iLO: 192.168.0.2]: 
+ESX5-2.lj.lab [Serial number: MXQ828049J - iLO: 192.168.0.10]: 
 	Model: Synergy 480 Gen10
-	Total Memory: 128GB
+	Total Memory: 256GB
+	CPU: 1 x Intel(R) Xeon(R) Gold 6134 CPU @ 3.20GHz
 	Memory configuration:
-		PROC 1 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 1 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 1 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 1 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 2 DIMM 10: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 2 DIMM 3: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 2 DIMM 5: HPE DDR4 DRAM 16GB - Part Number=840756-091
-		PROC 2 DIMM 8: HPE DDR4 DRAM 16GB - Part Number=840756-091
+		PROC 1 DIMM 8: HPE DDR4 DRAM 64GB - Part Number=840759-091
+		PROC 1 DIMM 10: HPE DDR4 DRAM 64GB - Part Number=840759-091
+		PROC 2 DIMM 3: HPE DDR4 DRAM 64GB - Part Number=840759-091
+		PROC 2 DIMM 5: HPE DDR4 DRAM 64GB - Part Number=840759-091
 	Adapters configuration:
-		1-Synergy 3820C 10/20Gb CNA: Part Number=782833-001 - Number of ports=4 - Position=NIC.Slot.3.1
+		1-Synergy 3830C 16G FC HBA: Part Number=782829-001 - Number of ports=0 - Position=PCI.Slot.2.1
+		2-Synergy 3820C 10/20Gb CNA: Part Number=782833-001 - Number of ports=2 - Position=NIC.Slot.3.1
 	Array Controllers configuration:
-		1-HPE Smart Array P416ie-m SR G10: Part Number=836275-001 - Logical Drives=2 [LD-1: Capacity=279GB Disks=2 Status=OK RAID=1 State=Enabled Encrypted=False] [LD-2: Capacity=559GB Disks=4 Status=OK RAID=10 State=Enabled Encrypted=False] - Position=Slot 1
-
+        1-HPE Smart Array P204i-c SR Gen10: Part Number=836274-001 - Logical Drives=0 - Position=Slot 0
+        
+esx-4.lj.lab [Serial number: CN76010B5T - iLO: 192.168.0.14]: 
+	Model: Synergy 480 Gen9
+	Total Memory: 64GB
+	CPU: 2 x Intel(R) Xeon(R) CPU E5-2697A v4 @ 2.60GHz
+	Memory configuration:
+		PROC 1 DIMM 9: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 1 DIMM 12: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 2 DIMM 1: HP RDIMM DDR4 16GB - Part Number=752369-081
+		PROC 2 DIMM 4: HP RDIMM DDR4 16GB - Part Number=752369-081
+	Adapters configuration:
+		1-Synergy 3820C 10/20Gb CNA: Part Number=777430-B21 - Number of ports=2 - Position=NIC.Slot.3.1
+	Array Controllers configuration:
+		1-Smart Array P240nr Controller: Part Number=Not available - Logical Drives=1 - Position=Slot 0
+			Logical drive-1: Capacity=279GB Disks=2 Status=OK RAID=1 State=Enabled Boot=Yes Encrypted=False
+				Drive-1: Capacity=300GB Model=EG0300FCSPH Location=Port1I,Box1,Bay1
+				Drive-2: Capacity=300GB Model=EG0300FCSPH Location=Port1I,Box1,Bay2
+		2-Smart Array P542D Controller: Part Number=Not available - Logical Drives=0 - Position=Slot 1        
  
 <...>
 
@@ -142,43 +138,68 @@ add-type -TypeDefinition  @"
   
 # Capture iLO4 and iLO5 IP adresses managed by OneView
 $servers = Get-OVServer
-# $servers = Get-OVServer | ? name -eq "Frame1, bay 5"
-#$servers
-$iloIPs = $servers | where { $_.mpModel -eq "iLO4" -or "iLO5" } | % { $_.mpHostInfo.mpIpAddresses[1].address }
+# Gen10
+#  $servers = Get-OVServer | ? name -eq "Frame1, bay 5"
+# Gen9
+#  $servers = Get-OVServer | ? name -eq "Frame3, bay 9"
+
+$iloIPs = ($servers | where { $_.mpModel -eq "iLO4" -or "iLO5" }).mpHostInfo.mpIpAddresses | ? { $_.type -ne "LinkLocal" -and $_.type -ne "SLAAC" } | % address
+
 
 "Report generated on $(get-date)" | Out-File $file 
 
 Foreach ($iloIP in $iloIPs) {
-    
+       
     #Capture of the SSO Session Key
-    $ilosessionkey = ($servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-    $iloModel = $servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | % mpModel
+    $SH = $servers | ? { ($_.mpHostInfo.mpIpAddresses | ? { $_.type -ne "LinkLocal" -and $_.type -ne "SLAAC" } | % address) -eq $iloIP }
+    $serveruuid = $SH.uuid
+    
+    # $uri = "https://$IP/rest/server-hardware/$serveruuid/iloSsoUrl"
+    # $ovsession = $ConnectedSessions.SessionID
+    # $ilossourl = ((Invoke-webrequest -Method GET -Uri $uri -Headers @{"Auth" = $ovsession ; "X-API-Version" = "1600" }  ).content | Convertfrom-Json).iloSsoUrl
+
+    # $ilosessionkey = (Invoke-webrequest -Method GET -Uri $ilossourl -Headers @{"Auth" = $ovsession ; "X-API-Version" = "1600" } -SessionVariable ws )
+    # $ilosessionkey = ($ws.Cookies.GetCookies($ilossourl)).value
+
+    #Capture of the SSO Session Key
+    $ilosessionkey = ($SH  | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+        
+    $iloModel = $SH | % mpModel
    
+    #Manager information
+    #$Manager = (((Invoke-webrequest -Method GET -Uri "https://$iloIP/redfish/v1/" -Headers @{"X-Auth-Token" = $ilosessionkey } ).content ).ToString().Replace("Type", "_Type") | ConvertFrom-Json).oem.Hpe.Manager.IPManager.ManagerProductName
+    #if ($Manager -match "oneview") { <# Server managed by OneView #> } else { <# Not managed by Oneview #> }        
+    
     #Hardware info   
-    $request = Invoke-webrequest -Method GET -Uri "https://$iloIP/redfish/v1/systems/1/" -Headers @{"X-Auth-Token" = $ilosessionkey } 
+    $request = (Invoke-webrequest -Method GET -Uri "https://$iloIP/redfish/v1/systems/1/" -Headers @{"X-Auth-Token" = $ilosessionkey } ).content | Convertfrom-Json
 
     if ($request -ne $Null) {
-        $hwinfo = $request.content | Convertfrom-Json
+
         #Hostname
-        $hostname = $hwinfo.HostName 
-        if ($hostname -match "host is unnamed") { $hostname = "Host is unnamed [Serial number: $($hwinfo.SerialNumber) - iLO: $iloIP]" } else { $hostname = "$($hwinfo.HostName) [Serial number: $($hwinfo.SerialNumber) - iLO: $iloIP]" }
+        $hostname = $request.HostName 
+
+        if ($hostname -match "host is unnamed") { $hostname = "Host is unnamed [Serial number: $($request.SerialNumber) - iLO: $iloIP]" } else { $hostname = "$($request.HostName) [Serial number: $($request.SerialNumber) - iLO: $iloIP]" }
         
         #Model
-        $model = $hwinfo.Model
+        $model = $request.Model
+
+        #CPU
+        if ($iloModel -eq "ILO4") { $cpu = $request.ProcessorSummary.Model } else { $cpu = $request.ProcessorSummary.Model }
+        if ($iloModel -eq "ILO4") { $cpunb = $request.ProcessorSummary.Count } else { $cpunb = $request.Processors.'@odata.id'.count }
         
         #Total memory
-        if ($iloModel -eq "ILO4") { $memoryinGB = $hwinfo.Memory.TotalSystemMemoryGB } else { $memoryinGB = $hwinfo.MemorySummary.TotalSystemMemoryGiB }
+        if ($iloModel -eq "ILO4") { $memoryinGB = $request.Memory.TotalSystemMemoryGB } else { $memoryinGB = $request.MemorySummary.TotalSystemMemoryGiB }
 
         #Memory information
         $memoryinfo = (Invoke-webrequest -Method GET -Uri "https://$iloIP/redfish/v1/Systems/1/Memory/" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
-    
-        $memory_data = @{}
+     
+        # Adding memory information to report
+        "`n" + $hostname + ": `n`tModel: " + $model + "`n`tTotal Memory: " + $memoryinGB + "GB" + "`n`tCPU: " + $cpunb + " x " + $cpu + "`n`tMemory configuration:"  | Out-File $file -Append
    
         foreach ( $dimm in $memoryinfo.Members.'@odata.id') {
-        
-            $dimm_data = @()    
+         
             $memorydata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$dimm" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
-
+                                        
             $Manufacturer = ($memorydata.Manufacturer) -replace '\s', ''
             $PartNumber = $memorydata.PartNumber
         
@@ -190,7 +211,8 @@ Foreach ($iloIP in $iloIPs) {
                 $DIMMlocator = $memorydata.DeviceLocator
 
                 $dimm_data = $Manufacturer + " " + $DIMMTechnology + " " + $DIMMType + " " + $SizeGB + "GB" + " - Part Number=" + $PartNumber
-                $memory_data.Add($DIMMlocator, $dimm_data)
+                
+                "`t`t$($DIMMlocator): $($dimm_data)"  | Out-File $file -Append
             }
             if ($iloModel -eq "iLO4") {
 
@@ -200,134 +222,160 @@ Foreach ($iloIP in $iloIPs) {
                 $DIMMlocator = $memorydata.SocketLocator
 
                 $dimm_data = $Manufacturer + " " + $DIMMTechnology + " " + $DIMMType + " " + $SizeGB + "GB" + " - Part Number=" + $PartNumber
-                $memory_data.Add($DIMMlocator, $dimm_data)
+                
+                "`t`t$($DIMMlocator): $($dimm_data)"  | Out-File $file -Append
             }
             
             
 
-        }
+        }         
+
+
+
 
         # PCI network adapters information
         if ($iloModel -eq "ILO4") { $adaptersuri = "https://$iloIP/redfish/v1/Systems/1/NetworkAdapters/" } else { $adaptersuri = "https://$iloIP/redfish/v1/Systems/1/BaseNetworkAdapters/" }
     
         $adapterinfo = (Invoke-webrequest -Method GET -Uri $adaptersuri -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
 
-        $adapters_data = @{}
-
         $adapterdataId = $Null
 
-        foreach ($adapter in $adapterinfo.Members.'@odata.id') {
-            
-            $adapter_data = @()    
-            $adapterdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$adapter" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
-            
-            #$adapterdataId = $adapterdata.Id
-            $adapterdataId += 1
+        if ($adapterinfo.Members.'@odata.id') {
 
-            $AdapterName = $adapterdataId.ToString() + "-" + $adapterdata.Name 
-            $PartNumber = $adapterdata.PartNumber
-            $StructuredName = $adapterdata.StructuredName
-            $Numberofports = ($adapterdata.PhysicalPorts).Count
+            "`tAdapters configuration:"  | Out-File $file -Append
+        
+            foreach ($adapter in $adapterinfo.Members.'@odata.id') {
+            
+                $adapterdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$adapter" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
+            
+                #$adapterdataId = $adapterdata.Id
+                $adapterdataId += 1
 
-            $adapter_data = "Part Number=" + $PartNumber + " - Number of ports=" + $Numberofports + " - Position=" + $StructuredName
-            $adapters_data.Add($AdapterName, $adapter_data)
-        }
+                $AdapterName = $adapterdataId.ToString() + "-" + $adapterdata.Name 
+                $PartNumber = $adapterdata.PartNumber
+                $StructuredName = $adapterdata.StructuredName
+                $Numberofports = ($adapterdata.PhysicalPorts).Count
+
+                $adapter_data = "Part Number=" + $PartNumber + " - Number of ports=" + $Numberofports + " - Position=" + $StructuredName
+
+                # Adding Adapters information to report
+      
+                "`t`t$($AdapterName): $($adapter_data)"  | Out-File $file -Append
+            }
+
+            
+        }        
+
+
+
 
         # PCI ArrayControllers information
         $ArrayControllersuri = "/redfish/v1/Systems/1/SmartStorage/ArrayControllers/" 
     
         $ArrayControllersinfo = (Invoke-webrequest -Method GET -Uri "$iloIP$ArrayControllersuri" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
 
-        $ArrayControllers_data = @{}
         $ArrayControllerdataId = $Null
 
-        foreach ($ArrayController in $ArrayControllersinfo.Members.'@odata.id') {
-            $logical_drives = $Null
-            $ArrayController_data = @()    
-            $ArrayControllerdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$ArrayController" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
-            
-            #$ArrayControllerdataId = $ArrayControllerdata.id
-            $ArrayControllerdataId += 1 
+        if ($ArrayControllersinfo.Members.'@odata.id') {
 
-            $ArrayControllerName = $ArrayControllerdataId.ToString() + "-" + $ArrayControllerdata.Model 
+            "`tArray Controllers configuration:"  | Out-File $file -Append
+        
+            foreach ($ArrayController in $ArrayControllersinfo.Members.'@odata.id') {
+                
+                $ArrayControllerdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$ArrayController" -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
             
-            if ($iloModel -eq "ILO4") { $PartNumber = "Not available" } else { $PartNumber = $ArrayControllerdata.ControllerPartNumber }
+                #$ArrayControllerdataId = $ArrayControllerdata.id
+                $ArrayControllerdataId += 1 
+
+                $ArrayControllerName = $ArrayControllerdataId.ToString() + "-" + $ArrayControllerdata.Model 
             
-            $Logicaldrives_data = @{}
-            $logicaldrivessuri = $ArrayController + "LogicalDrives/" 
-            $logicaldrivesdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$logicaldrivessuri"  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
+                if ($iloModel -eq "ILO4") { $PartNumber = "Not available" } else { $PartNumber = $ArrayControllerdata.ControllerPartNumber }
+            
+                # Logical drive info
+                 
+                $logicaldrivessuri = $ArrayController + "LogicalDrives/" 
+                $logicaldrivesdata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$logicaldrivessuri"  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
+                $logicaldrives_nb = $logicaldrivesdata.'Members@odata.count'
+            
+                $ArrayController_data = "Part Number=" + $PartNumber + " - Logical Drives=" + $logicaldrives_nb + " - Position=" + $ArrayControllerdata.location
+               
+                # Adding Array controller to report
+                "`t`t$($ArrayControllerName): $($ArrayController_data)"  | Out-File $file -Append
+
+                if ($logicaldrives_nb -ge 1) {
+
+                    foreach ($logicaldrive in  $logicaldrivesdata.Members.'@odata.id') {
+                
+                        $logicaldrivedata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$logicaldrive"  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
+
+                        $logicaldrivecapacityGB = [math]::Round($logicaldrivedata.CapacityMiB / 1024)
+                        $logicaldriveid = "Logical drive-" + $logicaldrivedata.Id
                         
-            # Logical drive info
-            $logicaldrives_nb = $logicaldrivesdata.'Members@odata.count'
-            
-            foreach ($logicaldrive in  $logicaldrivesdata.Members.'@odata.id') {
-                
-                $logicaldrivedata = (Invoke-webrequest -Method GET -Uri "https://$iloIP$logicaldrive"  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json 
-
-                $logicaldrivecapacityGB = [math]::Round($logicaldrivedata.CapacityMiB / 1024)
-                
-                $logicaldriveid = $logicaldrivedata.Id
+                        if ($iloModel -eq "ILO4") { $logicaldrive_href = $logicaldrivedata.links.DataDrives.href } else { $logicaldrive_href = $logicaldrivedata.links.DataDrives.'@odata.id' } 
+                        
                                 
-                $uri = "https://$iloIP$logicaldrive" + "DataDrives/"
-                $logicaldrive_nb_of_disk = ((Invoke-webrequest -Method GET -Uri $uri  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json ).'Members@odata.count'
-                $logicaldrive_raid = $logicaldrivedata.raid
-                $logicaldrive_status = $logicaldrivedata.Status.Health
-                $logicaldrive_encrypted = $logicaldrivedata.LogicalDriveEncryption
-                $logicaldrive_enabled = $logicaldrivedata.Status.state
-                
-                $logicaldriveinfo = "Capacity=" + $logicaldrivecapacityGB + "GB Disks=" + $logicaldrive_nb_of_disk + " Status=" + $logicaldrive_status + " RAID=" + $logicaldrive_raid + " State=" + $logicaldrive_enabled + " Encrypted=" + $logicaldrive_encrypted
-                $Logicaldrives_data.Add($logicaldriveid, $logicaldriveinfo)
+                        $uri = "https://$iloIP$logicaldrive_href"
+                        $logicaldrive_nb_of_disk = ((Invoke-webrequest -Method GET -Uri $uri  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json ).'Members@odata.count'
+                        
+                        $logicaldrive_raid = $logicaldrivedata.raid
+                        $logicaldrive_status = $logicaldrivedata.Status.Health
+                        $logicaldrive_encrypted = $logicaldrivedata.LogicalDriveEncryption
+                        $logicaldrive_enabled = $logicaldrivedata.Status.state
+                        if ($logicaldrivedata.LegacyBootPriority -eq "None") { $logicaldrive_boot = "No" } else { $logicaldrive_boot = "Yes" }
+                                    
+                        $logicaldriveinfo = "Capacity=" + $logicaldrivecapacityGB + "GB Disks=" + $logicaldrive_nb_of_disk + " Status=" + $logicaldrive_status + " RAID=" + $logicaldrive_raid + " State=" + $logicaldrive_enabled + " Boot=" + $logicaldrive_boot + " Encrypted=" + $logicaldrive_encrypted
+                       
+                        # Adding Logical Drive information to report
+                        "`t`t`t$($logicaldriveid): $($logicaldriveinfo)"  | Out-File $file -Append
 
-            }
+                        if ($logicaldrive_nb_of_disk -ge 1) {
 
-            ForEach ($item in ($Logicaldrives_data.GetEnumerator() | Sort-Object -Property name)) {
-      
-                $logical_drives += " [LD-$($item.Name): $($item.Value)]" 
-            } 
+                            # Drives info
+     
+                            foreach ($datadrive in $logicaldrive_href ) {
+                                
+                                $uri = "https://$iloIP$datadrive"
+                                $Drivedata = ((Invoke-webrequest -Method GET -Uri $uri  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json ).Members.'@odata.id'
+                                
+                                $DriveId = $Null 
+                                    
+                                foreach ($item in $Drivedata) {
 
-            $ArrayController_data = "Part Number=" + $PartNumber + " - Logical Drives=" + $logicaldrives_nb + $logical_drives + " - Position=" + $ArrayControllerdata.location
-            $ArrayControllers_data.Add($ArrayControllerName, $ArrayController_data)
+                                    $DriveId += 1                                     
+                                    
+                                    $uri = "https://$iloIP$item"
+                                    $Drive = ((Invoke-webrequest -Method GET -Uri $uri  -Headers @{"X-Auth-Token" = $ilosessionkey }).content | Convertfrom-Json )
+                                    
+                                    $driveCapacityGB = $drive.CapacityGB
+                                    $driveModel = $drive.Model
+                                    $drivePort = $drive.Location.Split(":") | select -Index 0
+                                    $driveBox = $drive.Location.Split(":") | select -Index 1
+                                    $driveBay = $drive.Location.Split(":") | select -Index 2
 
-
-            
-        }
-
-        # Creation of the report
-
-        "`n" + $hostname + ": `n`tModel: " + $model + "`n`tTotal Memory: " + $memoryinGB + "GB" + "`n`tMemory configuration:"  | Out-File $file -Append
-    
-        ForEach ($item in ($memory_data.GetEnumerator()) | Sort-Object -Property Name  ) {
-      
-            "`t`t$($item.Name): $($item.Value)"  | Out-File $file -Append
+                                    $driveinfo = "Capacity=" + $driveCapacityGB + "GB Model=" + $driveModel + " Location=Port" + $drivePort + ",Box" + $driveBox + ",Bay" + $driveBay
+                                    
+                                    # Adding Drives information to report
+                                    "`t`t`t`tDrive-$($DriveId): $($driveinfo)"  | Out-File $file -Append
+                                }
+                            }
+                        }
+                    }
+                }
+            }           
         } 
-
-        "`tAdapters configuration:"  | Out-File $file -Append
-
-        ForEach ($item in $adapters_data.GetEnumerator()) {
-      
-            "`t`t$($item.Name): $($item.Value)"  | Out-File $file -Append
-        } 
-
-        "`tArray Controllers configuration:"  | Out-File $file -Append
-
-        ForEach ($item in ($ArrayControllers_data.GetEnumerator()) | Sort-Object -Property Name ) {
-      
-            "`t`t$($item.Name): $($item.Value)"  | Out-File $file -Append
-        } 
-
     }
+
     Else {
         write-warning "iLO $iloIP cannot be contacted !"
         
     } 
-
 }
 
 write-host "Hardware report has been generated in $pwd\$file" -ForegroundColor Green
 
 Disconnect-OVMgmt
 
-Read-Host -Prompt "Operation done ! Hit return to close" 
+#Read-Host -Prompt "Operation done ! Hit return to close" 
 
 
 
