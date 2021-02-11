@@ -1,7 +1,7 @@
 <#
  
 This PowerShell script collects server information managed by HPE OneView
-and generate a text file report providing the following information:
+and generates a text file report providing the following information:
 
 -------------------------------------------------------------------------------------------------------
 Report generated on 11/25/2020 13:56:08
