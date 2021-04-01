@@ -14,7 +14,7 @@
 #  Date:   March 2021
 #
 #
-# Example of execution:
+# Sample script output:
 #
 # Name            Status Server Hardware Type Enclosure Group Affinity Server Profiles
 # ----            ------ -------------------- --------------- -------- ---------------
