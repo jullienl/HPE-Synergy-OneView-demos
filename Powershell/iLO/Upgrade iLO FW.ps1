@@ -3,10 +3,15 @@
 # by lionel.jullien@hpe.com
 # Sept 2016
 #
-# Upgrade all iLO FW managed by the OneView Composer using iLO local account so it is required to first use the 'Add User to iLO' script
+# Upgrade the firmware of all iLOs managed by HPE OneView using an iLO local account with administrative priviledges.
+# 
+# Note that you can use 'Add User to iLO.ps1' to create that user via HPE OneView
 #
-# OneView administrator account is required and HPE iLO PowerShell Cmdlets must be installed
-# from https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html  
+# Requirements:
+# - OneView administrator account 
+# - iLO Administrator account 
+# - HPE iLO PowerShell Cmdlets (install-module HPEiLOCmdlets)
+# - HPEOneView library 
 # 
 # --------------------------------------------------------------------------------------------------------
 
@@ -37,43 +42,32 @@
 
 
 #Global variables
-$Location = "C:\\Kits\\_HP\\iLO\\iLO4\\ilo4_254.bin" #Location of the iLO Firmware bin file
-$ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password"   
+$Location = "D:\\Kits\\_HP\\iLO\\iLO5\\ilo5_233.bin" #Location of the iLO Firmware bin file
+$ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password" 
 
 
-# Composer information
+# OneView information
 $username = "Administrator"
-$password = "password"
 $IP = "composer.lj.lab"
-
-
-If (-not (get-Module HPOneview.500) ) {
-
-    Import-Module HPOneview.500
-}
-
-
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
 # Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
-import-HPOVSSLCertificate
+$iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
 
+foreach ($item in $iLOserverIPs) {
 
-$iLO4serverIPs = Get-HPOVServer | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
-     
-$iLO4serverIPs | Update-HPiLOFirmware -Credential $ilocreds -Location $Location -DisableCertificateAuthentication
-   
-# To manually upadate an iLO, use its IP address like:
-# "192.168.1.203" | Update-HPiLOFirmware -Credential $ilocreds -Location $Location -DisableCertificateAuthentication
-      
-   
-Write-Host "The following" $iLO4serverIPs.Count "iLOs have been updated:"
-$iLO4serverIPs  
+    $connection = connect-hpeilo -Credential $ilocreds -Address $item 
+    $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False 
+    Write-Host "iLO $item : $($task.statusinfo.message)"
+    Disconnect-HPEiLO -Connection $connection
     
-Disconnect-HPOVMgmt 
+}
+   
+Disconnect-OVMgmt 
 
 
 
