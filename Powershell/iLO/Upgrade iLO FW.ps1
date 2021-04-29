@@ -42,7 +42,7 @@
 
 
 #Global variables
-$Location = "D:\\Kits\\_HP\\iLO\\iLO5\\ilo5_233.bin" #Location of the iLO Firmware bin file
+$Location = "D:\\Kits\\_HP\\iLO\\iLO5\\ilo5_231.bin" #Location of the iLO Firmware bin file
 $ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password" 
 
 
@@ -57,6 +57,16 @@ Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
 $iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
+
+<# To filter alerts to only computes impacted by the new SHT change issue: https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00113315en_us 
+$impactedservers = (Get-OVAlert -severity Critical -AlertState Active | Where-Object { 
+        $_.description -Match "serial number of the server hardware" 
+        -and $_.description -match "originally used to create this server profile" 
+        -and $_.description -match "expected serverhardware type"
+    }).associatedResource.resourcename
+
+$iLOserverIPs = foreach ($item in $impactedservers) { Get-OVServer -Name $item | % { $_.mpHostInfo.mpIpaddresses[1].address } }
+#>
 
 foreach ($item in $iLOserverIPs) {
 
