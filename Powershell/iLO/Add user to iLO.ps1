@@ -4,8 +4,12 @@
 #
 # Create a User account in iLO4/iLO5 managed by OneView without using the iLO Administrator local account
 #
-# OneView administrator account is required. 
 # iLO modification is done through OneView and iLO SSOsession key using REST POST method
+#
+# Requirements:
+# - OneView administrator account 
+# - HPEOneView library 
+#
 # --------------------------------------------------------------------------------------------------------
 
 #################################################################################
@@ -32,28 +36,23 @@
 #                                                                               #
 #################################################################################
 
-
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110"
-
-
 # iLO User/password to create 
 $newiLOLoginName = "Ilouser"
 $newiLOPassword = "Ilouserpassword"
 
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
+# OneView information
+$username = "Administrator"
+$IP = "composer.lj.lab"
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
 # Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+
 
 Clear-Host
 
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -71,7 +70,7 @@ add-type -TypeDefinition  @"
 
     
 # Capture iLO4 and iLO5 IP adresses managed by OneView
-$servers = Get-HPOVServer
+$servers = Get-OVServer
 $iloIPs = $servers | where { $_.mpModel -eq "iLO4" -or "iLO5" } | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 $nbilo4 = ($servers | where mpModel -eq "iLO4" ).count
@@ -83,7 +82,7 @@ write-host "`n $($iloIPs.count) iLO found : $nbilo4 x iLO4 - $nbilo5 x iLO5 " -f
 
 Foreach ($iloIP in $iloIPs) {
     # Capture of the SSO Session Key
-    $ilosessionkey = ($servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+    $ilosessionkey = ($servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-OVIloSso -IloRestSession)."X-Auth-Token"
     $iloModel = $servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | % mpModel
     
     if ($iloModel -eq "iLO4") {
@@ -201,4 +200,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt
