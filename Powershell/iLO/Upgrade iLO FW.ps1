@@ -59,17 +59,16 @@ Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 $iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
 
-# To filter to a specific server, you can use:
-# $iLOserverIPs = Get-OVServer -name "Encl1, bay 1" | % { $_.mpHostInfo.mpIpaddresses[1].address }  
+<#
+  - To filter to a specific server, you can use:
+    $iLOserverIPs = Get-OVServer -name "Encl1, bay 1" | % { $_.mpHostInfo.mpIpaddresses[1].address }  
 
-<# To filter alerts to only Synergy computes impacted by the new SHT change issue: https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00113315en_us 
-    
+  - To filter alerts to only Synergy computes impacted by the new SHT change issue: https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00113315en_us 
     $impactedservers = (Get-OVAlert -severity Critical -AlertState Active | Where-Object { 
             $_.description -Match "serial number of the server hardware" 
             -and $_.description -match "originally used to create this server profile" 
             -and $_.description -match "expected serverhardware type"
         }).associatedResource.resourcename
-
     $iLOserverIPs = foreach ($item in $impactedservers) { Get-OVServer -Name $item | % { $_.mpHostInfo.mpIpaddresses[1].address } }
 #>
 
