@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# - Example script for configuring the HPE Synergy Appliance
+#  Example script for configuring the HPE Synergy Appliance and infrastructure
 #
 #   AUTHORS
 #   Inspired from daveolker/Populate-HPE-Synergy GitHub repository
