@@ -1,12 +1,9 @@
 ##############################################################################
-# DCS_Configuration.ps1
 #
 # - Example script for configuring the HPE Synergy Appliance
 #
-#   VERSION 5.30
-#
 #   AUTHORS
-#   Lionel Jullien - Inspired from daveolker/Populate-HPE-Synergy GitHub repository
+#   Inspired from daveolker/Populate-HPE-Synergy GitHub repository
 #
 # (C) Copyright 2019 Hewlett Packard Enterprise Development LP
 ##############################################################################
@@ -38,7 +35,7 @@ Param ( [String]$OVApplianceIP = "hol-synergy-01.lj.lab",
 )
 
 
-# VirtualBox deployments variables
+# Deployments variables
 $prod_subnet = "192.168.3.0"
 #$prod_gateway = "192.168.56.1"
 $prod_pool_start = "192.168.3.200"
