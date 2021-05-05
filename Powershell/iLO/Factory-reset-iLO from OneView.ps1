@@ -1,7 +1,7 @@
 # Script to factory reset an iLO from OneView/Composer
 #
-# After a factory reset, it is necessary to import in OneView the new iLO certificate using the iLO IP address (from Settings > Security > Manage Certificate page) 
-# and then to refresh the Server Hardware (from Actions /Refresh)
+# After a factory reset, it is necessary to import the new iLO self-signed certificate into the Oneview trusted certificate store 
+# and then to refresh the Server Hardware
 #
 # Requirements:
 # - OneView administrator account 
@@ -36,7 +36,14 @@ add-type -TypeDefinition  @"
 
 $SH = Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP }
 
-$ilosessionkey = ($SH | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+try {
+    $ilosessionkey = ($SH | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+}
+catch {
+    Write-Warning "iLO [$iloip] cannot be found ! Fix any communication problem you have in OneView with this iLO/server hardware !"
+    return
+}
+
 
 # Creation of the header using the SSO Session Key 
 $headerilo = @{ } 
@@ -59,6 +66,87 @@ catch {
     
 }
 
+# Wait until server hardware communication is lost
+write-host "Waiting for the iLO communication to be restored..."
+Do {
+    $task = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP }).status
+    sleep 2
+}
+until ( $task -eq "Critical")
 
-          
+# Wait for OneView to issue an alert about a trusted communication issue with the iLO due to invalid iLO certificate
+Do {
+    $ilocertalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
+        Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
+            $_.description -Match "Unable to establish trusted communication with server"   
+        })
+
+        
+
+    sleep 2
+}
+until ( $ilocertalert )
+
+# Retreive the network connectivity has been lost alert
+$networkconnectivityalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
+    Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
+        $_.description -Match "Network connectivity has been lost for server hardware"   
+    })
+
+
+$ilocertalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
+    Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
+        $_.description -Match "Unable to establish trusted communication with server"   
+    })
+
+
+write-host "iLO communication failure detected, adding the new iLO self-signed certificate to the OneView store..."
+
+##### Post actions ####
+# Remove if present the old iLO certificate
+$removecerttask = Get-OVApplianceTrustedCertificate -Name $SH.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
+
+# Add new iLO selft-signed certificate and refresh the server hardware
+$addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete
+
+if ($addcerttask.taskstate -eq "Completed" ) {
+    write-host "iLO self-signed certificated added successfully !"   
+}
+else {
+    Write-Warning "Error - iLO self-signed certificated cannot be added to the OneView store !"
+    $addcerttask.taskErrors
+    return
+}
+
+# Wait for the invalid iLO certificate alert to be cleared.
+Do {
+    $ilocertalertresult = Send-OVRequest -uri $ilocertalert.uri
+}
+until ( $ilocertalertresult.alertState -eq "Cleared" )
+
+sleep 5
+  
+try {
+    write-host "$($SH.name) refresh in progress..."
+    $refreshtask = $SH | Update-OVServer | Wait-OVTaskComplete
+    
+}
+catch {
+    Write-Warning "Error - $($SH.name) refresh cannot be completed!"
+    $refreshtask.taskErrors
+    return
+}
+
+# Check that the alert 'network connectivty has been lost' has been cleared.
+$networkconnectivityalertresult = Send-OVRequest -uri $networkconnectivityalert.uri
+
+if ($networkconnectivityalertresult.alertState -eq "Cleared" ) {
+    write-host "iLO Factory reset completed successfully and communication with [$($SH.name)] has been restored with Oneview !" -ForegroundColor Cyan 
+}
+else {
+    write-warning "Error ! Communication with [$($SH.name)] cannot be restored with Oneview !"
+}
+
+
+
 Disconnect-OVMgmt
