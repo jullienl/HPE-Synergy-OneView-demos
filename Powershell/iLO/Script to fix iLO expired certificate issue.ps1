@@ -3,14 +3,13 @@
 # Useful to generate a new certificate in iLO4 v2.55 when the iLO certificate is expired
 # In iLO 2.55, renaming the iLO name + reset does not generate a new certificate in iLO
 #
-# To learn more, refer to this CA:
-# https://support.hpe.com/hpsc/doc/public/display?docId=emr_na-c03743622
+# To learn more, refer to this CA: https://support.hpe.com/hpsc/doc/public/display?docId=emr_na-c03743622
 #
 # This script is using 'RefreshFailed' status in Server Hardware to select the impacted servers and then it collects their iLO IP addresses
 #
 # When the script execution is complete, it is necessary to import in OneView the new iLO certificate using the iLO IP address (From Settings > Security > Manage Certificate page)
 #
-# Requirements:
+# Requirements: 
 # - OneView administrator account 
 # - iLO Administrator account 
 # - HPE iLO PowerShell Cmdlets (install-module HPEiLOCmdlets)
