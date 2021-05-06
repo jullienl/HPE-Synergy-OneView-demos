@@ -1,7 +1,7 @@
 # Script to factory reset an iLO from OneView/Composer
 #
 # After a factory reset, it is necessary to import the new iLO self-signed certificate into the Oneview trusted certificate store 
-# and then to refresh the Server Hardware
+# and then to refresh the Server Hardware. This script performs these operations when the iLO factory reset is completed.
 #
 # Requirements:
 # - OneView administrator account 
@@ -87,13 +87,13 @@ Do {
 }
 until ( $ilocertalert )
 
-# Retreive the network connectivity has been lost alert
+# Collect data for the 'network connectivity has been lost' alert
 $networkconnectivityalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
     Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
         $_.description -Match "Network connectivity has been lost for server hardware"   
     })
 
-
+# Collect data for the 'Unable to establish trusted communication with server' alert
 $ilocertalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
     Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
         $_.description -Match "Unable to establish trusted communication with server"   
@@ -102,11 +102,13 @@ $ilocertalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -
 
 write-host "iLO communication failure detected, adding the new iLO self-signed certificate to the OneView store..."
 
-##### Post actions ####
+
+################## Post-execution #########################
+
 # Remove if present the old iLO certificate
 $removecerttask = Get-OVApplianceTrustedCertificate -Name $SH.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
 
-# Add new iLO selft-signed certificate and refresh the server hardware
+# Add new iLO self-signed certificate to OneView trusted certificate store
 $addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete
 
 if ($addcerttask.taskstate -eq "Completed" ) {
@@ -125,7 +127,8 @@ Do {
 until ( $ilocertalertresult.alertState -eq "Cleared" )
 
 sleep 5
-  
+
+# Perform a server hartdware refresh to re-establish the communication with the iLO
 try {
     write-host "$($SH.name) refresh in progress..."
     $refreshtask = $SH | Update-OVServer | Wait-OVTaskComplete
