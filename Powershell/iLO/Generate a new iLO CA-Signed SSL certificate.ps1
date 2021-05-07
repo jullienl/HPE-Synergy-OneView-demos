@@ -62,18 +62,16 @@ Management Processor support: iLO4 and iLO5
 If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
 import-module PSPKI
 
-
-
-# OneView Credentials and IP
-$IP = "192.168.1.10"
-$username = "administrator"
-$password = "password"
-
-
-# ONEVIEW CONNECTION
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
+# OneView information
+$username = "Administrator"
+$IP = "composer.lj.lab"
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the Synergy Composer
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+
+
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
