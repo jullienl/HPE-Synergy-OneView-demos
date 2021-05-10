@@ -118,17 +118,17 @@ ForEach ($server in $servers) {
     $ValidNotBefore = $cert.X509CertificateInformation.ValidNotBefore
 
     If ( ([DateTime]$validnotafter - [DateTime]$ValidNotBefore).days -gt 1 ) {
-        Write-host "`nNo iLO4 Self-Signed SSL certificate issue found on $($s.name) !" -ForegroundColor Green
+        Write-host "`nNo iLO4 Self-Signed SSL certificate issue found on $($server.name) !" -ForegroundColor Green
     }
 
     Else {
         
-        If ($s.mpFirmwareVersion -lt "2.55") {
-            Write-host "`niLO4 Self-Signed SSL certificate issue on $($s.name) has been found but the iLO is running a FW version < 2.55 that does not support RedFish web request to generate a new Self-Signed certificate!" -ForegroundColor Red
+        If ($server.mpFirmwareVersion -lt "2.55") {
+            Write-host "`niLO4 Self-Signed SSL certificate issue on $($server.name) has been found but the iLO is running a FW version < 2.55 that does not support RedFish web request to generate a new Self-Signed certificate!" -ForegroundColor Red
               
         }
         Else {        
-            Write-host "`niLO4 Self-Signed SSL certificate issue on $($s.name) has been found ! Generating a new Self-Signed certificate, please wait..." -ForegroundColor Yellow
+            Write-host "`niLO4 Self-Signed SSL certificate issue on $($server.name) has been found ! Generating a new Self-Signed certificate, please wait..." -ForegroundColor Yellow
 
             $serverstoimport.Add($server)
 
