@@ -3,9 +3,9 @@
 PowerShell script to factory reset an iLO managed by HPE OneView. The IP address of the iLO must be provided at runtime.  
 
  After a factory reset, it is necessary to import the new iLO self-signed certificate into the Oneview trust store 
- and then to refresh the Server Hardware. This script performs these operations when the iLO factory reset is completed.
+ and then to refresh the Server Hardware. This script performs these operations once the iLO factory reset is complete.
 
- Gen9 and Gen10 servers are supported 
+ Gen9 and Gen10 servers are supported. 
 
  Requirements:
  - OneView administrator account 
