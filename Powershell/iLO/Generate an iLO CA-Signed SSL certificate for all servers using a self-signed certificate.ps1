@@ -68,8 +68,8 @@ $IP = "composer.lj.lab"
 # MODULES TO INSTALL/IMPORT
 
 # HPEONEVIEW
-#If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
-#import-module HPEOneView.550
+# If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.550 -scope Allusers -Force }
+# import-module HPEOneView.550
 
 # PSPKI
 # CA scripts -
@@ -128,6 +128,7 @@ $CA = Get-CertificationAuthority | select -First 1
 
 If ($CA -eq $Null) {
     write-warning "Error, a certificate Authority Server cannot be found on the network ! Canceling task..."
+    return
 }
 else {
 
@@ -384,18 +385,19 @@ else {
 
             Write-host "`tOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
             #>
+
+
         }
       
     }
-}
 
-if (-not $found) {
-    write-host "Operation completed ! All servers use iLO CA-signed certificate ! "
+    if (-not $found) {
+        write-host "Operation completed ! All servers use iLO CA-signed certificate ! "
+    }
+    else {
+        write-host "Operation completed ! All other servers use iLO CA-signed certificate ! "
+    }
 }
-else {
-    write-host "Operation completed ! All other servers use iLO CA-signed certificate ! "
-}
-
         
 Disconnect-OVMgmt
 

@@ -8,8 +8,10 @@ After a new iLO certificate is generated, the iLO restarts then the new certific
 
 A RedFish REST command that was added in iLO 4 firmware 2.55 (or later) is used by this script to generate the new self-signed SSL certificate.
 
-    Requirements: iLO 4 firmware 2.55 (or later) - Latest HPOneView 400 and HPRESTCmdlets libraries - OneView administrator account.
-
+Requirements: 
+- iLO 4 firmware 2.55 (or later) 
+- Latest HPEOneView and HPRESTCmdlets libraries 
+- OneView administrator account.
 
 
   Author: lionel.jullien@hpe.com
@@ -40,27 +42,26 @@ A RedFish REST command that was added in iLO 4 firmware 2.55 (or later) is used 
 #################################################################################
 #>
 
+# MODULES TO INSTALL/IMPORT
 
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
+# HPEONEVIEW
+# If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
+# import-module HPEOneView.550
 
-# Modules to import
-#Import-Module HPOneview.540 
-Import-Module HPRESTCmdlets
-   
+# HPERESTCmdlets
+# If (-not (get-module HPRESTCmdlets -ListAvailable )) { Install-Module -Name HPRESTCmdlets -scope Allusers -Force }
+# import-module HPRESTCmdlets 
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+# OneView information
+$username = "Administrator"
+$IP = "composer.lj.lab"
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
 # Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
-
-               
-import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 add-type -TypeDefinition  @"
         using System.Net;
