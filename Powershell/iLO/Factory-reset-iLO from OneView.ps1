@@ -40,6 +40,14 @@ PowerShell script to factory reset an iLO managed by HPE OneView. The IP address
 #################################################################################
 #>
 
+# MODULES TO INSTALL/IMPORT
+
+# HPEONEVIEW
+# If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
+# import-module HPEOneView.550
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
 # iLO IP address
 $iloIP = read-host  "Please enter the iLO IP address you want to factory reset"
 
@@ -51,7 +59,6 @@ $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
 # Connection to the Synergy Composer
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -168,11 +175,21 @@ catch {
     return
 }
 
+# If refresh is failing, we need to re-add the new iLO certificate and re-launch a server hardware refresh
 if ($refreshtask.taskState -eq "warning") {
+
+    # write-host "The refresh could not be completed successfuly, removing and re-adding the new iLO self-signed certificate..."
     sleep 5
-    # Add again the certificate 
+    
+    # Remove iLO certificate again
+    $removecerttask = Get-OVApplianceTrustedCertificate -Name $SH.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
+    
+    # Add again the new iLO self-signed certificate to OneView trust store 
     $addcerttaskretry = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete
+    
     sleep 5
+    
+    # Perform a new refresh to re-establish the communication with the iLO
     $newrefreshtask = $SH | Update-OVServer | Wait-OVTaskComplete
     
 }
