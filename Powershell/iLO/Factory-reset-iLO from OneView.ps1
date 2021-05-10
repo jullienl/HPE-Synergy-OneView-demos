@@ -163,7 +163,7 @@ else {
 
 sleep 5
 
-# Perform a server hartdware refresh to re-establish the communication with the iLO
+# Perform a server hardware refresh to re-establish the communication with the iLO
 try {
     write-host "$($SH.name) refresh in progress..."
     $refreshtask = $SH | Update-OVServer | Wait-OVTaskComplete
