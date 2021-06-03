@@ -6,7 +6,8 @@
 # Upgrade/downgrade the firmware of all iLOs managed by HPE OneView using a local iLO account with administrative privileges.
 # To select specific servers, you can filter the iLOs by modifying the $iLOserverIPs query.
 # 
-# Note that you can use 'Add User to iLO.ps1' located in this repository to create this user via HPE OneView
+# Note that you can use 'Add User to iLO.ps1' located in this repository to create this user via HPE OneView. 
+# https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/iLO/Add%20user%20to%20iLO.ps1
 #
 # Important note: This script supports Proliant servers and Synergy computes, but for Synergy, it is important to note that upgrading
 # the iLO only could break the SPP/SSP support matrix, so before upgrading your iLOs, please consult the following customer advisory 
