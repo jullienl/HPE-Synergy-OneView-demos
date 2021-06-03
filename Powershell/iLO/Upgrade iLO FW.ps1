@@ -4,7 +4,7 @@
 # Sept 2016
 #
 # Upgrade/downgrade the firmware of all iLOs managed by HPE OneView using a local iLO account with administrative privileges.
-# To select specific servers, you can filter the iLOs by modifying the $iLOserverIPs query.
+# To select specific servers, you can filter the iLOs by modifying the $iLOserverIPs query. Several examples of filters are shown below.
 # 
 # Note that you can use 'Add User to iLO.ps1' located in this repository to create this user via HPE OneView. 
 # https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/iLO/Add%20user%20to%20iLO.ps1
@@ -49,10 +49,12 @@
 #################################################################################
 
 
-#Global variables
-$Location = "D:\\Kits\\_HP\\iLO\\iLO5\\ilo5_231.bin" #Location of the iLO Firmware bin file
-$ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password" 
+# Location of the Synergy hotfix for iLO 5 firmware version
+$Location = "D:\\Kits\\_HPE\\iLO\\iLO5\\ilo5_244.bin" 
+# Location of the Synergy hotfix for iLO 4 firmware version
+# $Location = "D:\\Kits\\_HPE\\iLO\\iLO4\\ilo4_278.bin" 
 
+$ilocreds = Get-Credential -UserName Administrator -Message "Please enter the iLO password" 
 
 # OneView information
 $username = "Administrator"
@@ -64,13 +66,17 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
+# Get the IP addresses of the iLOs we want to upgrade
 $iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
 
 <#
-  - To filter to a specific server, you can use:
+  - To retrieve the iLO IP of a single server, you can use:
     $iLOserverIPs = Get-OVServer -name "Encl1, bay 1" | % { $_.mpHostInfo.mpIpaddresses[1].address }  
 
-  - To filter alerts to only Synergy computes impacted by the new SHT change issue: https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00113315en_us 
+  - To retrieve the iLO IPs of the servers that have an iLO version 2.33 or lower, you can use:  
+    $iLOserverIPs = (Get-OVServer | ? mpModel -eq "ilo5" | ? {$_.mpFirmwareVersion.SubString(0,4) -le 2.33 }) | % { $_.mpHostInfo.mpIpaddresses[1].address }  
+
+  - To retrieve the iLO IPs of the servers impacted by the new SHT change issue: https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00113315en_us 
     $impactedservers = (Get-OVAlert -severity Critical -AlertState Active | Where-Object { 
             $_.description -Match "serial number of the server hardware" 
             -and $_.description -match "originally used to create this server profile" 
