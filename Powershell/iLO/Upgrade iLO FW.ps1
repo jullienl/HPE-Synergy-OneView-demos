@@ -3,10 +3,16 @@
 # by lionel.jullien@hpe.com
 # Sept 2016
 #
-# Upgrade/downgrade the firmware of all iLOs managed by HPE OneView using an iLO local account with administrative priviledges.
-# To select specific servers, you can filter the iLOs by modifying the $iLOserverIPs query 
+# Upgrade/downgrade the firmware of all iLOs managed by HPE OneView using a local iLO account with administrative privileges.
+# To select specific servers, you can filter the iLOs by modifying the $iLOserverIPs query.
+# 
+# Note that you can use 'Add User to iLO.ps1' located in this repository to create this user via HPE OneView
 #
-# Note that you can use 'Add User to iLO.ps1' to create that user via HPE OneView
+# Important note: This script supports Proliant servers and Synergy computes, but for Synergy, it is important to note that upgrading
+# the iLO only could break the SPP/SSP support matrix, so before upgrading your iLOs, please consult the following customer advisory 
+# with detailed compatibility information and installation instructions:
+# https://support.hpe.com/hpsc/doc/public/display?docId=emr_na-a00114985en_us
+# 
 #
 # Requirements:
 # - OneView administrator account 
@@ -74,10 +80,10 @@ $iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddr
 
 foreach ($item in $iLOserverIPs) {
 
-    $connection = connect-hpeilo -Credential $ilocreds -Address $item 
-    $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False -Force
-    Write-Host "iLO $item : $($task.statusinfo.message)"
-    Disconnect-HPEiLO -Connection $connection
+  $connection = connect-hpeilo -Credential $ilocreds -Address $item 
+  $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False -Force
+  Write-Host "iLO $item : $($task.statusinfo.message)"
+  Disconnect-HPEiLO -Connection $connection
     
 }
    
