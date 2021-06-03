@@ -14,128 +14,18 @@
 # Reset-HPOVEnclosureDevice -Enclosure $enc  -Component Device -DeviceID 6 -Efuse -confirm:$false
 
 
-#IP address of OneView
-$IP = "192.168.1.110" 
+# OneView information
+$username = "Administrator"
+$IP = "composer.lj.lab"
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
-# OneView Credentials
-$username = "Administrator" 
-$password = read-host "Please enter the Composer password for Administrator" -AsSecureString
-
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $password)
-    
-
-# Import the OneView 5.00 library
+# Import the OneView 5.50 library
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
-
-
-Function Import-ModuleAdv {
-    
-    # Import a module that can be imported
-    # If it cannot, the module is installed
-    # When -update parameter is used, the module is updated 
-    # to the latest version available on the PowerShell library
-    #
-    # ex: import-moduleAdv hponeview.500
-    
-    param ( 
-        $module, 
-        [switch]$update 
-    )
-   
-    if (get-module $module -ListAvailable) {
-        if ($update.IsPresent) {
-            
-            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
-            
-            Try {
-                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
-            }
-            Catch {
-                Write-Warning "Error: No internet connection to update $module ! `
-                `nCheck your network connection, you might need to configure a proxy if you are connected to a corporate network!"
-                return 
-            }
-
-            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
-
-            #If ( ( $Compare.SideIndicator -eq '==') ) {
-            
-            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
-                Try {
-                    Update-Module -ErrorAction stop -Name $module -Confirm -Force | Out-Null
-                    Get-Module $Module -ListAvailable | Where-Object -Property Version -LT -Value $RepoModule | Uninstall-Module 
-                }
-                Catch {
-                    write-warning "Error: $module cannot be updated !"
-                    return
-                }
-           
-            }
-            Else {
-                Write-host "You are using the latest version of $module !" 
-            }
-        }
-            
-        Import-module $module
-            
-    }
-
-    Else {
-        Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
-
-        
-        If ( !(get-PSRepository).name -eq "PSGallery" )
-        { Register-PSRepository -Default }
-                
-        Try {
-            find-module -Name $module -ErrorAction Stop | out-Null
-                
-            Try {
-                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
-                Write-host "`nInstalling $Module ..." 
-                Import-module $module
-               
-            }
-            catch {
-                Write-Warning "$Module cannot be installed!" 
-                $error[0] | FL * -force
-                pause
-                exit
-            }
-
-        }
-        catch {
-            write-warning "Error: $module cannot be found in the online PSGallery !"
-            return
-        }
-            
-    }
-
-}
-
-Import-ModuleAdv HPOneview.500 #-update
-   
-  
-
-# Connection to the Synergy Composer
-
-If ($connectedSessions -and ($connectedSessions | ? { $_.name -eq $IP })) {
-    Write-Verbose "Already connected to $IP."
-}
-
-Else {
-    Try {
-        Connect-HPOVMgmt -appliance $IP -Credential $credentials | Out-Null
-    }
-    Catch {
-        throw $_
-    }
-}
-
-
-
-
 import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 $numberofframes = @(Get-HPOVEnclosure).count
