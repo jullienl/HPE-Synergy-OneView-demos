@@ -141,11 +141,9 @@ else {
     if (-not $CA_cert_in_OV_Store) {
         write_host "The trusted CA root certificate is not found in the OneView trust store, adding it now..."
     
-        ## Building the PEM CA certificate 
-        "-----BEGIN CERTIFICATE-----" | Out-File C:\temp\CAcert.cer
-        ( Get-IssuedRequest -CertificationAuthority $CA -Property "RawCertificate" | ? CommonName -eq $CA_displayname).RawCertificate.trim("`r`n") | Out-File C:\Temp\CAcert.cer -Append
-        "-----END CERTIFICATE-----" | Out-File C:\temp\CAcert.cer -Append
-   
+        ## Collecting the PEM CA certificate 
+        ( Get-IssuedRequest -CertificationAuthority $CA -Property "RawCertificate" | ? CommonName -eq $CA_displayname).RawCertificate.trim("`r`n") | Out-File C:\Temp\CAcert.cer 
+        
         # Adding trusted CA root certificate to OneView trust store
         $addcerttask = Get-ChildItem C:\temp\cacert.cer  | Add-OVApplianceTrustedCertificate 
     
