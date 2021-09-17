@@ -316,17 +316,49 @@ else {
             
             $ovversion = [string]$applianceversion.major + "." + [string]$applianceversion.Minor
             
+            # If OV < 6.00
+            # Procedure for HPE OneView 5.x ONLY
+            if ($ovversion -lt 6.00 ) {
+
+                # Importing the new iLO certificates in OneView
+                ## This step is not required as long as the CA certificate is present in the OV trust store 
+                ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
+
+                ## Waiting for the iLO reset to complete
+                $nowminus20mn = ((get-date).AddMinutes(-20))
+    
+                Do {
+                    $successfulresetalert = Get-OVServer -Name $server.name | `
+                        Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
+                        ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
+                }
+                Until ($successfulresetalert)
+    
+                Write-Host "`tiLO Reset completed"
+
+                ## Waiting for the new refresh to complete
+                Do {
+                    $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
+                }
+                Until ($Runningrefreshtask)
+
+                Write-host "`tOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
+                           
+           
+
+            }
+            
             # If OV = 6.00
             # Procedure for HPE OneView 6.0 ONLY
-            if ($ovversion -eq 6 ) {
+            elseif ($ovversion -eq 6.00 ) {
                 
                 # Wait for OneView to issue an alert about a communication issue with the iLO due to invalid iLO certificate
                 Do {
                     # Collect data for the 'Unable to establish secure communication with server' alert
-                    $ilocertalert = 
+                    $ilocertalert = `
                     ( $server  | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
-                        $_.description -Match "Unable to establish secure communication with the server" 
-                    }) 
+                            $_.description -Match "Unable to establish secure communication with the server" 
+                        }) 
 
                     sleep 2
                 }
@@ -365,38 +397,7 @@ else {
                     write-warning "`tError ! Communication with [$($SH.name)] cannot be restored with Oneview !"
                 }
             }
-
-            # If OV < 6.00
-            # Procedure for HPE OneView 5.x ONLY
-            elseif ($ovversion -lt 6.00 ) {
-
-                # Importing the new iLO certificates in OneView
-                ## This step is not required as long as the CA certificate is present in the OV trust store 
-                ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
-
-                ## Waiting for the iLO reset to complete
-                $nowminus20mn = ((get-date).AddMinutes(-20))
-    
-                Do {
-                    $successfulresetalert = Get-OVServer -Name $server.name | `
-                        Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
-                        ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
-                }
-                Until ($successfulresetalert)
-    
-                Write-Host "`tiLO Reset completed"
-
-                ## Waiting for the new refresh to complete
-                Do {
-                    $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
-                }
-                Until ($Runningrefreshtask)
-
-                Write-host "`tOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
-                           
-           
-
-            }
+         
             # If OV >= 6.10
             # Procedure for HPE OneView 6.10 and later ONLY
             # Starting with 6.10, OV detects the certificate change and no action is required
