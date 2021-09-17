@@ -190,6 +190,7 @@ else {
         }
 
         $issuer = (($certificate.Content | Convertfrom-Json).X509CertificateInformation.Issuer)
+        $found = $false
         
         if ($issuer -match "Default Issuer" ) {
 
@@ -301,90 +302,121 @@ else {
             Write-Host "`tImport Certificate Successful on iLo $iloIP `n`tPlease wait, iLO Reset in Progress..."
        
             # Remove the old iLO self-signed certificate from the Oneview trust store
-            Get-OVApplianceTrustedCertificate -Name $Ilohostname | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null
-            
-            # Wait for OneView to issue an alert about a communication issue with the iLO due to invalid iLO certificate
-            Do {
-                # Collect data for the 'Unable to establish secure communication with server' alert
-                $ilocertalert = ( $server  | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
-                        $_.description -Match "Unable to establish secure communication with the server"  
-                    })
-
-                sleep 2
-            }
-            until ( $ilocertalert )
-            
-          
-
-            
-            #############################################################################
-            # The following is working with OneView 6.0 and later ONLY
-            ##############################################################################
-
-            # Add new iLO CA-signed certificate to the Oneview trust store
-            $addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloIP -force | Wait-OVTaskComplete
-
-            if ($addcerttask.taskstate -eq "Completed" ) {
-                write-host "`tiLO CA-signed certificate added successfully to the Oneview trust store !"   
-            }
-            else {
-                Write-Warning "`tError - iLO CA-signed certificate cannot be added to the OneView trust store !"
-                $addcerttask.taskErrors
-                return
-            }
-
-            # Perform a server hardware refresh to re-establish the communication with the iLO
             try {
-                write-host "`t$($SH.name) refresh in progress..."
-                $refreshtask = $server | Update-OVServer | Wait-OVTaskComplete
+                $iLOcertificatename = Get-OVServer -Name $Server.name -ErrorAction Stop | Get-OVApplianceTrustedCertificate | % name
+                Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+                Write-Host "`tThe old iLO Self-Signed certificate has been successfully removed from the Oneview trust store"
             }
             catch {
-                Write-Warning "`tError - $($SH.name) refresh cannot be completed!"
-                $refreshtask.taskErrors
-                return
+                write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Old iLO Self-Signed certificate has not been removed from the Oneview trust store !" -ForegroundColor red
+            }
+            
+            # Wait for OneView to raise a task after the certificate change 
+            $appliancename = ${Global:ConnectedSessions} | % name
+            $applianceversion = Get-OVVersion | % $appliancename | % ApplianceVersion
+            
+            $ovversion = [string]$applianceversion.major + "." + [string]$applianceversion.Minor
+            
+            # If 6.0 <= OV < 6.10
+            # Procedure for HPE OneView 6.0 ONLY
+            if ($ovversion -ge 6 -AND $ovversion -lt 6.10 ) {
+                
+                # Wait for OneView to issue an alert about a communication issue with the iLO due to invalid iLO certificate
+                Do {
+                    # Collect data for the 'Unable to establish secure communication with server' alert
+                    $ilocertalert = 
+                    ( $server  | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
+                        $_.description -Match "Unable to establish secure communication with the server" 
+                    }) 
+
+                    sleep 2
+                }
+                until ( $ilocertalert )
+
+                # Add new iLO CA-signed certificate to the Oneview trust store
+                $addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloIP -force | Wait-OVTaskComplete
+
+                if ($addcerttask.taskstate -eq "Completed" ) {
+                    write-host "`tiLO CA-signed certificate added successfully to the Oneview trust store !"   
+                }
+                else {
+                    Write-Warning "`tError - iLO CA-signed certificate cannot be added to the OneView trust store !"
+                    $addcerttask.taskErrors
+                    return
+                }
+
+                # Perform a server hardware refresh to re-establish the communication with the iLO
+                try {
+                    write-host "`t$($SH.name) refresh in progress..."
+                    $refreshtask = $server | Update-OVServer | Wait-OVTaskComplete
+                }
+                catch {
+                    Write-Warning "`tError - $($SH.name) refresh cannot be completed!"
+                    $refreshtask.taskErrors
+                    return
+                }
+
+                # Check that the alert 'network connectivty has been lost' has been cleared.
+                $networkconnectivityalertresult = Send-OVRequest -uri $ilocertalert.uri
+
+                if ($networkconnectivityalertresult.alertState -eq "Cleared" ) {
+                    write-host "`tiLO [$($iloIP)] CA-signed certificate operation completed successfully and communication with [$($server.name)] has been restored with Oneview !" -ForegroundColor Cyan 
+                }
+                else {
+                    write-warning "`tError ! Communication with [$($SH.name)] cannot be restored with Oneview !"
+                }
             }
 
-            # Check that the alert 'network connectivty has been lost' has been cleared.
-            $networkconnectivityalertresult = Send-OVRequest -uri $ilocertalert.uri
+            # If OV < 6.00
+            # Procedure for HPE OneView 5.x ONLY
+            elseif ($ovversion -lt 6.00 ) {
 
-            if ($networkconnectivityalertresult.alertState -eq "Cleared" ) {
-                write-host "`tiLO [$($iloIP)] CA-signed certificate operation completed successfully and communication with [$($server.name)] has been restored with Oneview !" -ForegroundColor Cyan 
+                # Importing the new iLO certificates in OneView
+                ## This step is not required as long as the CA certificate is present in the OV trust store 
+                ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
+
+                ## Waiting for the iLO reset to complete
+                $nowminus20mn = ((get-date).AddMinutes(-20))
+    
+                Do {
+                    $successfulresetalert = Get-OVServer -Name $server.name | `
+                        Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
+                        ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
+                }
+                Until ($successfulresetalert)
+    
+                Write-Host "`tiLO Reset completed"
+
+                ## Waiting for the new refresh to complete
+                Do {
+                    $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
+                }
+                Until ($Runningrefreshtask)
+
+                Write-host "`tOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
+                           
+           
+
             }
-            else {
-                write-warning "`tError ! Communication with [$($SH.name)] cannot be restored with Oneview !"
+            # If OV >= 6.10
+            # Procedure for HPE OneView 6.10 and later ONLY
+            # Starting with 6.10, OV detects the certificate change and no action is required
+            elseif ( $ovversion -ge 6.10 ) {
+
+                # Importing the new iLO certificates in OneView
+                ## This step is not required as long as the CA certificate is present in the OV trust store 
+                ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
+
+                Do {
+                    $successfulresetalert = Get-OVServer -Name $server.name | Get-OValert -TimeSpan  (New-TimeSpan -Days 1)  | `
+                        ? description -match "The management processor is ready after a successful reset" 
+                }
+                Until ($successfulresetalert)
+    
+                Write-Host "`tiLO Reset completed"
+                write-host "`tiLO [$($iloIP)] CA-signed certificate operation completed successfully !" -ForegroundColor Cyan 
+                
             }
-
-            <#############################################################################
-            # The following was working with OneView 5.x but not with 6.x 
-            ##############################################################################
-            # Importing the new iLO certificates in OneView
-  
-            ## This step is not required as long as the CA certificate in 
-            # done automatically when OneView detects an iLO reset
-            ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
-
-            ## Waiting for the iLO reset to complete
-            $nowminus20mn = ((get-date).AddMinutes(-20))
-  
-            Do {
-                $successfulresetalert = Get-OVServer -Name $server.name | `
-                    Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
-                    ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
-            }
-            Until ($successfulresetalert)
-  
-            Write-Host "`tiLO Reset completed"
-
-            ## Waiting for the new refresh to complete
-            Do {
-                $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
-            }
-            Until ($Runningrefreshtask)
-
-            Write-host "`tOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." -ForegroundColor Yellow
-            #>
-
-
         }
       
     }
