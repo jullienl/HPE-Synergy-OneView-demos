@@ -12,9 +12,8 @@ Steps of this script:
     - Submit CSR to the Certificate Authority server 
     - Import new CA-signed certificate on iLOs
     - Remove old iLO self-signed certificate to the OneView trust store
-    - Add new iLO CA-signed certificate to the Oneview trust store
-    - Perform a server hartdware refresh to re-establish the communication with the iLO
-    - Make sure the alert 'network connectivty has been lost' is cleared
+    - Perform a server hartdware refresh to re-establish the communication with the iLO (for OneView < 6.10)
+    - Make sure the alert 'network connectivty has been lost' is cleared (for OneView < 6.10)
 
 Gen9 and Gen10 servers are supported 
 
