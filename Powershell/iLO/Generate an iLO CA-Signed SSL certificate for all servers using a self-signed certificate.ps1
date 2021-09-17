@@ -407,11 +407,12 @@ else {
                 ## This step is not required as long as the CA certificate is present in the OV trust store 
                 ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
 
-                Do {
-                    $successfulresetalert = Get-OVServer -Name $server.name | Get-OValert -TimeSpan  (New-TimeSpan -Days 1)  | `
-                        ? description -match "The management processor is ready after a successful reset" 
-                }
-                Until ($successfulresetalert)
+                # Impossible to monitor OV alerts as messages are not always consistent or even present across versions and generations of iLO FW.
+                # Do {
+                #     $successfulresetalert = Get-OVServer -Name $server.name | Get-OValert -TimeSpan  (New-TimeSpan -Days 1)  | `
+                #         ? description -match "The management processor is ready after a successful reset" 
+                # }
+                # Until ($successfulresetalert)
     
                 Write-Host "`tiLO Reset completed"
                 write-host "`tiLO [$($iloIP)] CA-signed certificate operation completed successfully !" -ForegroundColor Cyan 
