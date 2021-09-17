@@ -316,9 +316,9 @@ else {
             
             $ovversion = [string]$applianceversion.major + "." + [string]$applianceversion.Minor
             
-            # If 6.0 <= OV < 6.10
+            # If OV = 6.00
             # Procedure for HPE OneView 6.0 ONLY
-            if ($ovversion -ge 6 -AND $ovversion -lt 6.10 ) {
+            if ($ovversion -eq 6 ) {
                 
                 # Wait for OneView to issue an alert about a communication issue with the iLO due to invalid iLO certificate
                 Do {
