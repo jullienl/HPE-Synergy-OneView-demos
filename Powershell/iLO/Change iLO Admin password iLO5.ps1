@@ -40,30 +40,24 @@ $password = "password"
 $IP = "composer.lj.lab"
 
 
-If (-not (get-Module HPOneview.500) ) {
-
-    Import-Module HPOneview.500
-}
-
-
 # Connection to the Synergy Composer
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
                 
-import-HPOVSSLCertificate
+import-OVSSLCertificate
 
 
 # Capture iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer | where mpModel -eq iLO5 | % { $_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-OVServer | where mpModel -eq iLO5 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 clear
 
 if ($iloIPs) {
     write-host ""
     Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with a new password :" 
-    $result = Get-HPOVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
+    $result = Get-OVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
     $result.ForEach( { [PSCustomObject]$_ }) | Format-Table -AutoSize | Out-Host
 
 }
@@ -98,7 +92,7 @@ add-type -TypeDefinition  @"
 Foreach ($iloIP in $iloIPs) {
     # Capture of the SSO Session Key
  
-    $ilosessionkey = (Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+    $ilosessionkey = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-OVIloSso -IloRestSession)."X-Auth-Token"
  
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
@@ -130,4 +124,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt
