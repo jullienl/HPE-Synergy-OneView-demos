@@ -34,19 +34,17 @@
 #################################################################################
 
 
-# Composer information
+# OneView information
 $username = "Administrator"
-$password = "password"
 $IP = "composer.lj.lab"
-
-
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
 # Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
-                
-import-OVSSLCertificate
+
+Clear-Host
 
 
 # Capture iLO IP adresses managed by OneView
@@ -65,8 +63,11 @@ if ($iloIPs) {
 
 # Capture iLO Administrator account password
 $Defaultadmpassword = "password"
-write-host ""
-$admpassword = Read-Host "Please enter the password you want to assign to all iLos for the user Administrator [$($Defaultadmpassword)]"
+$secuadmpassword = Read-Host "Please enter the password you want to assign to all iLos for the user Administrator [$($Defaultadmpassword)]" -AsSecureString
+
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secuadmpassword)
+$admpassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+
 $admpassword = ($Defaultadmpassword, $admpassword)[[bool]$admpassword]
 
 #Creation of the body content to pass to iLO
