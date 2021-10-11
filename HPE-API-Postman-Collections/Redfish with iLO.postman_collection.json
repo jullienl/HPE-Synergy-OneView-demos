@@ -1003,6 +1003,63 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "POST iLO Factory Reset Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ResetType\" : \"Default\"\r\n}"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/Actions/Oem/Hp/HpiLO.ResetToFactoryDefaults/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"Actions",
+								"Oem",
+								"Hp",
+								"HpiLO.ResetToFactoryDefaults",
+								""
+							]
+						},
+						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+					},
+					"response": []
 				}
 			]
 		},
@@ -3918,6 +3975,233 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "GET TLS Config",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/bios/tlsconfig",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"bios",
+										"tlsconfig"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH TLS Config to TLS 1.2",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"ProtocolVersion\": \"1.2\"\r\n} "
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/bios/tlsconfig/settings",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"bios",
+										"tlsconfig",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH TLS Config to specific Ciphers",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"Ciphers\": \"AES128-SHA:AES256-SHA\"\r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/bios/tlsconfig/settings",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"bios",
+										"tlsconfig",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH TLS Default Config",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"BaseConfig\": \"Default\"\r\n}"
+								},
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/bios/tlsconfig/settings",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"bios",
+										"tlsconfig",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET TLS Config - Pending Settings",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/bios/tlsconfig/settings",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"bios",
+										"tlsconfig",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET TLS Config - Default Settings",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "OData-Version",
+										"value": "4.0"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Auth-Token",
+										"value": "{{Token}}"
+									}
+								],
+								"url": {
+									"raw": "{{iloURI}}/redfish/v1/Systems/1/bios/tlsconfig/baseconfigs",
+									"host": [
+										"{{iloURI}}"
+									],
+									"path": [
+										"redfish",
+										"v1",
+										"Systems",
+										"1",
+										"bios",
+										"tlsconfig",
+										"baseconfigs"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				},
@@ -6804,6 +7088,72 @@
 					"response": []
 				},
 				{
+					"name": "Get iLO - /v1/chassis",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"//Get IP Address\r",
+									"var IPv4Address =  jsonData.IPv4Addresses[0].Address;\r",
+									"\r",
+									"//Display in test results\r",
+									"tests[\"iLO IPv4 address = \" + IPv4Address ] = true; \r",
+									"\r",
+									"//Get IP Address Origin\r",
+									"var IPv4AddressOrigin =  jsonData.IPv4Addresses[0].AddressOrigin;\r",
+									"\r",
+									"//Display in test results\r",
+									"tests[\"iLO IPv4 address mode = \" + IPv4AddressOrigin ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/chassis",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"chassis"
+							]
+						},
+						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+					},
+					"response": []
+				},
+				{
 					"name": "POST iLO Reset",
 					"event": [
 						{
@@ -6851,6 +7201,63 @@
 								"1",
 								"Actions",
 								"Manager.Reset"
+							]
+						},
+						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"
+					},
+					"response": []
+				},
+				{
+					"name": "POST iLO Factory Reset",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ResetType\" : \"Default\"\r\n}"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Managers/1/Actions/Oem/Hpe/HpeiLO.ResetToFactoryDefaults/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Managers",
+								"1",
+								"Actions",
+								"Oem",
+								"Hpe",
+								"HpeiLO.ResetToFactoryDefaults",
+								""
 							]
 						},
 						"description": "Trying to patch iLO NIC to DHCP. To come back:\n{\n\"IPv4Addresses\": [\n        {\n            \"Address\": \"172.16.50.99\",\n            \"AddressOrigin\": \"Static\",\n            \"Gateway\": \"172.16.50.254\",\n            \"SubnetMask\": \"255.255.255.0\"\n        }\n    ]\n}"

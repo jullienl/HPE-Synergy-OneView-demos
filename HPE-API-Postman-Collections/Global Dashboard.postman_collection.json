@@ -11,7 +11,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "d0c91a93-a3a1-4136-8246-6a91313140a2",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"postman.setEnvironmentVariable(\"GDsessionID\", jsonData.sessionID);"
@@ -58,7 +57,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "ff372d2e-20e0-4518-9898-2750d0b46d43",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -108,7 +106,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "2f0d2ff7-a4b4-418d-906b-af2b0cc5b902",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -202,6 +199,5 @@
 			},
 			"response": []
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

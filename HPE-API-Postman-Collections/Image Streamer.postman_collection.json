@@ -11,7 +11,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "42b0947f-cfd9-4dbb-96da-fe96304cfdfe",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
@@ -57,7 +56,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "8ebc5e5c-fc31-414e-a12c-11d68c759e6b",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -107,7 +105,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "5d5efd82-c1f2-4db8-8820-a072853172b6",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);",
 							"",
@@ -170,7 +167,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "dd045272-17e4-4dc5-b819-c10aa08bf8f0",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -225,7 +221,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "23854195-f389-4ebe-aa6e-e66052a7e2c5",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -286,7 +281,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "16b27008-59c0-4f5e-9b18-de5b2485a6df",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"\r",
@@ -427,7 +421,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "9fdf4021-16c0-42b9-867c-38d819fc7e31",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -437,13 +430,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "bb6b16b2-e494-4c72-acb8-e32df23b1c5f",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

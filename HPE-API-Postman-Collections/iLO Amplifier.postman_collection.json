@@ -11,7 +11,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "6f27b9ec-bac2-4b57-9896-c4b9f00ca80d",
 						"exec": [
 							"var token = postman.getResponseHeader(\"X-Auth-Token\");\r",
 							"\r",
@@ -36,10 +35,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"Password\":\"{{Password}}\",\r\n\"UserName\":\"{{Username}}\"\r\n}",
-					"options": {
-						"raw": {}
-					}
+					"raw": "{\r\n\"Password\":\"{{Password}}\",\r\n\"UserName\":\"{{Username}}\"\r\n}"
 				},
 				"url": {
 					"raw": "https://{{ILO_Amplifier}}/redfish/v1/SessionService/Sessions/",
@@ -65,7 +61,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "20fdfa38-7ea5-4562-b9c7-7a7ba4126b9f",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
@@ -94,10 +89,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {}
-					}
+					"raw": ""
 				},
 				"url": {
 					"raw": "https://{{ILO_Amplifier}}/redfish/v1/AggregatorService/ManagedSystems",
@@ -122,7 +114,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "f34be759-f43c-4486-8cba-e059359ec352",
 						"exec": [
 							"var jsonData = JSON.parse(responseBody);\r",
 							"postman.setEnvironmentVariable(\"sessionID\", jsonData.sessionID);"
@@ -151,10 +142,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {}
-					}
+					"raw": ""
 				},
 				"url": {
 					"raw": "https://{{ILO_Amplifier}}/redfish/v1/Managers",
@@ -178,7 +166,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "aa413478-9257-4584-86ca-938a09cd5c1b",
 						"exec": [
 							""
 						],
@@ -205,10 +192,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n\"ManagerAddress\":\"{iLOAddress}\",\r\n\"UserName\":\"{iLOUsername}\",\r\n\"Password\":\"{iLOPassword}\"\r\n}",
-					"options": {
-						"raw": {}
-					}
+					"raw": "{\r\n\"ManagerAddress\":\"{iLOAddress}\",\r\n\"UserName\":\"{iLOUsername}\",\r\n\"Password\":\"{iLOPassword}\"\r\n}"
 				},
 				"url": {
 					"raw": "https://{{ILO_Amplifier}}/redfish/v1/AggregatorService/ManagedSystems/ ",
@@ -228,6 +212,5 @@
 			},
 			"response": []
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
