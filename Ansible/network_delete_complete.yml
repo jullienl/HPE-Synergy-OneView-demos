@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  collections:
+    - hpe.oneview
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    network_name: 'Ansible-Network'
+    LIG: 'LIG-MLAG' 
+    Uplinkset: 'MLAG-Nexus'
+    NetworkSet: 'Production_network_set'
+    logical_interconnect_name: 'LE-LIG-MLAG'
+    # network_scope_uris:
+    #   - '/rest/scopes/63d1ca81-95b3-41f1-a1ee-f9e1bc2d635f'
+    #   - '/rest/scopes/96661df3-fb4f-4617-a1fb-d6f11adf18d3'
+    new_uplinkset_uris: []
+
+  tasks:
+  - name: Delete the Ethernet Network
+    oneview_ethernet_network:
+      config: "{{ config }}"
+      state: absent
+      data:
+        name: '{{ network_name }}'
+    delegate_to: localhost
+    register: deleted
+
+  - name: Result of the delete network task
+    debug: msg="{{ deleted.msg }}"
+

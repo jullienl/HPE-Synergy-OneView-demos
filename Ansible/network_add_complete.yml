@@ -1,0 +1,96 @@
+---
+- hosts: localhost
+  collections:
+    - hpe.oneview
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    network_name: 'Ansible-Network'
+    LIG: 'LIG-MLAG' 
+    Uplinkset: 'MLAG-Nexus'
+    NetworkSet: 'Production_network_set'
+    logical_interconnect_name: 'LE-LIG-MLAG'
+    new_uplinkset_uris: []
+
+  tasks:
+    - name: Create Ethernet Network '{{ network_name }}'
+      oneview_ethernet_network:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: '{{ network_name }}'
+          vlanId: 200
+          ethernetNetworkType: Tagged
+          purpose: General
+          smartLink: false
+          privateNetwork: false
+          bandwidth:
+              maximumBandwidth: 2000
+              typicalBandwidth: 1000
+
+    # - debug: var=ethernet_network
+
+    - name: Store network URI
+      set_fact:
+        network_uri: "{{ ethernet_network.uri  }}"
+
+    - debug: var=network_uri   
+
+    - name: Gather facts about the Uplink Set '{{ Uplinkset }}'
+      oneview_uplink_set_facts:
+        config: "{{ config }}"
+        name: '{{ Uplinkset }}'
+
+    - debug: var=uplink_sets
+    
+    - name: Store uplink set URIs
+      set_fact:
+        uplinkset_uris: "{{ (uplink_sets | map(attribute='networkUris') | list)[0] }}"
+
+    - debug: var=uplinkset_uris
+
+    - name: Set a new variable for the new uplink set uris
+      set_fact:
+        new_uplinkset_uris: "{{uplinkset_uris}}"
+
+    - name: Append new network uri to new uplink set uris list
+      set_fact:
+        new_uplinkset_uris: "{{ new_uplinkset_uris + [ network_uri ] }}"
+
+    - debug: var=new_uplinkset_uris
+
+
+    - name: Modify the Logical Interconnect Group '{{ LIG }}' with new uplinkSet URIs definition
+      oneview_logical_interconnect_group:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: "{{ LIG }}"
+          uplinkSets:
+            - name: "{{ Uplinkset }}"
+              networkUris: "{{ new_uplinkset_uris }} "
+              networkType: "Ethernet"
+              ethernetNetworkType: "Tagged"
+              mode: "Auto"
+
+    - name: Gather facts about the Logical Interconnect '{{ logical_interconnect_name }}'
+      oneview_logical_interconnect_facts:
+        config: "{{ config }}"
+        name: "{{ logical_interconnect_name }}"
+
+
+    #- debug: msg="{{ logical_interconnects['consistencyStatus'] }}"
+    - set_fact: li_consistencyStatus={{ logical_interconnects['consistencyStatus'] }}
+
+    - name: Update the logical interconnect '{{ logical_interconnect_name }}' from logical interconnect group '{{ LIG }}'
+      when: li_consistencyStatus != "CONSISTENT"
+      oneview_logical_interconnect:
+        config: "{{ config }}"
+        state: compliant
+        data:
+          name: "{{ logical_interconnect_name }}"
+      register: result
+
+    - name: Result of the update from group task
+      when: li_consistencyStatus != "CONSISTENT"
+      debug: msg="{{ result.msg }}"
+

@@ -1,0 +1,31 @@
+---
+- name: Ansible OneView Synergy Dynamic Invertory Example
+  hosts: localhost
+  collections:
+    - hpe.oneview
+  gather_facts: no
+
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    name: "Management-Nexus"
+
+  tasks:
+  - name: Gather facts about all Ethernet Networks
+    oneview_ethernet_network_facts:
+      config: "{{ playbook_dir }}/oneview_config.json"
+      name: "{{ name }}"
+      options:
+        - associatedProfiles
+        - associatedUplinkGroups
+    delegate_to: localhost
+
+  #- debug: var=ethernet_networks
+  
+  # - debug: msg="{{ ethernet_networks | map(attribute='name') | list }}"
+  - debug: msg="{{ enet_associated_profiles | map(attribute='name') | list }}"
+  - debug: msg="{{ enet_associated_uplink_groups | map(attribute='name') | list }}"
+  #- debug: var=enet_associated_uplink_groups
+  
+  
+
+

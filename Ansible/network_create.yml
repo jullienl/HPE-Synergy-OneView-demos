@@ -1,0 +1,65 @@
+---
+- hosts: localhost
+  collections:
+    - hpe.oneview
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    network_name: "Management10"
+    vlan_id: "10"
+    purpose: "Management"
+  tasks:
+    - name: Create Ethernet network
+      oneview_ethernet_network:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: "{{ network_name }}"
+          vlanId: "{{ vlan_id }}"
+          purpose: "{{ purpose }}"
+          smartLink: false
+          privateNetwork: false
+          bandwidth:
+              maximumBandwidth: 2000
+              typicalBandwidth: 1000
+
+    - name: Create Ethernet Networks in bulk
+      vars:
+        vlan_ranges:
+          Production:
+            vlan_range: 100-110
+            purpose: General
+          Development:
+            vlan_range: 200-210
+            purpose: General
+      oneview_ethernet_network:
+        config: "{{ config }}"
+        state: present
+        data:
+          vlanIdRange: "{{ item.value.vlan_range }}"
+          purpose: "{{ item.value.purpose }}"
+          namePrefix: "{{ item.key }}"
+          smartLink: false
+          privateNetwork: false
+          bandwidth:
+              maximumBandwidth: 10000
+              typicalBandwidth: 2000
+      delegate_to: localhost
+      loop: "{{ vlan_ranges|dict2items }}"
+
+    - name: Create two Fibre Channel networks
+      vars:
+        fc_networks:
+          - VSAN20
+          - VSAN21
+      oneview_fc_network:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: "{{ item }}"
+          connectionTemplateUri: Null
+          autoLoginRedistribution: True
+          linkStabilityTime: 30
+          fabricType: "FabricAttach"
+      loop: "{{ fc_networks }}"
+
+

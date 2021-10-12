@@ -1,6 +1,8 @@
 ---
 - name: Ansible OneView Synergy playbook to remove deployed servers using Image Streamer
-  hosts: SLES
+  hosts: RHEL
+  collections:
+    - hpe.oneview
   gather_facts: no
   vars:
     - config: "{{ playbook_dir }}/oneview_config.json"

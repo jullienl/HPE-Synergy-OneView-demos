@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  collections:
+    - hpe.oneview
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    # set the name of an existent server profile to run this example
+    # server_profile_name: "RHEl76"
+    # # set the uri of an existent enclosure group to run this example
+    # enclosure_group_uri: '/rest/enclosure-groups/0f2a3f46-36ad-4c8f-9e88-763c062855d3'
+    # # set the uri of an existent server hardware type to run this example
+    # server_hardware_type_uri: '/rest/server-hardware-types/1A7C413B-6677-49A6-B435-09A71490EBB4'
+    # # set the ID of an existent storage system to run this example
+    # storage_system_id: "MXN6122CVA"
+  tasks:
+  - name: Gather paginated, filtered and sorted facts about Server Hardware
+    oneview_server_hardware_facts:
+      config: "{{ config }}"
+      params:
+        start: 0
+        count: 1
+        sort: name:ascending
+        filter: uidState='Off'
+    delegate_to: localhost
+
+  # - debug: msg= "{{server_hardwares | map(attribute='name') | list }}"
+  #- debug: msg="{{server_hardwares }}"
+
+  - name: Display multi fields - Make sure to filter to one element
+    debug: 
+      msg: "Name: {{server_hardwares | map(attribute='name') | list }} - SN: {{server_hardwares | map(attribute='serialNumber') | list }}"
