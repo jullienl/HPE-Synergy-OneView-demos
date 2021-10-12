@@ -1,6 +1,8 @@
 ---
 - name: Ansible OneView Synergy playbook to deploy Compute Module(s) using a Server Profile Template
   hosts: RHEL
+  collections:
+    - hpe.oneview  
   gather_facts: no
   vars:
     - config: "{{ playbook_dir }}/oneview_config.json"

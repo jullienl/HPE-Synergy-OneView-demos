@@ -1,7 +1,7 @@
 {
     "ip": "192.168.1.110",
     "image_streamer_ip": "192.168.3.181",
-    "api_version": 800,
+    "api_version": 3200,
     "credentials": {
         "userName": "administrator",
         "authLoginDomain": "",

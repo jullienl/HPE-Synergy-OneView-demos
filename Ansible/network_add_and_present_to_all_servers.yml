@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Add a network resource to a Synergy environment and present that network to all Compute Modules using a Network Set.
+  hosts: localhost
   collections:
     - hpe.oneview
   vars:

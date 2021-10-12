@@ -1,8 +1,18 @@
 ---
-- hosts: localhost
+- name: Gather information about OneView version and about server hardware and network resources
+  hosts: localhost
+  collections:
+    - hpe.oneview
   vars:
     - config: "{{ playbook_dir }}/oneview_config.json"
   tasks:
+    - name: Gather facts about current and minimum Version
+      oneview_version_facts:
+        config: "{{ config }}"
+      delegate_to: localhost
+
+    - debug: var=version
+
     - name: Gather paginated, filtered and sorted facts about Server Hardware
       oneview_server_hardware_facts:
         config: "{{ config }}"

@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Gather facts about the server profile names in HPE OneView
+  hosts: localhost
   collections:
     - hpe.oneview
   vars:
@@ -18,5 +19,5 @@
         config: "{{ config }}"
       delegate_to: localhost
 
-    #- debug: msg="{{server_profiles | map(attribute='name') | list }}"
-    - debug: var=server_profiles
+    - debug: msg="{{server_profiles | map(attribute='name') | list }}"
+    #- debug: var=server_profiles

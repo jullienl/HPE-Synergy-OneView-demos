@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Delete a network resource from a Synergy environment and unpresents this network to all Compute Modules using a Network Set.
+  hosts: localhost
   collections:
     - hpe.oneview
   vars:

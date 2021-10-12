@@ -1,5 +1,5 @@
 ---
-- name: Ansible OneView Synergy Dynamic Invertory Example
+- name: Gather server profile resources connected to an Ethernet Network
   hosts: localhost
   collections:
     - hpe.oneview
@@ -10,7 +10,7 @@
     name: "Management-Nexus"
 
   tasks:
-  - name: Gather facts about all Ethernet Networks
+  - name: Gather facts about an Ethernet Network and associated profiles resources
     oneview_ethernet_network_facts:
       config: "{{ playbook_dir }}/oneview_config.json"
       name: "{{ name }}"

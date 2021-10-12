@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Gather name and serial number of the first server hardware resources in HPE OneView
+  hosts: localhost
   collections:
     - hpe.oneview
   vars:

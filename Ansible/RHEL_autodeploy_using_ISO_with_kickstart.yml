@@ -1,5 +1,5 @@
 ---
-- name: Ansible OneView Synergy playbook to deploy Gen9/Gen10 Compute Module(s) using a Server Profile Template
+- name: Perform an automated RHEL8.3 installation on a Gen10 Synergy Module using a kickstart and a OneView Server Profile Template
   hosts: localhost
   collections:
     - hpe.oneview

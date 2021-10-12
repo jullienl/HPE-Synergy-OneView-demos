@@ -1,0 +1,57 @@
+---
+- name: Ansible OneView Synergy playbook to deploy Compute Module(s) using a Server Profile Template
+  hosts: ESX
+  collections:
+    - hpe.oneview
+  gather_facts: no
+
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+    server_template: "ESXi7-I3S"
+
+  tasks:
+  - name: Creating Server Profile [{{ inventory_hostname }}] from Server Profile Template [{{ server_template }}]
+    oneview_server_profile:
+      config: "{{ config }}"
+      data:
+        serverProfileTemplateName: "{{ server_template }}"
+        name: "{{ inventory_hostname }}"
+        # serverHardwareUri: "/rest/server-hardware/39313738-3234-584D-5138-323830343848"
+        # server_hardware: Encl1, bay 12
+        # If any hardware was informed, it will try get one available automatically
+      params: 
+        force: True
+    delegate_to: localhost
+    register: result
+
+  - name: Task result of the Server Profile(s) creation
+    debug:
+      msg: "{{ result.msg }}"
+
+  - name: Powering on the Compute Module(s)
+    oneview_server_hardware:
+      config: "{{ config }}"
+      state: power_state_set
+      data:
+        name: "{{ server_hardware.name }}"
+        powerStateData:
+          powerState: "On"
+          powerControl: "MomentaryPress"
+    delegate_to: localhost
+    register: result
+
+  - name: Task result of the Compute Module Power on
+    debug:
+      msg: "{{ result.msg }}"
+
+  - name: Collecting Compute Module(s) information
+    oneview_server_profile_facts:
+      config: "{{ config }}"
+      name: "{{ inventory_hostname }}"
+    delegate_to: localhost
+
+  #- debug: var=server_profiles
+
+  - name: Displaying IP address(s) assigned to the Compute module(s)
+    debug:
+      msg: "{{ (server_profiles | map(attribute='osDeploymentSettings.osCustomAttributes') | list )[0] | selectattr('name', 'equalto', 'ManagementNIC.ipaddress') | map(attribute='value') | list }}"

@@ -1,5 +1,5 @@
 ---
-- name: Ansible OneView Synergy playbook to remove deployed servers using Image Streamer
+- name: Ansible OneView Synergy playbook to remove deployed servers  
   hosts: RHEL
   collections:
     - hpe.oneview

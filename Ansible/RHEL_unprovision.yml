@@ -1,17 +1,22 @@
 ---
-- name: Ansible OneView Synergy playbook to remove deployed servers  
-  hosts: RHEL
+- name: Ansible OneView Synergy playbook to remove deployed servers 
+  hosts: localhost
+  collections:
+    - hpe.oneview
   gather_facts: no
   vars:
-    - config: "{{ playbook_dir }}/oneview_config.json"
+    - config: "{{ playbook_dir }}/composer1_config.json"
 
   tasks:
+    - set_fact: 
+        hostname="RHEL-1_Ansible_deployment"
+
     - name : Getting server profile(s) information
       oneview_server_profile:
          config: "{{ config }}"
          state: "present"
          data:
-            name: "{{ inventory_hostname }}"
+            name: "{{ hostname }}"
       delegate_to: localhost
 
     #- debug: var=server_hardware
@@ -27,10 +32,10 @@
                 powerControl: "PressAndHold"
       delegate_to: localhost
 
-    - name: Deleting Server Profile [{{ inventory_hostname }}]
+    - name: Deleting Server Profile [{{ hostname }}]
       oneview_server_profile:
         config: "{{ config }}"
         state: "absent"
         data:
-          name: "{{ inventory_hostname }}"
+          name: "{{ hostname }}"
       delegate_to: localhost
