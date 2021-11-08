@@ -143,7 +143,7 @@
 					"response": []
 				},
 				{
-					"name": "Get - Alerts active from last month Copy",
+					"name": "Get - Alerts active between two dates",
 					"event": [
 						{
 							"listen": "test",
@@ -225,7 +225,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://{{composer}}/rest/alerts?filter=\"alertState EQ 'Active'\"&filter=\"created < 2021-07-13T15:45:50.122Z\"",
+							"raw": "https://{{composer}}/rest/alerts?filter=\"alertState NE 'Active'\"&filter=\"created < 2021-07-13T15:45:50.122Z\"",
 							"protocol": "https",
 							"host": [
 								"{{composer}}"
@@ -237,7 +237,7 @@
 							"query": [
 								{
 									"key": "filter",
-									"value": "\"alertState EQ 'Active'\""
+									"value": "\"alertState NE 'Active'\""
 								},
 								{
 									"key": "filter",
@@ -327,16 +327,323 @@
 							}
 						],
 						"url": {
-							"raw": "https://{{composer}}/rest/alerts",
+							"raw": "https://{{composer}}/rest/tasks",
 							"protocol": "https",
 							"host": [
 								"{{composer}}"
 							],
 							"path": [
 								"rest",
-								"alerts"
+								"tasks"
 							]
 						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Appliance",
+			"item": [
+				{
+					"name": "Get Global Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/global-settings",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"global-settings"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appliance Node Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/nodeinfo/status",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"nodeinfo",
+								"status"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appliance HA Node Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/ha-nodes",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"ha-nodes"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appliance version",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/nodeinfo/version",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"nodeinfo",
+								"version"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appliance Hardware configuration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/hw-appliances",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"hw-appliances"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appliance IP and State Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/nodeinfo/version",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"nodeinfo",
+								"version"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appliance Health status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/health-status",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"health-status"
+							]
+						},
+						"description": "Login Session"
 					},
 					"response": []
 				}
@@ -4982,6 +5289,53 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get-Server-Hardware : Frame 4 bay3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/server-hardware/?filter=\"name EQ 'Frame4, bay 3'\"",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-hardware",
+								""
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "\"name EQ 'Frame4, bay 3'\""
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -5069,6 +5423,54 @@
 							"path": [
 								"rest",
 								"server-profiles"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profiles - Filter name ESXi-Ansible",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profiles?filter=\"name EQ 'rhel-Ansible'\"",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profiles"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "\"name EQ 'rhel-Ansible'\""
+								}
 							]
 						},
 						"description": "Login Session"

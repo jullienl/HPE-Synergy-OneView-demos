@@ -7347,6 +7347,194 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "iLO_Conposer",
+			"item": [
+				{
+					"name": "Create Session with iLO Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.set(\"Token\", postman.getResponseHeader(\"X-Auth-Token\"));",
+									"pm.environment.set(\"SessionLocation\", postman.getResponseHeader(\"Location\"));",
+									"",
+									"// To see the console, go to View / Show Postman Console",
+									"console.log(\"Token:\", pm.variables.get(\"Token\")); ",
+									"console.log(\"SessionLocation:\", pm.variables.get(\"SessionLocation\")); ",
+									"",
+									"//Display in session creation results",
+									"tests[\"iLO session token = \" + pm.environment.get(\"Token\") ] = true; "
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"UserName\": \"{{iloUser}}\",\n\"Password\": \"{{iloPasswd}}\"}\n"
+						},
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/SessionService/Sessions/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"SessionService",
+								"Sessions",
+								""
+							]
+						},
+						"description": "Get Session Token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get RedFish system",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								""
+							]
+						},
+						"description": "Get the list of all the Redfish services, at root level"
+					},
+					"response": []
+				},
+				{
+					"name": "Get DiskDrives list",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/SmartStorage/ArrayControllers/1/DiskDrives",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								"SmartStorage",
+								"ArrayControllers",
+								"1",
+								"DiskDrives"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get DiskDrives information",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "OData-Version",
+								"value": "4.0",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Auth-Token",
+								"value": "{{Token}}"
+							}
+						],
+						"url": {
+							"raw": "{{iloURI}}/redfish/v1/Systems/1/SmartStorage/ArrayControllers/1/DiskDrives/4",
+							"host": [
+								"{{iloURI}}"
+							],
+							"path": [
+								"redfish",
+								"v1",
+								"Systems",
+								"1",
+								"SmartStorage",
+								"ArrayControllers",
+								"1",
+								"DiskDrives",
+								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

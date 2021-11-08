@@ -1,0 +1,101 @@
+{
+	"info": {
+		"_postman_id": "2c3f16c8-d4ac-4541-9339-bd0508cef77a",
+		"name": "HPE-Synergy-Software-Releases-API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET Releases",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://hpe-synergy-software-api.herokuapp.com/synergyManagementCombinations",
+					"protocol": "https",
+					"host": [
+						"hpe-synergy-software-api",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"synergyManagementCombinations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Releases For 6.30",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://hpe-synergy-software-api.herokuapp.com/synergyManagementCombinations?composer=6.30",
+					"protocol": "https",
+					"host": [
+						"hpe-synergy-software-api",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"synergyManagementCombinations"
+					],
+					"query": [
+						{
+							"key": "composer",
+							"value": "6.30"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Releases For 6.00",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://hpe-synergy-software-api.herokuapp.com/synergyManagementCombinations?composer=6.00",
+					"protocol": "https",
+					"host": [
+						"hpe-synergy-software-api",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"synergyManagementCombinations"
+					],
+					"query": [
+						{
+							"key": "composer",
+							"value": "6.00"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET OS Support",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://hpe-synergy-software-api.herokuapp.com/synergyOsSupport",
+					"protocol": "https",
+					"host": [
+						"hpe-synergy-software-api",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"synergyOsSupport"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
