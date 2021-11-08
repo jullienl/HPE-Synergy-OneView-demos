@@ -150,7 +150,7 @@ $removecerttask = Get-OVApplianceTrustedCertificate -Name $SH.mpHostInfo.mpHostN
 sleep 10
 
 # Add new iLO self-signed certificate to OneView trust store
-$addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete
+$addcerttask = Add-OVApplianceTrustedCertificate -ComputerName ($SH.mpHostInfo.mpIpAddresses | ? address -match fe80 | % address)  -force | Wait-OVTaskComplete
 
 if ($addcerttask.taskstate -eq "Completed" ) {
     write-host "New iLO self-signed certificate added successfully to the OneView trust store !"   
