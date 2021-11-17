@@ -6,12 +6,12 @@
 # - Server(s) must be under the control of a HPE OneView Server Profile
 # - The SSH public key of the Ansible control node must be present in .ssh/authorized_keys on host(s) you wish to upgrade
 
-# This playbook:
-# - installs AMS/iSUT on the inventory host or hosts if they are not already present.
+# This playbook performs the following steps on each inventory host:
+# - installs AMS/iSUT if they are not already installed
 # - configures iSUT mode to allow OS driver updates via HPE OneView Server Profile
 # - updates the OneView Server Profile to enable Firmware and OS Drivers upgrades using iSUT 
 # - updates the OneView Server Profile to use the defined baseline
-# - Monitors the status of the upgrade process 
+# - monitors the status of the upgrade process 
 # - reboots the inventory host for HPE drivers/firmware activation and waits for it to reboot
 # - displays an installation complete message once the server is back online
 
