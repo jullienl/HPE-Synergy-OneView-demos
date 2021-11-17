@@ -1,0 +1,139 @@
+---
+# This playbook can be used to perform an automated installation/upgrade of HPE firmware and drivers on RHEL
+# Requirement: 
+# - Synergy Service Package must be present in the HPE Oneview repository
+# - AMS and iSUT packages must be present in the files folder of the Ansible project
+# - Server(s) must be under the control of a HPE OneView Server Profile
+# - The SSH public key of the Ansible control node must be present in .ssh/authorized_keys on host(s) you wish to upgrade
+
+# This playbook:
+# - installs AMS/iSUT on the inventory host or hosts if they are not already present.
+# - configures iSUT mode to allow OS driver updates via HPE OneView Server Profile
+# - updates the OneView Server Profile to enable Firmware and OS Drivers upgrades using iSUT 
+# - updates the OneView Server Profile to use the defined baseline
+# - Monitors the status of the upgrade process 
+# - reboots the inventory host for HPE drivers/firmware activation and waits for it to reboot
+# - displays an installation complete message once the server is back online
+
+- name: Perform an automated installation/upgrade of HPE firmware and drivers on RHEL
+  hosts: RHEL
+  collections:
+    - hpe.oneview
+  gather_facts: no
+  vars:
+    # HPE Synergy Composer configuration
+    - config: "{{ playbook_dir }}/oneview_config.json"
+
+    # Minimum Packages required for automated drivers and Firmware installation
+    # Must be located in files folder of the Ansible project
+    - AMS_package: "amsd-2.4.1-1571.8.rhel8.x86_64.rpm"
+    - iSUT_package: "sut-2.8.0-26.linux.x86_64.rpm"
+
+    # Synergy Service Pack must be present in Oneview repository
+    - synergy_service_pack_version: "SY-2021.11.01"
+
+  tasks:
+
+# Collecting facts on firmware baseline 
+    - name: Gather facts about Firmware bundles
+      oneview_firmware_driver_facts:
+        config: "{{ config }}"
+      delegate_to: localhost
+
+    # - debug: var=firmware_drivers
+
+    - name: Capture firmware bundle "{{ synergy_service_pack_version }}" uri
+      set_fact:
+        firmware_Baseline_Uri: "{{ (firmware_drivers | selectattr('version', 'equalto', synergy_service_pack_version) |  map(attribute='uri') | list)[0] }}"
+
+    # - debug: var=firmware_Baseline_Uri
+
+# Installing iSUT and AMS on the server for online installation of HPE drivers for RHEL
+
+    - name: Copying HPE iSUT rpm file to {{ inventory_hostname }} if not present
+      copy:
+        src: files/{{ iSUT_package }}
+        dest: /tmp/sut.rpm
+        mode: 0755
+ 
+    - name: Copying HPE AMS rpm file to {{ inventory_hostname }} if not present
+      copy:
+        src: files/{{ AMS_package }}
+        dest: /tmp/amsd.rpm
+        mode: 0755
+
+    - name: Installing iSUT if not installed
+      yum:
+        name: /tmp/sut.rpm
+        state: present
+        disable_gpg_check: yes
+      register: iSUT_install_status
+
+    # - debug: var=iSUT_install_status.changed      
+
+    - name: Installing AMS if not installed
+      yum:
+        name: /tmp/amsd.rpm
+        state: present
+        disable_gpg_check: yes
+ 
+    - name: Waiting for iSUT installation to complete if running
+      wait_for: 
+        timeout: 60
+      when: iSUT_install_status.changed == true
+      delegate_to: localhost
+
+    - name: Configuring iSUT mode to allow OS driver updates via HPE OneView Server Profile
+      command: 
+        sut -set mode=autodeploy 
+        #sut -set mode=AutoDeployReboot
+        #sut -set mode=AutoStage
+        #sut -set mode=OnDemand
+      register: sut_status
+
+    - debug: msg="{{ sut_status.stdout }}"
+
+# Changing the OneView Server Profile to enable OS drivers installation using the SSP/SPP.    
+
+    - name: Updating Server Profile to enable Firmware and OS Drivers using SUT and defined baseline {{ synergy_service_pack_version }}
+      oneview_server_profile:
+        config: "{{ config }}"
+        state: "present"
+        data:
+          name: "{{ inventory_hostname }}"
+          firmware:
+            firmwareInstallType: "FirmwareAndOSDrivers" 
+            # firmwareInstallType: "FirmwareOnlyOfflineMode"
+            firmwareBaselineUri: "{{ firmware_Baseline_Uri }}"
+      delegate_to: localhost
+      register: result
+
+    - debug: msg="{{ result.msg }}"
+
+# Waiting for HPE drivers to be installed
+
+    - name: Monitoring SUT status for 'reboot the system' message
+      oneview_server_hardware_facts:
+        config: "{{ config }}"
+        name: "{{ server_hardware.name }}"
+      retries: 50
+      delay: 30 
+      until:  server_hardwares.serverSettings.firmwareAndDriversInstallState.installState == "InstalledPendingReboot"
+      delegate_to: localhost
+    
+# Rebooting host for the HPE drivers/firmware activation
+
+    - name: Rebooting host for the HPE drivers/firmware activation and waiting for it to restart
+      reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 5
+        reboot_timeout: 2000
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+
+    - name: Displaying install completed message
+      debug: 
+        msg: 
+         - '{{ inventory_hostname }} Installation completed !'
+         - 'OS is running with updated HPE OS drivers and firmware.'
