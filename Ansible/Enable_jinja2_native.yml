@@ -1,0 +1,15 @@
+---
+# Add jinja2_native=True to the [defaults] section of the ansible.cfg 
+
+- name: Set Jinja2 Native to True to enable Jinja2 template to return Integer and not String as by default with Ansible
+  hosts: localhost
+  tasks:
+    - name: Add jinja2_native=True to the [defaults] section of the ansible.cfg 
+      lineinfile:
+        path: "/etc/ansible/ansible.cfg"
+        line: "jinja2_native=True"
+        insertafter: '(\[defaults])'
+        firstmatch: yes
+        state: present
+
+ 
