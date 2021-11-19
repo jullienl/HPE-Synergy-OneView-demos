@@ -2,7 +2,7 @@
 # This playbook can be used to perform an automated installation/upgrade of HPE firmware and drivers on RHEL
 # Requirement: 
 # - Synergy Service Package must be present in the HPE Oneview repository
-# - AMS and iSUT packages must be present in the files folder of the Ansible project
+# - AMS and iSUT packages must be present in the files/<RHEL_version> folder of the Ansible project
 # - Server(s) must be under the control of a HPE OneView Server Profile
 # - The SSH public key of the Ansible control node must be present in .ssh/authorized_keys on host(s) you wish to upgrade
 
@@ -24,12 +24,14 @@
     # HPE Synergy Composer configuration
     - config: "{{ playbook_dir }}/oneview_config.json"
 
+    # Folder located in <Ansible_project_dir>/files to store the RPM files
+    - rhel_version: "RHEL_8.3.0"
     # Minimum Packages required for automated drivers and Firmware installation
-    # Must be located in files folder of the Ansible project
     - AMS_package: "amsd-2.4.1-1571.8.rhel8.x86_64.rpm"
     - iSUT_package: "sut-2.8.0-26.linux.x86_64.rpm"
 
     # Synergy Service Pack must be present in Oneview repository
+    #- synergy_service_pack_version: "SY-2021.05.03"
     - synergy_service_pack_version: "SY-2021.11.01"
 
   tasks:
@@ -52,30 +54,34 @@
 
     - name: Copying HPE iSUT rpm file to {{ inventory_hostname }} if not present
       copy:
-        src: files/{{ iSUT_package }}
+        src: files/{{ rhel_version }}/{{ iSUT_package }}
         dest: /tmp/sut.rpm
         mode: 0755
  
     - name: Copying HPE AMS rpm file to {{ inventory_hostname }} if not present
       copy:
-        src: files/{{ AMS_package }}
+        src: files/{{ rhel_version }}/{{ AMS_package }}
         dest: /tmp/amsd.rpm
         mode: 0755
 
     - name: Installing iSUT if not installed
       yum:
         name: /tmp/sut.rpm
-        state: present
+        state: latest
         disable_gpg_check: yes
       register: iSUT_install_status
+      register: rpms
 
-    # - debug: var=iSUT_install_status.changed      
+    - debug: var=rpms.msg
 
     - name: Installing AMS if not installed
       yum:
         name: /tmp/amsd.rpm
-        state: present
+        state: latest
         disable_gpg_check: yes
+      register: rpms
+
+    - debug: var=rpms.msg
  
     - name: Waiting for iSUT installation to complete if running
       wait_for: 
@@ -105,6 +111,8 @@
             firmwareInstallType: "FirmwareAndOSDrivers" 
             # firmwareInstallType: "FirmwareOnlyOfflineMode"
             firmwareBaselineUri: "{{ firmware_Baseline_Uri }}"
+            # forceInstallFirmware: true
+
       delegate_to: localhost
       register: result
 
