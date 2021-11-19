@@ -35,7 +35,7 @@
     - iSUT_package: "sut-2.9.0-53.linux.x86_64.rpm"
 
     # Synergy Service Pack must be present in Oneview repository
-    #- synergy_service_pack_version: "SY-2021.05.03"
+    # - synergy_service_pack_version: "SY-2021.05.03"
     - synergy_service_pack_version: "SY-2021.11.01"
 
   tasks:
@@ -68,24 +68,23 @@
         dest: /tmp/amsd.rpm
         mode: 0755
 
-    - name: Installing iSUT if not installed
+    - name: Installing iSUT (if not installed)
       yum:
         name: /tmp/sut.rpm
-        state: latest
+        state: present
         disable_gpg_check: yes
       register: iSUT_install_status
-      register: rpms
 
-    - debug: var=rpms.msg
+    - debug: var=iSUT_install_status.msg   
 
-    - name: Installing AMS if not installed
+    - name: Installing AMS (if not installed)
       yum:
         name: /tmp/amsd.rpm
-        state: latest
+        state: present
         disable_gpg_check: yes
-      register: rpms
+      register: AMS_install_status
 
-    - debug: var=rpms.msg
+    - debug: var=AMS_install_status.msg
  
     - name: Waiting for iSUT installation to complete if running
       wait_for: 
