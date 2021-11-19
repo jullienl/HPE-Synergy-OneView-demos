@@ -93,30 +93,25 @@
         src: files/{{ esxi_build }}/{{ AMS_package }}
         dest: /tmp/amsd.vib
         mode: 0755
-      
+
+# AMS      
     - name: Searching for existing VIB AMS installation
-      shell: esxcli software vib list | grep amsd
+      shell: esxcli software vib list | grep -w amsd
       register: vibs
       changed_when: false
       ignore_errors: yes
 
     - debug: var=vibs.stdout
 
-    - name: Runing a removal if AMS is already installed
-      shell: esxcli software vib remove -n amsd
-      when: "'amsd' in vibs.stdout"
-
-    - name: Installing AMS
+    - name: Installing AMS (if not installed)
       shell: esxcli software vib install -v /tmp/amsd.vib
-
-    - name: Confirming AMS is installed
-      shell: esxcli software vib list | grep amsd
+      when: "'amsd' not in vibs.stdout"
       register: vibs
-      changed_when: false
-      ignore_errors: yes
 
     - debug: var=vibs.stdout  
+      when: vibs.stdout is defined
 
+# SUT
     - name: Searching for existing VIB SUT installation
       shell: esxcli software vib list | grep -w sut
       register: vibs
@@ -125,20 +120,13 @@
 
     - debug: var=vibs.stdout
 
-    - name: Running a removal if SUT is already installed
-      shell: esxcli software vib remove -n sut
-      when: "'sut' in vibs.stdout"
-
-    - name: Installing SUT
+    - name: Installing SUT (if not installed)
       shell: esxcli software vib install -v /tmp/sut.vib
-
-    - name: Confirming SUT is installed
-      shell: esxcli software vib list | grep -w sut
+      when: "'sut' not in vibs.stdout"
       register: vibs
-      changed_when: false
-      ignore_errors: yes
 
     - debug: var=vibs.stdout  
+      when: vibs.stdout is defined
 
     - name: Configuring iSUT mode to allow OS driver updates via HPE OneView Server Profile
       command: 
@@ -272,6 +260,8 @@
 
     - debug: var=status.msg
       when:  server_hardwares.serverSettings.firmwareAndDriversInstallState.installState == "Activated" 
+
+# Displaying the upgrade completion message 
 
     - name: Displaying message when components are already up-to-date
       debug: 
