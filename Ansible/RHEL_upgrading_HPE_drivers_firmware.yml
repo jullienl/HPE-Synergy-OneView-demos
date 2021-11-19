@@ -212,7 +212,7 @@
     - name: Displaying message when components are already up-to-date
       debug: 
         msg: 
-         - '{{ inventory_hostname }} upgrade not required !'
+         - 'No upgrade is needed for {{ inventory_hostname }}'
          - 'HPE firmware and/or OS drivers from {{ synergy_service_pack_version }} are already installed and activated on the server'
          - 'The server has been placed out of maintenance'
       when: server_up_to_date is defined
@@ -220,7 +220,7 @@
     - name: Displaying upgrade completed successfully message
       debug: 
         msg: 
-         - '{{ inventory_hostname }} upgrade completed successfuly !'
+         - 'The upgrade was successfully completed on {{ inventory_hostname }}'
          - 'HPE firmware and/or OS drivers from {{ synergy_service_pack_version }} are installed and activated on the server'
          - 'The server has been placed out of maintenance'
       when: 
@@ -230,7 +230,7 @@
     - name: Displaying upgrade error message
       debug: 
         msg: 
-         - '{{ inventory_hostname }} upgrade failure !'
+         - 'The upgrade ended with an error on {{ inventory_hostname }}'
          - "The installation state information of the firmware and/or OS drivers on the server is '{{ server_hardwares.serverSettings.firmwareAndDriversInstallState.installState }}'"
          - 'Check the OneView console for more information - The server has been kept in maintenance mode'
       when: >
