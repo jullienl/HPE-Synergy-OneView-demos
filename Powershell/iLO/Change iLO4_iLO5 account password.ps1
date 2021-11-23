@@ -9,7 +9,7 @@ Gen9 and Gen10 servers are supported.
 
 Requirements: 
 - Latest HPEOneView library
-- OneView administrator account.
+- OneView administrator account
 
 
   Author: lionel.jullien@hpe.com
@@ -49,11 +49,10 @@ $OV_IP = "composer.lj.lab"
 # Report to be generated in the execution directory
 $report = "output.txt"
 
-# MODULES TO INSTALL/IMPORT
+# MODULES TO INSTALL
 
-# HPEONEVIEW
-# If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.550 -scope Allusers -Force }
-# import-module HPEOneView.550
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
 
 
 ############################################################################################################################################
