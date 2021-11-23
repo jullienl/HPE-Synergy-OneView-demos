@@ -49,11 +49,11 @@ $OV_IP = "composer.lj.lab"
 # Report to be generated in the execution directory
 $report = "output.txt"
 
+
 # MODULES TO INSTALL
 
 # HPEOneView
 # If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
-
 
 ############################################################################################################################################
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
