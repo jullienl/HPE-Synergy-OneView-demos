@@ -63,52 +63,98 @@
 
 # Installing iSUT and AMS on the server for online installation of HPE drivers for Windows Server
 
-    - name: Collecting product_id found in install.xml file of the HPE iSUT package
+    - name: Checking if AMS is already installed
+      ansible.windows.win_powershell:
+        script: |
+          if (get-wmiobject -class Win32_Product | ? name -match "Agentless Management Service"){
+            $True
+          } 
+          else {
+            $False
+          }
+      register: result
+
+    # - debug: var=result.output[0]
+
+    - name: Capturing AMS installation state
+      set_fact: 
+        AMS_installed: "{{ result.output[0] }}"
+
+    # - debug: var=AMS_installed
+
+    - name: Checking if SUT is already installed
+      ansible.windows.win_powershell:
+        script: |
+          if (get-wmiobject -class Win32_Product | ? name -match "Smart Update Tool"){
+            $True
+          } 
+          else {
+            $False
+          }
+      register: result
+
+    # - debug: var=result.output[0]
+
+    - name: Capturing SUT installation state
+      set_fact: 
+        SUT_installed: "{{ result.output[0] }}"
+
+    # - debug: var=SUT_installed
+
+    - name: Collecting product_id found in install.xml file of the HPE iSUT package (if not installed)
       shell: |
         unzip -p files/{{ windows_version }}/{{ iSUT_package }} install.xml | grep "product id" | awk '{ print substr ($0, 16, 36 ) }'
       args:
         warn: false # To prevent warning
       register: iSUT_product_id  
       delegate_to: localhost
+      when: SUT_installed == "false"
 
-    - name: Collecting product_id found in install.xml file of the HPE AMS package
+    - name: Collecting product_id found in install.xml file of the HPE AMS package (if not installed)
       shell: |
         unzip -p files/{{ windows_version }}/{{ AMS_package }} install.xml | grep "product id" | awk '{ print substr ($0, 16, 36 ) }'
       args:
         warn: false # To prevent warning
       register: AMS_product_id  
       delegate_to: localhost
+      when: AMS_installed == "false"
 
       # - debug: msg='{{ iSUT_product_id.stdout }}'
       # - debug: msg='{{ AMS_product_id.stdout }}'
 
-    - name: Copying HPE iSUT package file to {{ inventory_hostname }}
+    - name: Copying HPE iSUT package file to {{ inventory_hostname }} (if not installed)
       win_copy:
         src: files/{{ windows_version }}/{{ iSUT_package }}
         dest: c:\Temp\sut.exe
+      when: SUT_installed == "false"
 
-    - name: Copying HPE AMS package file to {{ inventory_hostname }}
+    - name: Copying HPE AMS package file to {{ inventory_hostname }} (if not installed)
       win_copy:
         src: files/{{ windows_version }}/{{ AMS_package }}
         dest: c:\Temp\amsd.exe
-     
-    - name: Installing Integrated Smart Update Tools
+      when: AMS_installed == "false"
+
+    - name: Installing Integrated Smart Update Tools (if not installed)
       win_package:
         path: c:\Temp\sut.exe
         product_id: '{{ iSUT_product_id.stdout }}'
         arguments: /s
+        state: present
       register: SUT_install
       # failed_when is required because the installation of the package returns a false error.
       failed_when: "SUT_install.rc != 0 and SUT_install.rc != 1"
+      when: SUT_installed == "false"
 
-    - name: Installing HPE Agentless Management Service
+    - name: Installing HPE Agentless Management Service (if not installed)
       win_package:
         path: c:\Temp\amsd.exe 
         product_id: '{{ AMS_product_id.stdout }}'
         arguments: /s 
+        state: present
       register: AMS_install
       # failed_when is required because the installation of the package returns a false error.
       failed_when: "AMS_install.rc != 0 and AMS_install.rc != 1"
+      when: AMS_installed == "false"
  
     - name: Configuring iSUT mode to allow OS driver updates via HPE OneView Server Profile
       win_shell: 
@@ -232,7 +278,6 @@
         msg: 
          - 'No upgrade is needed for {{ inventory_hostname }}'
          - 'HPE firmware and/or OS drivers from {{ synergy_service_pack_version }} are already installed and activated on the server'
-         - 'The server has been placed out of maintenance'
       when: server_up_to_date is defined
               
     - name: Displaying upgrade completed successfully message
@@ -240,7 +285,6 @@
         msg: 
          - 'The upgrade was successfully completed on {{ inventory_hostname }}'
          - 'HPE firmware and/or OS drivers from {{ synergy_service_pack_version }} are installed and activated on the server'
-         - 'The server has been placed out of maintenance'
       when: 
         - server_hardwares.serverSettings.firmwareAndDriversInstallState.installState == "Activated"
         - server_up_to_date is not defined
@@ -250,7 +294,7 @@
         msg: 
          - 'The upgrade ended with an error on {{ inventory_hostname }}'
          - "The installation state information of the firmware and/or OS drivers on the server is '{{ server_hardwares.serverSettings.firmwareAndDriversInstallState.installState }}'"
-         - 'Check the OneView console for more information - The server has been kept in maintenance mode'
+         - 'Check the OneView console for more information'
       when: >
         (server_hardwares.serverSettings.firmwareAndDriversInstallState.installState == "ActivateFailed") 
         or 
