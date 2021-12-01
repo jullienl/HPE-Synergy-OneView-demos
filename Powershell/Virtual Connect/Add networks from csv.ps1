@@ -57,37 +57,89 @@
 
 # CSV File  
 $csvfile = "networks_creation.csv"
+$maximum_Bandwidth = 25000 # Maximum bandwidth: 25Gb/s
+$preferred_Bandwidth = 2500 # Preferred bandwidth: 2.5Gb/s
 
-#IP address of OneView
-$IP = "192.168.1.110" 
+$LIG = "LIG-MLAG"
+$Uplinkset = "MLAG-Nexus"
+$NetworkSet = "Production_Network_set"
 
-# OneView Credentials
-$username = "Administrator" 
-$password = "password"
 
-$LIG_UplinkSet = "M-LAG-Nexus"
-$networksetname = "Production_network_set"
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
 
 
 #################################################################################
 
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    write-warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
 
-# MODULES TO INSTALL/IMPORT
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# HPEONEVIEW
-If (-not (get-module HPEOneView.530 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
-import-module HPEOneView.530
 
-# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
-
-# Connection to the Synergy Composer
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+#################################################################################
 
 # Import of the CSV file containing VLAN name and VLAN ID
 $data = (Import-Csv $csvfile)
+
+
+# Testing resources defined
+try {
+    $networkset = Get-OVNetworkSet -Name $networksetname -Erroraction stop    
+}
+catch {
+    write-warning "Cannot find a network set resource named '$networksetname' ! Exiting... "
+    disconnect-ovMgmt 
+    return
+}
+
+
+try {
+    $MyLIG = Get-OVLogicalInterconnectGroup -Name $LIG -ErrorAction Stop
+}
+catch {
+    write-warning "Cannot find a Logical Interconnect group resource named '$LIG' ! Exiting... "
+    disconnect-ovMgmt 
+    return
+}
+
+
+$MyLI = ((Get-OVLogicalInterconnect) | where-object logicalInterconnectGroupUri -eq $MyLIG.uri) 
+
+if (-not $MyLI) {
+    
+    write-warning "Cannot find a Logical Interconnect resource used by '$LIG' ! Exiting... "
+    disconnect-ovMgmt 
+    return
+}
+
+$uplink_set = $MyLIG.uplinkSets | where-Object { $_.name -eq $uplinkset } 
+
+if (-not $uplink_set) {
+    
+    write-warning "Cannot find an uplink set resource named '$uplinkset' ! Exiting... "
+    disconnect-ovMgmt 
+    return
+}
+
 
 
 #################################################################################
@@ -95,46 +147,62 @@ $data = (Import-Csv $csvfile)
 #################################################################################
 
 #$LIGname = (Get-OVLogicalInterconnectGroup | where { $_.uri -eq (Get-OVLogicalInterconnect).logicalInterconnectGroupUri }).name
-$LIGURI = (Get-OVLogicalInterconnect).logicalInterconnectGroupUri
+# $LIGURI = (Get-OVLogicalInterconnect).logicalInterconnectGroupUri
 
 #$NewNetwork = Get-OVNetwork -Name "Produc*"  #Get the Network resource
 
-$LIG = Get-OVLogicalInterconnectGroup | Where-Object { $_.uri -eq $LIGURI }
+# $LIG = Get-OVLogicalInterconnectGroup | Where-Object { $_.uri -eq $LIGURI }
 
 
-if (!(($LIG | Measure-Object).Count -eq 1 )) { Write-Host "Failed to filter down to one LIG" -ForegroundColor Red | Break }
+# if (!(($LIG | Measure-Object).Count -eq 1 )) { Write-Host "Failed to filter down to one LIG" -ForegroundColor Red | Break }
 
 
 ForEach ($VLAN In $data) {
-    New-OVNetwork -Name $VLAN.NetName -Type Ethernet -VLANId $VLAN.VLAN_ID -SmartLink $True | out-Null
-    Write-host "`nCreating Network: " -NoNewline
-    Write-host -f Cyan ($VLAN.netName) -NoNewline
 
-    (($LIG.uplinkSets | where-object name -eq $LIG_UplinkSet | Where-Object { $_.ethernetNetworkType -eq "Tagged" }).networkUris) += (Get-OVNetwork -Name $VLAN.NetName).uri #Add NewNetwork to the networkUris Array
-    Write-host "`nAdding Network: " -NoNewline
-    Write-host -f Cyan ($VLAN.netName) -NoNewline
-    Write-host " to Uplink Set: " -NoNewline
-    Write-host -f Cyan $LIG_UplinkSet
+    try {
+        $network_present = get-ovnetwork -Name $VLAN.NetName -ErrorAction Stop 
+    }
+    catch {
+        $network_present = $false
+    }
+    
+    if ( $network_present) {
+        write-warning "Network '$($VLAN.NetName)' already exist ! Jumping to next one... "
+        continue
+    }
+    else {
+        
+        New-OVNetwork -Name $VLAN.NetName -Type Ethernet -VLANId $VLAN.VLAN_ID -VLANType "Tagged" -purpose General -typicalBandwidth $preferred_Bandwidth -maximumBandwidth $maximum_Bandwidth |  Out-Null
+        Write-host "Creating Network: " -NoNewline
+        Write-host -f Cyan ($VLAN.netName) -NoNewline
+
+        # Add new Network to the networkUris Array
+        
+        $uplink_Set.networkUris += (Get-OVNetwork -Name ($VLAN.NetName)).uri
+
+        Write-host " Adding Network: " -NoNewline
+        Write-host -f Cyan ($VLAN.netName) -NoNewline
+        Write-host " to Uplink Set: " -NoNewline
+        Write-host -f Cyan $uplinkset
+    }
 
 }
-
-
 
 try {
-    Set-OVResource $LIG -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
+    Set-OVResource $MyLIG -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
-    Write-Output $_ #.Exception
+    write-ouput $_ #.Exception
+    disconnect-ovMgmt 
+    return
 }
-
 
 
 #################################################################################
 #                            Updating LI from LIG                               #
 #################################################################################
 
-$LI = ((Get-OVLogicalInterconnect) | where-object logicalInterconnectGroupUri -eq $LIG.uri)
-
+$LI = ((Get-OVLogicalInterconnect) | where-object logicalInterconnectGroupUri -eq $MyLIG.uri)
 
 # Making sure the LI is not in updating state before we run a LI Update
 
@@ -154,7 +222,7 @@ until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcont
 
 Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
 Write-host -f Cyan $LIG.name
-Write-host "`nPlease wait..." 
+Write-host "Please wait..." 
 
 
 try {
@@ -169,43 +237,25 @@ catch {
 #                       Adding Network to Network Set                           #
 #################################################################################
 
-
-
-
 ForEach ($VLAN In $data) {
 
     Write-host "`nAdding Network: " -NoNewline
     Write-host -f Cyan ($VLAN.netName) -NoNewline
     Write-host " to NetworkSet: " -NoNewline
     Write-host -f Cyan $networksetname
-  
-    
-    $VLANuri = (Get-OVNetwork -Name $VLAN.NetName).uri
-    $networkset = Get-OVNetworkSet -Name $networksetname
-   
+         
     $networkset.networkUris += (Get-OVNetwork -Name $VLAN.NetName).uri
-
-  
-    try {
-        Set-OVNetworkSet $networkset -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
-    }
-    catch {
-        Write-Output $_
-    }
- 
- 
- 
-    if ( (Get-OVNetworkSet -Name $NetworkSetname).networkUris -ccontains $VLANuri) {
-        Write-host "`nThe network VLAN ID: " -NoNewline
-        Write-host -f Cyan $VLAN.NetName -NoNewline
-        Write-host " has been added successfully to all Server Profiles that are using the Network Set: " -NoNewline
-        Write-host -f Cyan $networksetname 
-    }
-    else {
-        Write-Warning "`nThe network VLAN ID: $($VLAN.VLAN_ID) has NOT been added successfully, check the status of your Logical Interconnect resource`n" 
-    }
-
 }
+
+try {
+    Set-OVNetworkSet $networkset -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
+}
+catch {
+    $error[0]
+}
+ 
+Write-host "`nAll $($data.count) networks have been added successfully to all Server Profiles that are using the Network Set: " -NoNewline
+Write-host -f Cyan $networksetname 
     
 Disconnect-OVMgmt
  
