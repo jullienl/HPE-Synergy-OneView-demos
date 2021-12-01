@@ -1,15 +1,33 @@
 ---
+# This playbook adds a network resource to a Synergy environment and presents this network to all Compute Modules using a Network Set.
+#
+#
+# Requirement:
+# - A network Set must be defined and presented to the Server Profiles
+#
+# This playbook performs the following steps:
+# - Creates a new ethernet network using the variables defined in the vars section
+# - Adds the new Ethernet network to the uplink set defined in the selected Logical Interconnect Group
+# - Updates the logical interconnect from the new logical interconnect group definition
+# - Adds the new ethernet network to the defined network set
+
 - name: Add a network resource to a Synergy environment and present that network to all Compute Modules using a Network Set.
   hosts: localhost
   collections:
     - hpe.oneview
   vars:
     config: "{{ playbook_dir }}/oneview_config.json"
-    network_name: 'Ansible-Network'
-    LIG: 'LIG-MLAG' 
-    Uplinkset: 'MLAG-Nexus'
-    NetworkSet: 'Production_network_set'
-    logical_interconnect_name: 'LE-LIG-MLAG'
+
+    # Network to add
+    network_name: "Network-200"
+    network_vlan_id: 200
+    maximum_Bandwidth: 25000 # Maximum bandwidth: 25Gb/s
+    preferred_Bandwidth: 2500 # Preferred bandwidth: 2.5Gb/s
+
+    LIG: "LIG-MLAG"
+    Uplinkset: "MLAG-Nexus"
+    NetworkSet: "Production_network_set"
+    logical_interconnect_name: "LE-LIG-MLAG"
     new_uplinkset_uris: []
 
   tasks:
@@ -18,15 +36,15 @@
         config: "{{ config }}"
         state: present
         data:
-          name: '{{ network_name }}'
-          vlanId: 200
+          name: "{{ network_name }}"
+          vlanId: "{{ network_vlan_id }}"
           ethernetNetworkType: Tagged
           purpose: General
           smartLink: false
           privateNetwork: false
           bandwidth:
-              maximumBandwidth: 2000
-              typicalBandwidth: 1000
+            maximumBandwidth: "{{ maximum_Bandwidth }}"
+            typicalBandwidth: "{{ preferred_Bandwidth }}"
 
     # - debug: var=ethernet_network
 
@@ -34,20 +52,20 @@
       set_fact:
         network_uri: "{{ ethernet_network.uri  }}"
 
-    - debug: var=network_uri   
+    # - debug: var=network_uri
 
     - name: Gather facts about the Uplink Set '{{ Uplinkset }}'
       oneview_uplink_set_facts:
         config: "{{ config }}"
-        name: '{{ Uplinkset }}'
+        name: "{{ Uplinkset }}"
 
-    - debug: var=uplink_sets
-    
+    # - debug: var=uplink_sets
+
     - name: Store uplink set URIs
       set_fact:
         uplinkset_uris: "{{ (uplink_sets | map(attribute='networkUris') | list)[0] }}"
 
-    - debug: var=uplinkset_uris
+    # - debug: var=uplinkset_uris
 
     - name: Set a new variable for the new uplink set uris
       set_fact:
@@ -57,8 +75,7 @@
       set_fact:
         new_uplinkset_uris: "{{ new_uplinkset_uris + [ network_uri ] }}"
 
-    - debug: var=new_uplinkset_uris
-
+    # - debug: var=new_uplinkset_uris
 
     - name: Modify the Logical Interconnect Group '{{ LIG }}' with new uplinkSet URIs definition
       oneview_logical_interconnect_group:
@@ -78,7 +95,6 @@
         config: "{{ config }}"
         name: "{{ logical_interconnect_name }}"
 
-
     #- debug: msg="{{ logical_interconnects['consistencyStatus'] }}"
     - set_fact: li_consistencyStatus={{ logical_interconnects['consistencyStatus'] }}
 
@@ -95,3 +111,38 @@
       when: li_consistencyStatus != "CONSISTENT"
       debug: msg="{{ result.msg }}"
 
+    - name: Gather facts about a Network Set by name
+      oneview_network_set_facts:
+        config: "{{ config }}"
+        name: "{{ NetworkSet }}"
+      delegate_to: localhost
+
+    # - debug: var=network_sets
+
+    - name: Store network set URIs
+      set_fact:
+        network_set_uris: "{{ (network_sets | map(attribute='networkUris') | list)[0] }}"
+
+    # - debug: var=network_set_uris
+
+    - name: Set a new variable for the new network set uris
+      set_fact:
+        new_network_set_uris: "{{network_set_uris}}"
+
+    - name: Append new network uri to network set network uris list
+      set_fact:
+        new_network_set_uris: "{{ new_network_set_uris + [ network_uri ] }}"
+
+    # - debug: var=new_network_set_uris
+
+    - name: Adds the new network to the Network Set
+      oneview_network_set:
+        config: "{{ config }}"
+        state: present
+        data:
+          name: "{{ NetworkSet }}"
+          networkUris: "{{ new_network_set_uris }}"
+          bandwidth:
+            maximumBandwidth: "{{ maximum_Bandwidth }}"
+            typicalBandwidth: "{{ preferred_Bandwidth }}"
+      delegate_to: localhost
