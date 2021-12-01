@@ -52,11 +52,7 @@
 
 # Network to remove
 $Network_name = "Production-1500"
-$Network_vlan_id = "1500"
 
-
-$LIG = "LIG-MLAG"
-$Uplinkset = "MLAG-Nexus"
 $NetworkSet = "Production_Network_set"
 
 
@@ -99,7 +95,7 @@ Write-host  " from HPE OneView"
 Write-host  "Please wait..."
 
 try {
-    $task = Get-OVNetwork -name $network_name -ErrorAction stop |  remove-OVNetwork -Confirm:$false | Wait-OVTaskComplete | Out-Null    
+    Get-OVNetwork -name $network_name -ErrorAction stop |  remove-OVNetwork -Confirm:$false | Wait-OVTaskComplete | Out-Null    
 }
 catch {
     write-warning "Cannot find an ethernet network resource named '$network_name' ! Exiting... "
@@ -108,11 +104,8 @@ catch {
 }
 
 
-Write-host "`nThe network VLAN ID: " -NoNewline
-Write-host -f Cyan $Network_vlan_id -NoNewline
-Write-host " has been successfully removed and unpresented to all server profiles using the Network Set: " -NoNewline
+Write-host "`nThe network '$Network_name' has been successfully removed and unpresented to all server profiles using the Network Set: " -NoNewline
 Write-host -f Cyan $networkset 
-Write-host ""
 
 
 Disconnect-OVMgmt

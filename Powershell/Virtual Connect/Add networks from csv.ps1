@@ -3,10 +3,10 @@
 #   by lionel.jullien@hpe.com
 #   December 2019
 #
-#   This PowerShell script adds all network resource defined in a CSV file to a Synergy environment and presents this network to all Compute Modules using the specified Network Set.    
-#   The script also adds all networks to the specified uplinkset defined in OneView.   
+#   This PowerShell script adds all network resource defined in a CSV file to a Synergy environment and presents these networks to all Compute Modules using the specified Network Set.    
+#   The script also adds all networks to the specified uplink set defined in HPE OneView.   
 #
-#   The network name and VLAN ID are taken from the NetName/VLAN_ID columns of the CSV file. Notice that a file example is available in this GitHub folder.
+#   The network name and VLAN ID are extracted from the NetName/VLAN_ID columns of the CSV file. Note that a sample file is available in this GitHub folder.
 #
 #   CSV File content: 
 #
@@ -19,10 +19,15 @@
 #   prod-5  1004
 #   prod-6  1005
 #
+#   Requirement:
+#    - A network Set must be defined and presented to the Server Profiles
+#    - HPE OneView administrator account is required
+#    - A CSV file containing the list of networks must be available in the same folder as this script
 #  
 #   With this script, you can demonstrate that with a single line of code, you can present easily and quickly a network VLAN to all Compute Modules present in the Synergy frames managed by HPE OneView. 
-#          
-#   OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
+#  
+#   Global variables (i.e. OneView information, LIG, UplinkSet, Network Set and preferred/maximum bandwidth) 
+#   must be modified with your own environment information.
 # 
 # --------------------------------------------------------------------------------------------------------
    
@@ -146,17 +151,6 @@ if (-not $uplink_set) {
 #              Creating Networks and adding them to the LIG uplink Set          #
 #################################################################################
 
-#$LIGname = (Get-OVLogicalInterconnectGroup | where { $_.uri -eq (Get-OVLogicalInterconnect).logicalInterconnectGroupUri }).name
-# $LIGURI = (Get-OVLogicalInterconnect).logicalInterconnectGroupUri
-
-#$NewNetwork = Get-OVNetwork -Name "Produc*"  #Get the Network resource
-
-# $LIG = Get-OVLogicalInterconnectGroup | Where-Object { $_.uri -eq $LIGURI }
-
-
-# if (!(($LIG | Measure-Object).Count -eq 1 )) { Write-Host "Failed to filter down to one LIG" -ForegroundColor Red | Break }
-
-
 ForEach ($VLAN In $data) {
 
     try {
@@ -176,7 +170,7 @@ ForEach ($VLAN In $data) {
         Write-host "Creating Network: " -NoNewline
         Write-host -f Cyan ($VLAN.netName) -NoNewline
 
-        # Add new Network to the networkUris Array
+        # Add new Network to the uplink set networkUris Array
         
         $uplink_Set.networkUris += (Get-OVNetwork -Name ($VLAN.NetName)).uri
 
@@ -192,8 +186,9 @@ try {
     Set-OVResource $MyLIG -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
-    write-ouput $_ #.Exception
-    disconnect-ovMgmt 
+    Write-Warning "Cannot add the networks to the uplink set '$Uplinkset'! Exiting... "
+    $error[0] #.Exception
+    Disconnect-OVMgmt 
     return
 }
 
@@ -229,7 +224,10 @@ try {
     Get-OVLogicalInterconnect -Name $LI.name | Update-OVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
-    Write-Output $_ #.Exception
+    Write-Warning "Cannot update the Logical Interconnects from the Logical Interconnect Group! Exiting... "
+    $error[0] #.Exception
+    Disconnect-OVMgmt 
+    return
 }
 
 
@@ -254,7 +252,7 @@ catch {
     $error[0]
 }
  
-Write-host "`nAll $($data.count) networks have been added successfully to all Server Profiles that are using the Network Set: " -NoNewline
+Write-host "`nAll $($data.count) networks have been added successfully to all Server Profiles that use the Network Set: " -NoNewline
 Write-host -f Cyan $networksetname 
     
 Disconnect-OVMgmt

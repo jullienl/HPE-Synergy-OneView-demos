@@ -87,7 +87,7 @@ try {
     Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
 }
 catch {
-    write-warning "Cannot connect to '$OV_IP'! Exiting... "
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
     return
 }
 
@@ -98,7 +98,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 #                     Creating a new Network resource                          #
 #################################################################################
 try {
-    $network_present = get-ovnetwork -Name $Network_name -ErrorAction Stop 
+    $network_present = Get-OVNetwork -Name $Network_name -ErrorAction Stop 
 }
 catch {
     $network_present = $false
@@ -106,8 +106,8 @@ catch {
 
 
 if ( $network_present) {
-    write-warning "Network '$network_name' already exist ! Exiting... "
-    disconnect-ovMgmt 
+    Write-Warning "Network '$network_name' already exist ! Exiting... "
+    Disconnect-OVMgmt 
     return
 }
 else {
@@ -130,8 +130,8 @@ try {
     $netset = Get-OVNetworkSet -Name $NetworkSet -Erroraction stop    
 }
 catch {
-    write-warning "Cannot find a network set resource named '$NetworkSet' ! Exiting... "
-    disconnect-ovMgmt 
+    Write-Warning "Cannot find a network set resource named '$NetworkSet' ! Exiting... "
+    Disconnect-OVMgmt 
     return
 }
 
@@ -140,8 +140,8 @@ try {
     $MyLIG = Get-OVLogicalInterconnectGroup -Name $LIG -ErrorAction Stop
 }
 catch {
-    write-warning "Cannot find a Logical Interconnect group resource named '$LIG' ! Exiting... "
-    disconnect-ovMgmt 
+    Write-Warning "Cannot find a Logical Interconnect group resource named '$LIG' ! Exiting... "
+    Disconnect-OVMgmt 
     return
 }
 
@@ -149,17 +149,17 @@ $MyLI = ((Get-OVLogicalInterconnect) | where-object logicalInterconnectGroupUri 
 
 if (-not $MyLI) {
     
-    write-warning "Cannot find a Logical Interconnect resource used by '$LIG' ! Exiting... "
-    disconnect-ovMgmt 
+    Write-Warning "Cannot find a Logical Interconnect resource used by '$LIG' ! Exiting... "
+    Disconnect-OVMgmt 
     return
 }
 
-$uplink_set = $MyLIG.uplinkSets | where-Object { $_.name -eq $uplinkset } 
+$uplink_set = $MyLIG.uplinkSets | Where-Object { $_.name -eq $uplinkset } 
 
 if (-not $uplink_set) {
     
-    write-warning "Cannot find an uplink set resource named '$uplinkset' ! Exiting... "
-    disconnect-ovMgmt 
+    Write-Warning "Cannot find an uplink set resource named '$uplinkset' ! Exiting... "
+    Disconnect-OVMgmt 
     return
 }
 
@@ -169,25 +169,25 @@ try {
     Set-OVResource $MyLIG -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
+    Write-Warning "Cannot add the networks to the uplink set '$Uplinkset'! Exiting... "
     $error[0] #.Exception
-    disconnect-ovMgmt 
-    return
+    Disconnect-OVMgmt 
+    return  
 }
 
 #################################################################################
 #                            Updating LI from LIG                               #
 #################################################################################
 
-$vlanuri = (Get-OVNetwork -Name ($network_name)).uri
-          
+
 # Making sure the LI is not in updating state before we run a LI Update
-$Interconnectstate = (((Get-OVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $MyLI.uri).state  
+$Interconnectstate = (((Get-OVInterconnect) | where-object productname -match "Virtual Connect") | Where-Object logicalInterconnectUri -EQ $MyLI.uri).state  
 if ($Interconnectstate -notcontains "Configured") {
-    Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
+    Write-Host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
 }
         
 do { 
-    $Interconnectstate = (((Get-OVInterconnect) | where-object productname -match "Virtual Connect") | where-object logicalInterconnectUri -EQ $MyLI.uri).state 
+    $Interconnectstate = (((Get-OVInterconnect) | Where-Object productname -match "Virtual Connect") | Where-Object logicalInterconnectUri -EQ $MyLI.uri).state 
 }
 until (
     $Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains "Imported" -and $Interconnectstate -notcontains "Configuring"
@@ -201,8 +201,9 @@ try {
     Get-OVLogicalInterconnect -Name $MyLI.name | Update-OVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
-    write-ouput $_ #.Exception
-    disconnect-ovMgmt 
+    Write-Warning "Cannot update the Logical Interconnects from the Logical Interconnect Group! Exiting... "
+    $error[0] #.Exception
+    Disconnect-OVMgmt 
     return
 }
 
@@ -210,7 +211,6 @@ catch {
 #################################################################################
 #                       Adding Network to Network Set                           #
 #################################################################################
-
 
 
 Write-host "`nAdding Network: " -NoNewline
@@ -227,7 +227,7 @@ try {
 }
 catch {
     write-warning "Cannot add the network '$network_name' to the network set '$NetworkSet' ! Exiting... "
-    disconnect-ovMgmt 
+    Disconnect-OVMgmt   
     return
 }
 
