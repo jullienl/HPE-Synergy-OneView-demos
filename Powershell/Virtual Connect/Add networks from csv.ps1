@@ -81,7 +81,6 @@ $OV_IP = "composer2.lj.lab"
 # If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
 
 
-
 #################################################################################
 
 $secpasswd = Read-Host "Please enter the OneView password" -AsSecureString
@@ -114,7 +113,7 @@ catch {
 
 # Testing resources defined
 try {
-    $networkset = Get-OVNetworkSet -Name $NetworkSet -Erroraction stop    
+    $Mynetworkset = Get-OVNetworkSet -Name $NetworkSet -Erroraction stop    
 }
 catch {
     Write-Warning "Cannot find a network set resource named '$NetworkSet' ! Exiting... "
@@ -221,7 +220,7 @@ until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcont
 
 
 
-Write-host "`nUpdating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
+Write-host "Updating all Logical Interconnects from the Logical Interconnect Group: " -NoNewline
 Write-host -f Cyan $LIG.name
 Write-host "Please wait..." 
 
@@ -243,16 +242,16 @@ catch {
 
 ForEach ($VLAN In $data) {
 
-    Write-host "`nAdding Network: " -NoNewline
+    Write-host "Adding Network: " -NoNewline
     Write-host -f Cyan ($VLAN.netName) -NoNewline
     Write-host " to NetworkSet: " -NoNewline
     Write-host -f Cyan $NetworkSet
          
-    $networkset.networkUris += (Get-OVNetwork -Name $VLAN.NetName).uri
+    $MyNetworkSet.networkUris += (Get-OVNetwork -Name $VLAN.NetName).uri
 }
 
 try {
-    Set-OVNetworkSet $NetworkSet -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
+    Set-OVNetworkSet $MyNetworkSet -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
     $error[0]
@@ -262,4 +261,3 @@ Write-host "`nAll $($data.count) networks have been added successfully to all Se
 Write-host -f Cyan $NetworkSet 
     
 Disconnect-OVMgmt
- 
