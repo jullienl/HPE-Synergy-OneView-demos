@@ -82,9 +82,14 @@ $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
 # Connection to the OneView / Synergy Composer
 $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-Connect-OVMgmt -Hostname $OV_IP -Credential $credentials | Out-Null
 
-
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    write-warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -95,15 +100,18 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 try {
     $network_present = get-ovnetwork -Name $Network_name -ErrorAction Stop 
 }
-catch { }
+catch {
+    $network_present = $false
+}
 
 
 if ( $network_present) {
     write-warning "Network '$network_name' already exist ! Exiting... "
+    disconnect-ovMgmt 
     return
 }
 else {
-    New-OVNetwork -Name $Network_name -type Ethernet -vlanID $Network_vlan_id -VLANType "Tagged" -purpose General -typicalBandwidth $preferred_Bandwidth -maximumBandwidth $maximum_Bandwidth 
+    New-OVNetwork -Name $Network_name -type Ethernet -vlanID $Network_vlan_id -VLANType "Tagged" -purpose General -typicalBandwidth $preferred_Bandwidth -maximumBandwidth $maximum_Bandwidth | Out-Null
 
 }
    
@@ -119,10 +127,21 @@ Write-host " to Logical Interconnect Group: " -NoNewline
 Write-host -f Cyan $LIG
 
 try {
+    $netset = Get-OVNetworkSet -Name $NetworkSet -Erroraction stop    
+}
+catch {
+    write-warning "Cannot find a network set resource named '$NetworkSet' ! Exiting... "
+    disconnect-ovMgmt 
+    return
+}
+
+
+try {
     $MyLIG = Get-OVLogicalInterconnectGroup -Name $LIG -ErrorAction Stop
 }
 catch {
     write-warning "Cannot find a Logical Interconnect group resource named '$LIG' ! Exiting... "
+    disconnect-ovMgmt 
     return
 }
 
@@ -130,7 +149,8 @@ $MyLI = ((Get-OVLogicalInterconnect) | where-object logicalInterconnectGroupUri 
 
 if (-not $MyLI) {
     
-    write-warning "Cannot find a Logical Interconnect resource named '$LIG' ! Exiting... "
+    write-warning "Cannot find a Logical Interconnect resource used by '$LIG' ! Exiting... "
+    disconnect-ovMgmt 
     return
 }
 
@@ -138,7 +158,8 @@ $uplink_set = $MyLIG.uplinkSets | where-Object { $_.name -eq $uplinkset }
 
 if (-not $uplink_set) {
     
-    write-warning "Cannot find an uplink set resource named '$uplinkset' ! Exiting... " 
+    write-warning "Cannot find an uplink set resource named '$uplinkset' ! Exiting... "
+    disconnect-ovMgmt 
     return
 }
 
@@ -149,14 +170,13 @@ try {
 }
 catch {
     write-ouput $_ #.Exception
+    disconnect-ovMgmt 
     return
 }
 
 #################################################################################
 #                            Updating LI from LIG                               #
 #################################################################################
-
-# This step takes time, average is 5mn for 3 frames... 
 
 $vlanuri = (Get-OVNetwork -Name ($network_name)).uri
           
@@ -182,6 +202,7 @@ try {
 }
 catch {
     write-ouput $_ #.Exception
+    disconnect-ovMgmt 
     return
 }
 
@@ -198,14 +219,6 @@ Write-host " to NetworkSet: " -NoNewline
 Write-host -f Cyan $networkset
 
 
-try {
-    $netset = Get-OVNetworkSet -Name $NetworkSet -Erroraction stop    
-}
-catch {
-    write-warning "Cannot find a network set resource named '$NetworkSet' ! Exiting... "
-    return
-}
-
 $netset.networkUris += (Get-OVNetwork -Name $network_name).uri
 
 
@@ -214,6 +227,7 @@ try {
 }
 catch {
     write-warning "Cannot add the network '$network_name' to the network set '$NetworkSet' ! Exiting... "
+    disconnect-ovMgmt 
     return
 }
 
