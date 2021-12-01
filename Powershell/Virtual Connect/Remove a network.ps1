@@ -105,7 +105,7 @@ catch {
 
 
 Write-host "`nThe network '$Network_name' has been successfully removed and unpresented to all server profiles using the Network Set: " -NoNewline
-Write-host -f Cyan $networkset 
+Write-host -f Cyan $NetworkSet 
 
 
 Disconnect-OVMgmt
