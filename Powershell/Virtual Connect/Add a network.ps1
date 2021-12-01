@@ -9,7 +9,7 @@
 #    - A network Set must be defined and presented to the Server Profiles
 #    - HPE OneView administrator account is required
 #
-#   This playbook performs the following steps:
+#   This script performs the following steps:
 #    - Creates a new ethernet network using the variables defined in the vars section
 #    - Adds the new Ethernet network to the uplink set defined in the selected Logical Interconnect Group
 #    - Updates the logical interconnect from the new logical interconnect group definition
