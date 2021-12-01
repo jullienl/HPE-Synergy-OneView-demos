@@ -2,16 +2,21 @@
 #   by lionel.jullien@hpe.com
 #   June 2016
 #
-#   This PowerShell script removes a network resource from a Synergy environment and unpresents this network to all Compute Modules using a Network Set.    
-#   The network name defined in OneView/Virtual Connect deleted by this script is always a `prefixname`+`VLAN ID` like `Production-400`.   
-#   The script also removes the network resource from the LIG uplinkset and from the network set present in OneView.    
+#   This playbook removes a network resource in a Synergy environment and unassigns that network to all compute modules that use a network set.
+#
+#   Requirement:
+#    - A network Set must be defined and presented to the Server Profiles
+#    - HPE OneView administrator account is required
+#
+#   This script only performs the deletion of an existing ethernet network since OneView takes care of the other steps automatically.
+#
+#  Note: When deleting a network, OneView automatically:
+#   - removes the network from the uplink set defined in the selected Logical Interconnect Group
+#   - removes the network from the network set
+#   - deletes the network from the Logical interconnect
 #   
 #   This script can be used in conjunction with 'Add a network.ps1". See https://github.com/jullienl/HPE-Synergy-OneView-demos/blob/master/Powershell/Virtual Connect/Add a network.ps1
 #   
-#   With this script, you can demonstrate that with a single line of code, you can unpresent easily and quickly a network VLAN from all Compute Modules present in the Synergy frames managed by HPE OneView. 
-#        
-#   OneView administrator account is required. Global variables (i.e. OneView details, LIG, UplinkSet, Network Set names, etc.) must be modified with your own environment information.
-# 
 # --------------------------------------------------------------------------------------------------------
    
 #################################################################################
@@ -44,164 +49,70 @@
 #                                Global Variables                               #
 #################################################################################
 
+
+# Network to remove
+$Network_name = "Production-1500"
+$Network_vlan_id = "1500"
+
+
 $LIG = "LIG-MLAG"
-$Uplinkset = "M-LAG-Comware"
-$Networkprefix = "Production-"
-$NetworkSet = "Production Networks"
+$Uplinkset = "MLAG-Nexus"
+$NetworkSet = "Production_Network_set"
+
 
 # OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
 
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
 
 
-# Import the OneView library
+#################################################################################
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-if (-not (get-module HPOneview.500)) {  
-    Import-module HPOneview.500
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    write-warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
 }
 
-   
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
-               
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
-
-
-#################################################################################
-#                       Removing Network from Network Set                       #
-#################################################################################
-
-
-clear-host
-write-host "`nThe following Production networks are available:"
-
-Get-HPOVNetwork -type Ethernet | where { $_.Name -match $Networkprefix } | Select-Object @{Name = "Network name"; Expression = { $_.Name } }, @{Name = "VLAN ID"; Expression = { $_.vlanid } } | Out-Host
-
-
-$VLAN = Read-Host "`n`nPlease enter the VLAN ID you want to remove" 
- 
-
-$NetToRemoveUri = (Get-HPOVNetwork -Name ($networkprefix + $VLAN)).uri
-
-
-Write-host "`nRemoving Network: " -NoNewline 
-Write-Host -f Cyan ($networkprefix + $VLAN) -NoNewline
-Write-host " from the network set: " -NoNewline
-Write-Host -f Cyan $NetworkSet
-
-
-$NetSet = Get-HPOVNetworkSet -Name $NetworkSet
-$NewNets = ( $NetSet.networkUris | where { $_ -ne $NetToRemoveUri } ) | % { Send-HPOVRequest -Uri $_ }
-Set-HPOVNetworkSet -NetworkSet $NetSet -Networks $NewNets | Wait-HPOVTaskComplete
-
-
-
-#################################################################################
-#                     Removing Network from LIG Uplink Set                      #
-#################################################################################
-
-
-Write-host "`nRemoving Network: " -NoNewline
-Write-Host -f Cyan ($networkprefix + $VLAN) -NoNewline  
-Write-host  " from the LIG Uplinkset: " -NoNewline
-Write-Host -f Cyan $Uplinkset
-Write-host  "Please wait..."
-
-
-
-$MyLIG = Get-HPOVLogicalInterconnectGroup -Name $LIG 
-$MyLI = ((Get-HPOVLogicalInterconnect) | ? logicalInterconnectGroupUri -eq $MyLIG.uri)
-
-
-$Myuplinkset = $MyLIG.uplinkSets | where-Object { $_.name -eq $Uplinkset } 
-
-$NewUplinkSet = ($Myuplinkset.networkUris | where { $_ -ne $NetToRemoveUri } ) 
-
-$Myuplinkset.networkUris = $NewUplinkSet
-
-Set-HPOVResource $MyLIG | Wait-HPOVTaskComplete  #| Out-Null
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 #################################################################################
 #                        Removing the Network resource                          #
 #################################################################################
 
-# This step could take time like 2-3mn ! 
-
 Write-host  "`nRemoving Network: " -NoNewline
-Write-Host -f Cyan ($networkprefix + $VLAN) -NoNewline  
-Write-host  " from OneView" 
+Write-Host -f Cyan ($network_name) -NoNewline  
+Write-host  " from HPE OneView" 
 Write-host  "Please wait..."
 
-$task = Get-HPOVNetwork -name ($networkprefix + $VLAN) | remove-HPOVNetwork -Confirm:$false | Wait-HPOVTaskComplete | Out-Null
-
-# do {$newnetworks= (Get-HPOVNetwork -Name ($networkprefix + $VLAN) -ErrorAction Ignore) } until ($newnetworks -eq $Null)
-   
-
-#################################################################################
-#                            Updating LI from LIG                               #
-#################################################################################
-
-   
-# This steps takes time (average 5mn for 3 frames) 
-$Updating = Read-Host "`n`nDo you want to apply the new LIG configuration to the Synergy frames [y] or [n] (This step takes times ! Average 5mn with 3 frames) ?" 
-
-if ($Updating -eq "y") {
-
-    # Making sure the LI is not in updating state before we run a LI Update
-    $Interconnectstate = (((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state  
-    if ($Interconnectstate -notcontains "Configured") {
-        Write-host "`nWaiting for the running Interconnect configuration task to finish, please wait...`n" 
-    }
-        
-    do { $Interconnectstate = (((Get-HPOVInterconnect) | ? productname -match "Virtual Connect") | ? logicalInterconnectUri -EQ $MyLI.uri).state }
-
-    until ($Interconnectstate -notcontains "Adding" -and $Interconnectstate -notcontains "Imported" -and $Interconnectstate -notcontains "Configuring")
-
-
-    Write-host "`nUpdating the Logical Interconnect from the Logical Interconnect group: " -NoNewline
-    Write-Host -f Cyan $LIG   
-    Write-host  "`nPlease wait...`n"
-                       
-    try {
-        $task = Get-HPOVLogicalInterconnect -Name $MyLI.name | Update-HPOVLogicalInterconnect -confirm:$false -ErrorAction Stop | Wait-HPOVTaskComplete | Out-Null
-    }
-    catch {
-        echo $_ #.Exception
-    }
-               
+try {
+    $task = Get-OVNetwork -name $network_name -ErrorAction stop |  remove-OVNetwork -Confirm:$false | Wait-OVTaskComplete | Out-Null    
 }
-
-
-if ((Get-HPOVLogicalInterconnect).consistencyStatus -eq "consistent" -and $Updating -eq "y") { # Get-HPOVNetworkSet -Name $NetworkSet).networkUris  -ccontains $vlanuri
-    Write-host "`nThe network VLAN ID: " -NoNewline
-    Write-host -f Cyan $vlan -NoNewline
-    Write-host " has been successfully removed and unpresented to all server profiles using the Network Set: " -NoNewline
-    Write-host -f Cyan $networkset 
-    Write-host ""
+catch {
+    write-warning "Cannot find an ethernet network resource named '$network_name' ! Exiting... "
+    Disconnect-OVMgmt
     return
 }
 
-if ($Updating -eq "n" -and ((Get-HPOVNetworkSet -Name $NetworkSet).networkUris -notcontains $vlanuri)) {
-    Write-host "`nThe network VLAN ID: " -NoNewline
-    Write-host -f Cyan $vlan -NoNewline
-    Write-host " has been removed successfully to all Server profiles using the Network Set: " -NoNewline
-    Write-host -f Cyan $networkset 
-    Write-host "but the Virtual Connect Modules have not been configured yet`n"
-    write-warning "The Logical Interconnect is inconsistent with the logical interconnect group: $LIG"
 
-    return
-}
+Write-host "`nThe network VLAN ID: " -NoNewline
+Write-host -f Cyan $Network_vlan_id -NoNewline
+Write-host " has been successfully removed and unpresented to all server profiles using the Network Set: " -NoNewline
+Write-host -f Cyan $networkset 
+Write-host ""
 
-if (Get-HPOVNetwork -Name ($networkprefix + $VLAN) -ErrorAction Ignore ) {
-    Write-Warning "`nThe network VLAN ID: $vlan has NOT been removed successfully, check the status of your Logical Interconnect ressource`n" 
-}
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt

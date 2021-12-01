@@ -169,7 +169,7 @@ try {
     Set-OVResource $MyLIG -ErrorAction Stop | Wait-OVTaskComplete | Out-Null
 }
 catch {
-    write-ouput $_ #.Exception
+    $error[0] #.Exception
     disconnect-ovMgmt 
     return
 }
