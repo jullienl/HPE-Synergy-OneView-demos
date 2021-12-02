@@ -1,6 +1,6 @@
 <#
 .DESCRIPTION
-   Get-HPOVservertelemetry gets average power consumption, CPU utilization and Temperature report from a Compute Module 
+   Get-OVservertelemetry gets average power consumption, CPU utilization and Temperature report from a Compute Module 
    A server profile name must be provided
        
 .PARAMETER IP
@@ -17,10 +17,10 @@
   
 .PARAMETER profile
   Name of the server profile
-  This is normally retrieved with a 'Get-HPOVServerProfile' call like '(get-HPOVServerProfile).name'
+  This is normally retrieved with a 'Get-OVServerProfile' call like '(get-OVServerProfile).name'
 
 .EXAMPLE
-  PS C:\> Get-HPOVservertelemetry -IP 192.168.1.110 -username Administrator -password password -profile "W2016-1" 
+  PS C:\> Get-OVservertelemetry -IP 192.168.1.110 -username Administrator -password password -profile "W2016-1" 
   Provides average power consumption, CPU utilization and Temperature report for the compute module using the server profile "W2016-1"
   
 .COMPONENT
@@ -35,7 +35,7 @@
     Date:   August 2017 
     
 #################################################################################
-#                         Get-HPOVservertelemetry.ps1                           #
+#                         Get-OVservertelemetry.ps1                           #
 #                                                                               #
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
 #################################################################################
@@ -60,7 +60,7 @@
 #                                                                               #
 #################################################################################
 #>
-function Get-HPOVservertelemetry {
+function Get-OVservertelemetry {
 
   [cmdletbinding(DefaultParameterSetName = "All",
     SupportsShouldProcess = $True
@@ -86,38 +86,31 @@ function Get-HPOVservertelemetry {
 
                                
   )
-   
-
-
-  # Import the OneView 5.0 library
-
-  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-  if (-not (get-module HPOneview.500)) {  
-    Import-module HPOneview.500
-  }
-
   
-
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   
   # Connection to the Synergy Composer
   $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
   $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-  Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+  
+  try {
+    Connect-OVMgmt -Hostname $IP -Credential $credentials -ErrorAction stop | Out-Null    
+  }
+  catch {
+    Write-Warning "Cannot connect to '$IP'! Exiting... "
+    return
+  }
 
-               
-  import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
-  clear
+  $profileuri = (Get-OVServerProfile | ? { $_.name -eq $profile }).uri
 
-  $profileuri = (Get-HPOVServerProfile | ? { $_.name -eq $profile }).uri
-
-  $node = Get-HPOVServer | ? { $_.serverProfileUri -eq $profileuri }
+  $node = Get-OVServer | ? { $_.serverProfileUri -eq $profileuri }
 
   $URI = $node.uri
   $NAME = $node.Name
   $temp = $URI + "/utilization?fields=AmbientTemperature"
 
-  $Resulttemp = Send-HPOVRequest $temp
+  $Resulttemp = Send-OVRequest $temp
 
   $CurrentSampletemp = $Resulttemp.metricList.metricSamples
   $SampleTimetemp = [datetime]($Resulttemp.newestSampleTime)
@@ -131,7 +124,7 @@ function Get-HPOVservertelemetry {
   write-host "`nTemperature Reading: " -NoNewline; write-host $LastTempValue -f Cyan
 
   $cpu = $URI + "/utilization?fields=CpuAverageFreq"
-  $Resultcpu = Send-HPOVRequest $cpu
+  $Resultcpu = Send-OVRequest $cpu
   $CurrentSamplecpu = $Resultcpu.metricList.metricSamples
   $SampleTimecpu = [datetime]($Resultcpu.newestSampleTime)
   $LastcpuValue = echo $CurrentSamplecpu[0][1]
@@ -139,7 +132,7 @@ function Get-HPOVservertelemetry {
   write-host "CPU Average Reading: " -nonewline ; Write-Host $LastcpuValue -f Cyan
 
   $cpuu = $URI + "/utilization?fields=CpuUtilization"
-  $Resultcpuu = Send-HPOVRequest $cpuu
+  $Resultcpuu = Send-OVRequest $cpuu
   $CurrentSamplecpuu = $Resultcpuu.metricList.metricSamples
   $SampleTimecpuu = [datetime]($Resultcpuu.newestSampleTime)
   $LastcpuuValue = echo $CurrentSamplecpuu[0][1]
@@ -147,7 +140,7 @@ function Get-HPOVservertelemetry {
   write-host "CPU Utilization Reading: " -NoNewline; write-host $LastcpuuValue -f Cyan
 
   $AveragePower = $URI + "/utilization?fields=AveragePower"
-  $ResultAveragePower = Send-HPOVRequest $AveragePower
+  $ResultAveragePower = Send-OVRequest $AveragePower
   $CurrentSampleAveragePower = $ResultAveragePower.metricList.metricSamples
   $SampleTimeAveragePower = [datetime]($ResultAveragePower.newestSampleTime)
   $LastAveragePowerValue = echo $CurrentSampleAveragePower[0][1]
@@ -155,5 +148,5 @@ function Get-HPOVservertelemetry {
   write-host "Average Power Reading: " -NoNewline; write-host $LastAveragePowerValue -f Cyan
   Write-host ""
 
-  Disconnect-HPOVMgmt
+  Disconnect-OVMgmt
 }

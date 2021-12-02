@@ -1,12 +1,13 @@
 <# 
 
-This PowerShell script adds all servers managed by OneView in iLO Amplifier Pack.
+This PowerShell script adds all servers managed by HPE OneView in HPE iLO Amplifier Pack.
 Support both Synergy Compute modules and DL servers in either Managed or Monitored mode.
+
+The script also create an iLO local account for iLO Amplifier Pack authentication.
 
 Requirements: 
 - HPEOneView library 5.30 or later
-- OneView and iLO Amplifier Pack administrator account.
-- iLO Username and password that will be created for iLO Amplifier Pack authentication must be personalized.
+- OneView and iLO Amplifier Pack administrator accounts.
 
 
   Author: lionel.jullien@hpe.com
@@ -38,16 +39,6 @@ Requirements:
 #>
 
 
-# HPEONEVIEW Library
-If (-not (get-module HPEOneView.530 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
-import-module HPEOneView.530
-
-
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.x.x"
-
 # iLO Username and password to create in iLO for iLO Amplifier Pack authentication
 $newiLOLoginName = "iLO_Amplifier"
 $newiLOPassword = "iLO_Amplifier_password"
@@ -58,16 +49,33 @@ $iLOAmplifierpassword = "password"
 $iLOAmplifierIP = "192.168.x.x"
 
 
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
-Clear-Host
-
-import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -80,8 +88,12 @@ add-type -TypeDefinition  @"
             }
         }
 "@
-
+   
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
+#################################################################################
+
 
 # Get all Compute Modules managed by OneView
 $computes = Get-OVServer #| select -First 4

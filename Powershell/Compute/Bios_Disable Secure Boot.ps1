@@ -1,12 +1,18 @@
-<# Script to disable Bios secure boot on HPE Gen9 and Gen10 server
-#
-# Requires the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library), see https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html 
-# 
-# Servers must be restarted to disable Secure Boot. 
-#
-# This script only turns on servers that are powered-off to disable Secure Boot but it does not restart servers that are running. 
-#
-# Script requires the iLO credentials
+<# 
+
+Script to disable Bios secure boot on HPE Gen9 and Gen10 server
+
+Requires the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library), see https://www.hpe.com/us/en/product-catalog/detail/pip.5440657.html 
+
+Servers must be restarted to disable Secure Boot. 
+
+This script only turns on servers that are powered-off to disable Secure Boot but it does not restart servers that are running. 
+
+Requirements:
+   - HPE OneView Powershell Library
+   - HPE OneView administrator account 
+   - HPE BIOS Cmdlets PowerShell Library (HPEBIOSCmdlets)
+   - iLO Administrator account
 
 
   Author: lionel.jullien@hpe.com
@@ -40,147 +46,63 @@
 #>
 
 
-Function Import-ModuleAdv {
-    
-    # Import a module that can be imported
-    # If it cannot, the module is installed
-    # When -update parameter is used, the module is updated 
-    # to the latest version available on the PowerShell library
-    #
-    # ex: import-moduleAdv hponeview.500
-    
-    param ( 
-        $module, 
-        [switch]$update 
-    )
-   
-    if (get-module $module -ListAvailable) {
-
-        if ($update.IsPresent) {
-            
-            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
-            
-            Try {
-                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
-            }
-            Catch {
-                Write-Warning "Error: No internet connection to update $module ! `
-                `nCheck your network connection, you might need to configure a proxy if you are connected to a corporate network!"
-                return 
-            }
-
-            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
-
-            #If ( ( $Compare.SideIndicator -eq '==') ) {
-            
-            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
-                Try {
-                    # not using update-module as it keeps the old version of the module
-                    #Remove existing version
-                    Get-Module $Module -ListAvailable | Uninstall-Module 
-
-                    #Install latest one from PSGallery
-                    Install-Module -Name $Module
-                }
-                Catch {
-                    write-warning "Error: $module cannot be updated !"
-                    return
-                }
-           
-            }
-            Else {
-                Write-host "You are using the latest version of $module !" 
-            }
-        }
-            
-        Import-module $module
-            
-    }
-
-
-    Else {
-        Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
-
-        
-        If ( !(get-PSRepository).name -eq "PSGallery" )
-        { Register-PSRepository -Default }
-                
-        Try {
-            find-module -Name $module -ErrorAction Stop | out-Null
-                
-            Try {
-                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
-                Write-host "`nInstalling $Module ..." 
-                Import-module $module
-               
-            }
-            catch {
-                Write-Warning "$Module cannot be installed!" 
-                $error[0] | FL * -force
-                pause
-                exit
-            }
-
-        }
-        catch {
-            write-warning "Error: $module cannot be found in the online PSGallery !"
-            return
-        }
-            
-    }
-
-}
-
-Import-ModuleAdv HPOneview.500 #-update
-
-  
-
-# MyImport-Module HPRESTCmdlets
-
-
 # OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
-# iLO Credentials
-$ilousername = "Administrator" 
-$ilopassword = "password" 
+# iLO administrator account
+$ilousername = "Administrator"
+$ilopassword = "password"
 
+# MODULES TO INSTALL
 
-#Loading HPEBIOSCmdlets module
-Try {
-    Import-Module HPEBIOSCmdlets -ErrorAction stop
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+# HPEBIOSCmdlets
+# If (-not (get-module HPEBIOSCmdlets -ListAvailable )) { Install-Module -Name HPEBIOSCmdlets -scope Allusers -Force }
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
 }
-
-Catch {
-    Write-Host "`nHPEBIOSCmdlets module cannot be loaded"
-    write-host "It is necessary to install the HPE Bios Cmdlets for Windows PowerShell (HPEBIOSCmdlets library)"
-    write-host "See http://www.hpe.com/servers/powershell" 
-    Write-Host "Exit..."
-    exit
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
 }
-
-
-$InstalledBiosModule = Get-Module -Name "HPEBIOSCmdlets"
-Write-Host "`nHPiLOCmdlets Module Version : $($InstalledBiosModule.Version) is installed on your machine."
-
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-#Connecting to the Synergy Composer
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
-               
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
+$secilopasswd = ConvertTo-SecureString $ilopassword -AsPlainText -Force
+$ilocredentials = New-Object System.Management.Automation.PSCredential ($ilousername, $secilopasswd)
 
 
+################################################################################# 
 
-#Capturing iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[1].address }
+
+
+#Capturing iLO IP adresses managed by HPE OneView
+$iloIPs = Get-OVServer | % { $_.mpHostInfo.mpIpAddresses[1].address }
 
 
 #Checking Secure Boot on all iLOst
@@ -201,13 +123,13 @@ Foreach ($iloIP in $iLOIPs) {
 
             write-host "`nSecure Boot on iLO: $iloIP has been disabled" 
 
-            $server = Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } 
+            $server = Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } 
                        
             
             if ($server.powerState -eq "Off") { 
                 write-host "`nStarting server: $($server.name) to enable the change..."
 
-                Start-HPOVServer -Server $server | Wait-HPOVTaskComplete
+                Start-OVServer -Server $server | Wait-OVTaskComplete
             }
             else {
                 write-host "`n $($server.name) is running. You need to restart the server to enable the change..." -ForegroundColor Yellow
@@ -227,4 +149,4 @@ Foreach ($iloIP in $iLOIPs) {
 
 }
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt

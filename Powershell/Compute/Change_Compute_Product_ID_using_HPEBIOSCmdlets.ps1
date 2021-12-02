@@ -1,10 +1,12 @@
 <# 
 
-This PowerShell script changes the Product ID (from $badProductId to $goodProductId) to all powered off Synergy Gen10 servers managed by OneView 
-If Product ID is changed then the Compute is Powered ON
+This PowerShell script changes the Product ID (from $badProductId to $goodProductId) to all powered off Synergy Gen10 servers managed by HPE OneView. 
+If the product ID is changed, the server is powered on.
 
-Requirements: Latest HPEOneView and HPEBIOSCmdlets libraries - OneView administrator account.
- 
+Requirements:
+   - HPE OneView Powershell Library
+   - HPE OneView administrator account 
+   - HPE BIOS Cmdlets PowerShell Library (HPEBIOSCmdlets)
 
   Author: lionel.jullien@hpe.com
   Date:   September 2020
@@ -34,33 +36,56 @@ Requirements: Latest HPEOneView and HPEBIOSCmdlets libraries - OneView administr
 #################################################################################
 #>
 
-
-# MODULES TO INSTALL/IMPORT
-
-import-module HPEBIOSCmdlets
-import-module HPEoneView.530
-
-
-
 $badProductId = "797740-B21"
 $goodProductId = "871940-B21"
 
 
-
-#IP address of OneView
-$IP = "192.168.1.110" 
-
-# OneView Credentials
-$username = "Administrator" 
-$password = "password"
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-    
+# MODULES TO INSTALL
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+# HPEBIOSCmdlets
+# If (-not (get-module HPEBIOSCmdlets -ListAvailable )) { Install-Module -Name HPEBIOSCmdlets -scope Allusers -Force }
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
+################################################################################# 
 
 
 $LogDir = "{0}\logs" -f $PSScriptRoot  

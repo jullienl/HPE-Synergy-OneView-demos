@@ -1,13 +1,47 @@
-#########################################################################################################################################
-#     Script to move all DL servers from OneView Monitored to OneView Managed mode and place the server back to its rack location       #
-#                                                                                                                                       #
-#   - Monitored mode does not require a license and allows only basic monitoring features                                               #
-#   - Managed mode (requires a OneView Advanced license) unlocks all features available in OneView                                      #
-#                                                                                                                                       #
-#   This move requires servers to be removed from OneView management then added back in OneView in managed mode                         #
-#   The script makes sure the server is re-imported in the same rack and same U position (if any)                                       #
-#########################################################################################################################################
+<# 
+  Script to move all DL servers monitored by HPE OneView to OneView managed mode and place the server back to its rack location
 
+    - Monitored mode does not require a license and allows only basic monitoring features                                               
+    - Managed mode (requires a OneView Advanced license) unlocks all features available in OneView                                     
+                                                                                                                                     
+  This move requires servers to be removed from OneView management then added back in OneView in managed mode                         
+  This script re-import the server in the same rack and same U position     
+
+  Requirement:
+   - HPE OneView Powershell Library
+   - HPE OneView administrator account 
+   - iLO Administrator account
+
+
+  Author: lionel.jullien@hpe.com
+  Date:   March 2020
+    
+#################################################################################
+#                         Server FW Inventory in rows.ps1                       #
+#                                                                               #
+#        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
+#################################################################################
+#                                                                               #
+# Permission is hereby granted, free of charge, to any person obtaining a copy  #
+# of this software and associated documentation files (the "Software"), to deal #
+# in the Software without restriction, including without limitation the rights  #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     #
+# copies of the Software, and to permit persons to whom the Software is         #
+# furnished to do so, subject to the following conditions:                      #
+#                                                                               #
+# The above copyright notice and this permission notice shall be included in    #
+# all copies or substantial portions of the Software.                           #
+#                                                                               #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN     #
+# THE SOFTWARE.                                                                 #
+#                                                                               #
+#################################################################################
+#>
 
 #Set here the OneView license type: 
 $ilolicensetype = "OneView"
@@ -16,22 +50,59 @@ $ilolicensetype = "OneView"
 #  Note: Rack mount servers without an iLO Advanced license cannot access the remote console.
 
 
-$IP = "hpeoneview-dcs.lj.lab" 
-$username = "Administrator" 
-$password = "password"
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
+# iLO administrator account
 $ilousername = "Administrator"
 $ilopassword = "password"
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 $secilopasswd = ConvertTo-SecureString $ilopassword -AsPlainText -Force
 $ilocredentials = New-Object System.Management.Automation.PSCredential ($ilousername, $secilopasswd)
 
 
-#$models = Get-HPOVServer | select model
+################################################################################# 
+
+
+#$models = Get-OVServer | select model
 
 do {
     clear
@@ -65,7 +136,7 @@ if ($modeltomove -eq 2) { $model = "ProLiant DL380 Gen10" }
 Write-host "`nSelected Model: " -NoNewline ; write-host $model -ForegroundColor Cyan
 
 
-$serverstomove = Get-HPOVServer | where-object { $_.model -match $model -and $_.licensingIntent -eq "OneViewStandard" }
+$serverstomove = Get-OVServer | where-object { $_.model -match $model -and $_.licensingIntent -eq "OneViewStandard" }
 $nbservers = ($serverstomove | measure).count
 
 if ($nbservers -eq $False) {
@@ -82,7 +153,7 @@ else {
 foreach ($server in $serverstomove) {
     $serverIP = $server.mpHostInfo.mpIpAddresses | ? type -ne "LinkLocal" | % address
    
-    $rack = Get-HPOVRack | Where-Object { $_.rackMounts.mountUri -eq $server.uri }
+    $rack = Get-OVRack | Where-Object { $_.rackMounts.mountUri -eq $server.uri }
  
     $rackname = $rack.name
     $servertopUSlot = ($rack.rackMounts | Where-Object mountUri -eq $server.uri ).topUSlot
@@ -91,7 +162,7 @@ foreach ($server in $serverstomove) {
     write-host "Please wait..."
     
     try {
-        Remove-HPOVServer $server.name -confirm:$false -force | Wait-HPOVTaskComplete | out-null
+        Remove-OVServer $server.name -confirm:$false -force | Wait-OVTaskComplete | out-null
     }
     catch {
         write-host "$($server.name)" -f Cyan -NoNewline; Write-Host " cannot be removed from OneView !" -ForegroundColor red
@@ -101,7 +172,7 @@ foreach ($server in $serverstomove) {
     try { 
         write-host "Adding back to OneView management in managed mode"
         write-host "Please wait..."
-        Add-HPOVServer -hostname $serverIP -Credential $ilocredentials  -LicensingIntent $ilolicensetype | Wait-HPOVTaskComplete | out-Null 
+        Add-OVServer -hostname $serverIP -Credential $ilocredentials  -LicensingIntent $ilolicensetype | Wait-OVTaskComplete | out-Null 
     }
     catch {
         write-warning "iLO credentials are invalid ! Server cannot be added back to OneView !"
@@ -118,7 +189,7 @@ foreach ($server in $serverstomove) {
         # Add back to rack in the same location
         Try {
             
-            Add-HPOVResourceToRack -Rack $rack -ULocation $servertopUSlot -InputObject $server | Out-Null
+            Add-OVResourceToRack -Rack $rack -ULocation $servertopUSlot -InputObject $server | Out-Null
       
             write-host "$($server.name)" -f Cyan -NoNewline; Write-Host " has been added successfully in managed mode and placed back in rack " -NoNewline; write-host $rackname -f cy -NoNewline; write-host " in location U " -NoNewline; write-host $servertopUSlot -f Cyan
         }
@@ -131,4 +202,4 @@ foreach ($server in $serverstomove) {
 
 }
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt
