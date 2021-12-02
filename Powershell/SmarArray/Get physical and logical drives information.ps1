@@ -1,55 +1,64 @@
-﻿<# 
+﻿# 
+# 
+#  This script provides physical and logical drives information from the HPE smart array  
+#  
+# 
+#  Requirement:
+#    - HPE Redfish PowerShell library (hpeRedFishcmdlets)
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
+# 
+##############################################################################################
 
- This script provides physical and logical drives information from the HPE smart array  
+# Server from which you want to get the drives information (name found using get-OVserver)
+$server = "Frame1, bay 1"
+
+
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+# hpeRedFishcmdlets
+# If (-not (get-module hpeRedFishcmdlets -ListAvailable )) { Install-Module -Name hpeRedFishcmdlets -scope Allusers -Force }
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
- OneView Powershell Library and HPERedfishCmdlets are required
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-#>
-
-
-
-# Composer information
-$username = "Administrator"
-$password = "password"
-$composer = "composer.lj.lab"
-
-# Server that you want to get the drive information from (name found using get-hpovserver)
-$server = "Frame1, bay 6"
-
-
-#Importing HPOneView module
-If (-not (get-Module HPOneview.420 ) ) {
-
-    Try { Import-Module HPOneview.420 -ErrorAction Stop } 
-    catch {
-        install-Module HPOneview.420
-        import-Module HPOneview.420
-    }
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
 }
 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-#Importing HPERedfishCmdlets module
-If (-not (get-Module HPERedfishCmdlets ) ) {
+#################################################################################
 
-    Try { Import-Module HPERedfishCmdlets -ErrorAction Stop } 
-    catch {
-        install-Module HPERedfishCmdlets
-        import-Module HPERedfishCmdlets
-    }
+try {
+    $sh = Get-OVServer -Name $server -ErrorAction Stop
+}
+catch [HPEOneView.ServerHardwareResourceException] {
+    Write-Warning "Resource $server cannot be found ! Exiting.."
+    Disconnect-OVMgmt
+    return
 }
 
-
-#Connecting to the Synergy Composer
-Connect-HPOVMgmt -appliance $composer -UserName $username -Password $password | Out-Null
-
-
-
-
-$sh = Get-HPOVServer -Name $server
 
 "Server Hardware: {0}" -f $sh.name
 
-$iloSession = $sh | Get-HPOVIloSso -IloRestSession
+$iloSession = $sh | Get-OVIloSso -IloRestSession
 $iloSession.RootUri = $iloSession.RootUri.Replace("rest", "redfish")
 
 
@@ -107,4 +116,4 @@ foreach ($ctrl in $ctrls.members) {
 	
 }
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt

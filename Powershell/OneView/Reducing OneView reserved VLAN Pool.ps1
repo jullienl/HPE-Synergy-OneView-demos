@@ -1,4 +1,6 @@
-﻿<# This script reduces the OneView reserved VLAN pool to 4035-4094.
+﻿<# 
+
+This script reduces the OneView reserved VLAN pool to 4035-4094.
 
 There is a reserved VLAN pool, a range of VLANs used for Tunnel, Untagged and Native FC networks. 
 
@@ -13,62 +15,67 @@ OneView Powershell Library is required
 #>
 
 
-# Composer information
-$username = "Administrator"
-$password = "password"
-$IP = "composer.lj.lab"
+#################################################################################
+#                                Global Variables                               #
+#################################################################################
+
+# Pool range
+$vlanRangeStart = "4035"
+$vlanRangeLength = "60"
 
 
-If (-not (get-Module HPOneview.500) ) {
 
-    Import-Module HPOneview.500
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
 }
 
-
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
                
 # GET (before)
 
 $fabric = Send-HPOVRequest -uri "/rest/fabrics" 
 
- 
-
 $pool = $fabric.members.reservedVlanRange
 
 "BEFORE - vlan-pool: start={0}, length={1}" -f $pool.start, $pool.length | Write-Host -ForegroundColor Yellow
 
  
-
- 
-
 # PUT
-
-$vlanRangeStart = "4035"
-
-$vlanRangeLength = "60"
-
- 
 
 $data = @{
 
     "start"  = $vlanRangeStart
-
     "length" = $vlanRangeLength
-
     "type"   = "vlan-pool"
 
 }
 
  
-
 $task = Send-HPOVRequest -uri $pool.uri -method PUT -body $data
-
 $task | Wait-HPOVTaskComplete
-
  
 
 # GET (after)

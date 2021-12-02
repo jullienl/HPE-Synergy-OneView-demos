@@ -7,10 +7,34 @@
 # Note: If using a OneView Self-signed certificate, it is required to uncomment line 29
 
 
-# Composer information
-$username = "Administrator"
-$password = "password"
-$composer = "composer.lj.lab"
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
 
  
 function Failure {
@@ -31,13 +55,13 @@ function Failure {
 #Creation of the header
 $headers = @{ } 
 $headers["content-type"] = "application/json" 
-$headers["X-API-Version"] = "1000"
+$headers["X-API-Version"] = "2200"
 
 #Creation of the body
 $Body = @{userName = $username; password = $password; authLoginDomain = "Local"; loginMsgAck = "true" } | ConvertTo-Json 
 
 #Opening a login session with Composer
-$session = invoke-webrequest -Uri "https://$composer/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
+$session = invoke-webrequest -Uri "https://$OV_IP/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
 
 
 #Capturing the Composer Session ID and adding it to the header
@@ -45,7 +69,7 @@ $key = ($session.content | ConvertFrom-Json).sessionID
 $headers["auth"] = $key
 
 #Retrieving SNMPv3 information 
-$snmpv3 = (invoke-webrequest -Uri "https://$composer/rest/global-settings/appliance/global/applianceSNMPv3EngineId" -Headers $headers -Method Get ).content | ConvertFrom-Json 
+$snmpv3 = (invoke-webrequest -Uri "https://$OV_IP/rest/global-settings/appliance/global/applianceSNMPv3EngineId" -Headers $headers -Method Get ).content | ConvertFrom-Json 
 
 #Capturing SNMPv3 value and reducing to 32 bytes (16 characters)
 $snmpv3value = ($snmpv3.value).SubString(0, 16)
@@ -57,7 +81,7 @@ $payload = ConvertTo-Json  @{ type = "SettingV2"; name = "applianceSNMPv3EngineI
 #Reconfiguraing SNMPv3 settings
 try {
     
-    invoke-webrequest -Uri "https://$composer/rest/global-settings/appliance/global/applianceSNMPv3EngineId" -Headers $headers -Body $payload -Method PUT | out-Null
+    invoke-webrequest -Uri "https://$OV_IP/rest/global-settings/appliance/global/applianceSNMPv3EngineId" -Headers $headers -Body $payload -Method PUT | out-Null
 
     Write-Host "Operation done ! The SNMPv3 engine ID is now correctly set."
 }

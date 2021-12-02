@@ -37,17 +37,35 @@ Requirements:
 #################################################################################
 #>
 
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
-#IP address of OneView
-$IP = "192.168.1.110" 
-# OneView Credentials
-$username = "Administrator" 
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
 
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+  Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+  Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+  return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+
 
 
 # Capturing the OneView Session ID
@@ -75,10 +93,10 @@ $body = "    [
 `n  ]"
 
 try {
-    $response = Invoke-RestMethod "https://$($IP)/rest/security-standards/protocols" -Method 'PUT' -Headers $headers -Body $body
+  $response = Invoke-RestMethod "https://$($OV_IP)/rest/security-standards/protocols" -Method 'PUT' -Headers $headers -Body $body
 }
 catch {
-    $response | ConvertTo-Json 
+  $response | ConvertTo-Json 
 }
 
 

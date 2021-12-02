@@ -9,7 +9,7 @@
 # - Existing LE update from earlier version to OV 4.20 or later will preserve the netop/netoppwd user/password combo for all modules
 # - New LE in OV 4.20 or later will not have default netop user configured and will require REST API to enable it
 #
-# Script requirements: Composer 4.20
+# Script requirements: Composer 4.20+
 # OneView Powershell Library is not required
 # 
 # Note: If using a OneView Self-signed certificate, it is required to uncomment line 44

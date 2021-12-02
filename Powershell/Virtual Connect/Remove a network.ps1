@@ -6,7 +6,8 @@
 #
 #   Requirement:
 #    - A network Set must be defined and presented to the Server Profiles
-#    - HPE OneView administrator account is required
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 #
 #   This script only performs the deletion of an existing ethernet network since OneView takes care of the other steps automatically.
 #

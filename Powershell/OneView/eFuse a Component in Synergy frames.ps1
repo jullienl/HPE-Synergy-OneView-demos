@@ -13,20 +13,34 @@
 # $enc = Get-HPOVEnclosure -Name "Frame3-CN7515049C" 
 # Reset-HPOVEnclosureDevice -Enclosure $enc  -Component Device -DeviceID 6 -Efuse -confirm:$false
 
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
-# OneView information
-$username = "Administrator"
-$IP = "composer.lj.lab"
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-# Import the OneView 5.50 library
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false 
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
 
 $numberofframes = @(Get-HPOVEnclosure).count
 $frames = Get-HPOVEnclosure | % { $_.name }

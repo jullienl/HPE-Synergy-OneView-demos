@@ -7,7 +7,8 @@
 # 
 #   Requirement:
 #    - A network Set must be defined and presented to the Server Profiles
-#    - HPE OneView administrator account is required
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 #
 #   This script performs the following steps:
 #    - Creates a new ethernet network using the variables defined in the vars section

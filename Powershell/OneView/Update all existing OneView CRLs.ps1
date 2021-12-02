@@ -2,120 +2,65 @@
 # by lionel.jullien@hpe.com
 # July 2018
 #
-# This POSH script updates all existing CRLs (Certificate Revocation List) present in Oneview identified as expired
+# This script updates all existing CRLs (Certificate Revocation List) present in Oneview identified as expired
 #   
-# 
-# OneView administrator account is required. 
-# An internet connection is required by the script to download the CRLs
+#  Requirement:
+#    - PSPKI PowerShell library
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
+#    - An internet connection is required by the script to download the CRLs
 # 
 # Note: CRLs update takes effect immediately, but it can take up to an hour for the manage 
 # certificates dialog box to show an OK state rather than CRL Expired.
 #
 # This script is only supported with the HPE OneView PowerShell library version 4.00
 # The 4.10 library will natively provide cmdlets to update the OneView CRLs
-# To learn how to proceed with 4.10 : help Update-HPOVApplianceTrustedAuthorityCrl -Examples
+# To learn how to proceed with 4.10 : help Update-OVApplianceTrustedAuthorityCrl -Examples
 #
 # --------------------------------------------------------------------------------------------------------
 
 
+#################################################################################
+#                                Global Variables                               #
+#################################################################################
+
+# Pool range
+$vlanRangeStart = "4035"
+$vlanRangeLength = "60"
+
+
 
 # OneView Credentials and IP
-
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
 
-Function Import-ModuleAdv {
-    
-    # Import a module that can be imported
-    # If it cannot, the module is installed
-    # When -update parameter is used, the module is updated 
-    # to the latest version available on the PowerShell library
-    #
-    # ex: import-moduleAdv hponeview.500
-    
-    param ( 
-        $module, 
-        [switch]$update 
-    )
-   
-    if (get-module $module -ListAvailable) {
+# MODULES TO INSTALL
 
-        if ($update.IsPresent) {
-            
-            [string]$InstalledModule = (Get-Module -Name $module -ListAvailable).version
-            
-            Try {
-                [string]$RepoModule = (Find-Module -Name $module -ErrorAction Stop).version
-            }
-            Catch {
-                Write-Warning "Error: No internet connection to update $module ! `
-                `nCheck your network connection, you might need to configure a proxy if you are connected to a corporate network!"
-                return 
-            }
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
 
-            #$Compare = Compare-Object $Moduleinstalled $ModuleonRepo -IncludeEqual
-
-            #If ( ( $Compare.SideIndicator -eq '==') ) {
-            
-            If ( [System.Version]$InstalledModule -lt [System.Version]$RepoModule ) {
-                Try {
-                    # not using update-module as it keeps the old version of the module
-                    #Remove existing version
-                    Get-Module $Module -ListAvailable | Uninstall-Module 
-
-                    #Install latest one from PSGallery
-                    Install-Module -Name $Module
-                }
-                Catch {
-                    write-warning "Error: $module cannot be updated !"
-                    return
-                }
-           
-            }
-            Else {
-                Write-host "You are using the latest version of $module !" 
-            }
-        }
-            
-        Import-module $module
-            
-    }
+# PSPKI
+# Import-ModuleAdv PSPKI
 
 
-    Else {
-        Write-host "$Module cannot be found, let's install it..." -ForegroundColor Cyan
+#################################################################################
 
-        
-        If ( !(get-PSRepository).name -eq "PSGallery" )
-        { Register-PSRepository -Default }
-                
-        Try {
-            find-module -Name $module -ErrorAction Stop | out-Null
-                
-            Try {
-                Install-Module -Name $module -Scope AllUsers -Force -AllowClobber -ErrorAction Stop | Out-Null
-                Write-host "`nInstalling $Module ..." 
-                Import-module $module
-               
-            }
-            catch {
-                Write-Warning "$Module cannot be installed!" 
-                $error[0] | FL * -force
-                pause
-                exit
-            }
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-        }
-        catch {
-            write-warning "Error: $module cannot be found in the online PSGallery !"
-            return
-        }
-            
-    }
-
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
 }
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
 
 
 function Failure {
@@ -131,21 +76,6 @@ function Failure {
 }
 
 
-# Modules to import
-Import-ModuleAdv HPOneview.500 #-update
-Import-ModuleAdv PSPKI
-
-
-
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-#Connecting to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
-               
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 <#
 add-type -TypeDefinition  @"
@@ -164,7 +94,6 @@ add-type -TypeDefinition  @"
 #>
    
 
-
 # Creation of the header
   
 $headers = @{ } 
@@ -182,12 +111,12 @@ $certSymantec1 = "Symantec Class 3 Secure Server CA - G4"
 $certSymantec2 = "Symantec Class 3 Secure Server SHA256 SSL CA"
 #>
 
-$certificates = ((get-HPOVApplianceTrustedCertificate).certificateDetails | ? keyusage -eq "keyCertSign,cRLSign").aliasname
+$certificates = ((get-OVApplianceTrustedCertificate).certificateDetails | ? keyusage -eq "keyCertSign,cRLSign").aliasname
 
 Foreach ($certificate in $certificates) {
 
-    $uri = (Get-HPOVApplianceTrustedCertificate).certificateDetails | ? aliasname -match $certificate | % uri
-    [DateTime]$CRLexpirationdate = ( Get-HPOVApplianceTrustedCertificate | ? { $_.certificateDetails.aliasname -match $certificate } ).certRevocationConfInfo.crlExpiry
+    $uri = (Get-OVApplianceTrustedCertificate).certificateDetails | ? aliasname -match $certificate | % uri
+    [DateTime]$CRLexpirationdate = ( Get-OVApplianceTrustedCertificate | ? { $_.certificateDetails.aliasname -match $certificate } ).certRevocationConfInfo.crlExpiry
     $date = Get-Date
     
     If (($CRLexpirationdate - $date).days -lt 0  ) {
@@ -196,7 +125,7 @@ Foreach ($certificate in $certificates) {
     
         Write-host "`n'$certificate' CRL expired $expiration days ago, let's upload the new CRL !" -ForegroundColor Green
         # Finding the URL of the CRL 
-        $CRLdistributionpoint = ( Get-HPOVApplianceTrustedCertificate | ? { $_.certificateDetails.aliasname -match $certificate } ).certRevocationConfInfo.crlconf.crldplist
+        $CRLdistributionpoint = ( Get-OVApplianceTrustedCertificate | ? { $_.certificateDetails.aliasname -match $certificate } ).certRevocationConfInfo.crlconf.crldplist
         $CRLdistributionpoint = $CRLdistributionpoint -join ''
         $CRL = "$certificate.crl"
     
@@ -226,7 +155,7 @@ Foreach ($certificate in $certificates) {
 
         try {
 
-            $result = Invoke-RestMethod -Uri "https://$IP$uri/crl" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method PUT # -Verbose  
+            $result = Invoke-RestMethod -Uri "https://$OV_IP$uri/crl" -Headers $headers -Body $bodyLines -ContentType "multipart/form-data; boundary=$boundary" -Method PUT # -Verbose  
             write-host "`n'$certificate' has been uploaded successfully !" -ForegroundColor Green
         }
 
@@ -249,4 +178,4 @@ Foreach ($certificate in $certificates) {
 }
 
 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt

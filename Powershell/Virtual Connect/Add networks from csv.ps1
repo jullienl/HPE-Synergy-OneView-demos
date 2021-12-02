@@ -21,7 +21,8 @@
 #
 #   Requirement:
 #    - A network Set must be defined and presented to the Server Profiles
-#    - HPE OneView administrator account is required
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 #    - A CSV file containing the list of networks must be available in the same folder as this script
 #  
 #   With this script, you can demonstrate that with a single line of code, you can present easily and quickly a network VLAN to all Compute Modules present in the Synergy frames managed by HPE OneView. 
