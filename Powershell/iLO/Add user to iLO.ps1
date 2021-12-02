@@ -7,8 +7,8 @@
 # iLO modification is done through OneView and iLO SSOsession key using REST POST method
 #
 # Requirements:
-# - OneView administrator account 
-# - HPEOneView library 
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 #
 # --------------------------------------------------------------------------------------------------------
 

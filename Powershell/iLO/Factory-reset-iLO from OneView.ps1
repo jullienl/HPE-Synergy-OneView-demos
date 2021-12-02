@@ -8,12 +8,11 @@ PowerShell script to factory reset an iLO managed by HPE OneView. The IP address
  Gen9 and Gen10 servers are supported. 
 
  Requirements:
- - OneView administrator account 
- - HPEOneView library 
+   - HPE OneView Powershell Library
+   - HPE OneView administrator account 
 
-
-    Author: lionel.jullien@hpe.com
-    Date:   May 2021
+ Author: lionel.jullien@hpe.com
+ Date:   May 2021
     
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -40,25 +39,34 @@ PowerShell script to factory reset an iLO managed by HPE OneView. The IP address
 #################################################################################
 #>
 
-# MODULES TO INSTALL/IMPORT
 
-# HPEONEVIEW
-# If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
-# import-module HPEOneView.550
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# iLO IP address
-$iloIP = read-host  "Please enter the iLO IP address you want to factory reset"
+# MODULES TO INSTALL
 
-# OneView information
-$username = "Administrator"
-$IP = "composer.lj.lab"
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -73,6 +81,12 @@ add-type -TypeDefinition  @"
 "@
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
+#################################################################################
+
+# iLO IP address
+$iloIP = read-host  "Please enter the iLO IP address you want to factory reset"
 
 $SH = Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP }
 $iloModel = $SH.mpModel
@@ -216,4 +230,4 @@ write-host "iLO Factory reset completed successfully and communication with [$($
 
 Disconnect-OVMgmt
 
-Read-Host -Prompt "Hit return to close" 
+

@@ -7,10 +7,9 @@ so a local iLO account is not required to make that change.
 
 Gen9 and Gen10 servers are supported. 
 
-Requirements: 
-- Latest HPEOneView library
-- OneView administrator account
-
+Requirements:
+ - HPE OneView Powershell Library
+ - HPE OneView administrator account 
 
   Author: lionel.jullien@hpe.com
   Date:   Nov 2021

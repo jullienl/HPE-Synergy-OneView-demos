@@ -17,9 +17,10 @@ Steps of this script:
 
 Gen9 and Gen10 servers are supported 
 
-Requirements: 
-- Latest HPEOneView and PSPKI libraries 
-- OneView administrator account.
+Requirements:
+   - HPE OneView Powershell Library
+   - HPE OneView administrator account 
+   - PSPKI Powershell Library 
 
 
   Author: lionel.jullien@hpe.com

@@ -4,8 +4,11 @@
 #
 # Change the iLO password complexity option in every iLO5 managed by OneView without using any iLO local account
 #
-# OneView administrator account is required. 
 # iLO modification is done through OneView and iLO SSOsession key using REST PATCH method
+#
+# Requirements:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 # --------------------------------------------------------------------------------------------------------
 
 #################################################################################
@@ -33,25 +36,36 @@
 #################################################################################
 
 
-# Composer information
-$username = "Administrator"
-$password = "password"
-$IP = "composer.lj.lab"
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
 
-If (-not (get-Module HPOneview.500) ) {
+# MODULES TO INSTALL
 
-    Import-Module HPOneview.500
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
 }
 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
-                
-import-HPOVSSLCertificate
+#################################################################################
 
 
 # Capture iLO IP adresses managed by OneView

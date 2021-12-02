@@ -12,7 +12,7 @@ Gen9 and Gen10 servers are supported.
 
 Requirements: 
 - Latest HPEOneView library 
-- OneView administrator account.
+- OneView administrator account
 
 
   Author: lionel.jullien@hpe.com
@@ -47,23 +47,34 @@ Requirements:
 # Number of days until the certificate expires 
 $nb_days_before_expiration = "90"
 
-# MODULES TO INSTALL/IMPORT
 
-# HPEONEVIEW
-# If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.530 -scope Allusers -Force }
-# import-module HPEOneView.550
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# MODULES TO INSTALL
 
-# OneView information
-$username = "Administrator"
-$IP = "composer.lj.lab"
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -78,6 +89,8 @@ add-type -TypeDefinition  @"
 "@
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+#################################################################################
 
 
 $servers = Get-OVServer 

@@ -4,9 +4,11 @@
 #
 # Change the default Administrator account password in all iLOs managed by OneView without using any iLO local account
 #
-# OneView administrator account is required. 
 # iLO5 modification is done through OneView and iLO SSOsession key using REST POST method
 # 
+# Requirements:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 # --------------------------------------------------------------------------------------------------------
 
 #################################################################################

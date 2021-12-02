@@ -4,8 +4,12 @@
 #
 # Delete a User account in iLO4/iLO5 managed by OneView without using the iLO Administrator local account
 #
-# OneView administrator account is required. 
 # iLO modification is done through OneView and iLO SSOsession key using REST POST method
+#
+# Requirements:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
+#
 # --------------------------------------------------------------------------------------------------------
 
 #################################################################################
@@ -33,26 +37,37 @@
 #################################################################################
 
 
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110"
-
-
 # iLO User to remove 
 $iLOLoginName = "Ilouser"
 
 
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
-Clear-Host
-               
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -67,6 +82,9 @@ add-type -TypeDefinition  @"
 "@
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
+#################################################################################
 
     
 # Capture iLO4 and iLO5 IP adresses managed by OneView
