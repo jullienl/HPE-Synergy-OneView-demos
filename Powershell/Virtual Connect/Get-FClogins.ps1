@@ -1,6 +1,7 @@
-# This script provides FC Logins information found on the Synergy Virtual Connect interconnect module for all Fibre Channel uplink ports 
-#
-# The script provides how many servers are logged in to a given FC uplink port and what are the server profiles. 
+# 
+# This script provides information about the FC logins found on the HPE Synergy Virtual Connect interconnect modules for all Fibre Channel uplink ports 
+# 
+# The script displays on the console how many servers are connected to a given FC uplink port and what are the server information (WWPN and server profiles)
 #
 #
 # Example of the output :
@@ -20,8 +21,10 @@
 #           WWPN: 10:00:16:ab:60:20:00:1a - Server profile: ESX-2
 #           WWPN: 10:00:16:ab:60:20:00:1e - Server profile: ESX-3
           
+#   Requirement:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 # 
-# OneView Powershell Library is required
 #
 #############################################################################################################################
 
