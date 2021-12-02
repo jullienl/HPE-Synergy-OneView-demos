@@ -20,29 +20,44 @@
 #           WWPN: 10:00:16:ab:60:20:00:1a - Server profile: ESX-2
 #           WWPN: 10:00:16:ab:60:20:00:1e - Server profile: ESX-3
           
-# Script requirements: Composer 4.20+
+# 
 # OneView Powershell Library is required
 #
 #############################################################################################################################
 
-#IP address of OneView
-$IP = "192.168.3.4" 
 
-# OneView Credentials
-$username = "Administrator" 
-$password = "password"
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+
+#################################################################################
     
-Clear-Host
 
-# Import the OneView PowerShell module if needed
-# Import-Module hponeview.550
-
-$ApplianceConnection = Connect-OVMgmt -appliance $IP -Credential $credentials 
-
-$LinkedFCuplinkports = (Get-OVInterconnect | Where-Object { $_.model -match "40G" -or $_.model -match "100G" } ).ports | Where-Object { $_.configPortTypes -match "FibreChannel" -and $_.portstatus -eq "Linked" }
+$LinkedFCuplinkports = (Get-OVInterconnect | Where-Object { $_.model -match "40G" -or $_.model -match "100G" } ).ports |  Where-Object { $_.fcPortProperties -and $_.portstatus -eq "Linked" }
 
 foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
    
@@ -53,14 +68,14 @@ foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
     $association = "PORT_TO_INTERCONNECT"
     $uri = "/rest/index/associations?name={0}&parentUri={1}" -f $association, $LinkedFCuplinkport.uri
     Try {
-        $_IndexResults = Send-OVRequest -Uri $Uri -Hostname $ApplianceConnection
+        $_IndexResults = Send-OVRequest -Uri $Uri 
     }
     Catch {
         $PSCmdlet.ThrowTerminatingError($_)
     }
   
     $childuri = $_IndexResults.members.childuri
-    $_FullIndexEntry = Send-OVRequest -Uri $childuri -Hostname $ApplianceConnection
+    $_FullIndexEntry = Send-OVRequest -Uri $childuri 
 
     $myobject.productName = $_FullIndexEntry.productName
     $myobject._Name = $_FullIndexEntry.Name
