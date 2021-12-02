@@ -39,34 +39,59 @@
 #>
 
 
-# MyImport-Module HPRESTCmdlets
-
-
 # OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
 
+# MODULES TO INSTALL
 
-Import-Module HPOneview.500 
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
-               
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | Where-Object { $_.name -eq $IP })
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-Get-HPOVServerprofiletemplate | Out-Host
+
+#################################################################################
+
+
+Get-OVServerprofiletemplate | Out-Host
         
 $spt = read-host "Which Server Profile Template do you want to use to propagate the LACP configuration accross all associated server profiles?"
 
 
 #Capturing Server profiles under the SPT
-$_spt = (Get-HPOVServerProfileTemplate -Name $spt) 
+$_spt = (Get-OVServerProfileTemplate -Name $spt) 
 
 $association = "server_profile_template_to_server_profiles"
 
@@ -75,7 +100,7 @@ $uri = "/rest/index/associations?name={0}&parentUri={1}" -f $association, $_spt.
 
 Try {
 
-    $_IndexResults = Send-HPOVRequest -Uri $Uri -Hostname $ApplianceConnection
+    $_IndexResults = Send-OVRequest -Uri $Uri -Hostname $ApplianceConnection
 
 }
 
@@ -90,7 +115,7 @@ $serverprofiles = New-Object System.Collections.ArrayList
 
 foreach ($member in $_IndexResults.members) {
     $childuri = $member.childuri
-    $_FullIndexEntry = Send-HPOVRequest -Uri $childuri -Hostname $ApplianceConnection
+    $_FullIndexEntry = Send-OVRequest -Uri $childuri -Hostname $ApplianceConnection
     [void]$serverprofiles.Add($_FullIndexEntry)
 
 }
@@ -132,7 +157,7 @@ foreach ($serverprofile in $serverprofiles) {
         
         #collecting connection URI for the Lagname and network name
         [system.string]$connectionuri = $_Connections.$lagname 
-        $networkname = (Send-HPOVRequest -Uri $connectionuri -Hostname $ApplianceConnection).name 
+        $networkname = (Send-OVRequest -Uri $connectionuri -Hostname $ApplianceConnection).name 
           
         #Throwing error if SPT network connection not found in SP or if only one network connection
         If ($serverprofile.connectionSettings.connections.networkuri -notcontains $connectionuri -or (($serverprofile.connectionSettings.connections.networkuri -match $connectionuri).count -eq 1) ) { 
@@ -165,16 +190,13 @@ foreach ($serverprofile in $serverprofiles) {
                 
     #Updating Server Profile if needed
     If ($Applyprofile -eq $True) {
-        Set-HPOVResource $serverprofile | out-Null
+        Set-OVResource $serverprofile | out-Null
         write-host "Profile '$($serverprofile.name)' is now LAG enabled, please wait for the profile to be updated...`n" -ForegroundColor green
     }
     Else {
         write-warning "Profile '$($serverprofile.name)' unchanged!`n" 
 
     }
-
-
-
 }
 
     

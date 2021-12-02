@@ -67,9 +67,9 @@ Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
 # Get the IP addresses of the iLOs we want to upgrade
-$iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
+$iLOserverIPs = Get-OVServer | Where-Object { $_.mpModel -eq "iLO4" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
 
-<#
+  <#
   - To retrieve the iLO IP of a single server, you can use:
     $iLOserverIPs = Get-OVServer -name "Encl1, bay 1" | % { $_.mpHostInfo.mpIpaddresses[1].address }  
 
@@ -85,16 +85,16 @@ $iLOserverIPs = Get-OVServer | ? mpModel -eq "ilo5" | % { $_.mpHostInfo.mpIpaddr
     $iLOserverIPs = foreach ($item in $impactedservers) { Get-OVServer -Name $item | % { $_.mpHostInfo.mpIpaddresses[1].address } }
 #>
 
-foreach ($item in $iLOserverIPs) {
+  foreach ($item in $iLOserverIPs) {
 
-  $connection = connect-hpeilo -Credential $ilocreds -Address $item 
-  $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False -Force
-  Write-Host "iLO $item : $($task.statusinfo.message)"
-  Disconnect-HPEiLO -Connection $connection
+    $connection = connect-hpeilo -Credential $ilocreds -Address $item 
+    $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False -Force
+    Write-Host "iLO $item : $($task.statusinfo.message)"
+    Disconnect-HPEiLO -Connection $connection
     
-}
+  }
    
-Disconnect-OVMgmt 
+  Disconnect-OVMgmt 
 
 
 

@@ -1,51 +1,68 @@
+# Generates a Server Firmware report 
+#
+# Requirements:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
+#
+####################################################################
 
-### Generates a Server Firmware report 
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
 
-#IP address of OneView
-$IP = "192.168.1.110" 
 
-# OneView Credentials
-$username = "Administrator" 
-$password = "password" 
+# MODULES TO INSTALL
 
-# Import the OneView 3.10 library
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force -Confirm:$false
 
-if (-not (get-module HPOneview.310)) {  
-    Import-module HPOneview.310
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
 }
 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# Connection to the Synergy Composer
-
-If ($connectedSessions -and ($connectedSessions | ? {$_.name -eq $IP})) {
-    Write-Verbose "Already connected to $IP."
-}
-
-Else {
-    Try {
-        Connect-HPOVMgmt -appliance $IP -UserName $username -Password $password | Out-Null
-    }
-    Catch {
-        throw $_
-    }
-}
-
-import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? {$_.name -eq $IP})
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-$servers = Get-HPOVserver | Sort-Object locationuri, {[int]$_.position}
+#################################################################################
+
+
+$servers = Get-OVserver | Sort-Object locationuri, { [int]$_.position }
 $NewServer = "###################################################################### "
-Foreach ($server in $servers)
-{
-echo $NewServer >> Server_FW_Report.txt
-echo "              $($server.name)" >> Server_FW_Report.txt
-echo $NewServer >> Server_FW_Report.txt
-Get-HPOVServer -Name $server.name | Format-List position, name, mpModel, mpFirmwareVersion, model, serialNumber, processorType, memoryMb, romVersion, intelligentProvisioningVersion, state, powerState | Sort-Object -Property position | Out-File Server_FW_Report.txt -Append
-(Send-HPOVRequest -Uri ($server.uri + "/firmware")).components | Format-Table componentName, componentLocation, componentVersion | Out-File Server_FW_Report.txt -Append
+Foreach ($server in $servers) {
+    echo $NewServer >> Server_FW_Report.txt
+    echo "              $($server.name)" >> Server_FW_Report.txt
+    echo $NewServer >> Server_FW_Report.txt
+    Get-OVServer -Name $server.name | Format-List position, name, mpModel, mpFirmwareVersion, model, serialNumber, processorType, memoryMb, romVersion, intelligentProvisioningVersion, state, powerState  | Out-File Server_FW_Report.txt -Append
+(Send-OVRequest -Uri ($server.uri + "/firmware")).components | Format-Table componentName, componentLocation, componentVersion | Out-File Server_FW_Report.txt -Append
 }
 
 
 Get-Content .\Server_FW_Report.txt
 
+Disconnect-OVMgmt

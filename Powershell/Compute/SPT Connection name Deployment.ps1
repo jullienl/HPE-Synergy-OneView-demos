@@ -8,7 +8,9 @@
 # 
 # Notice: the script verifies that the same network connections present in Server profile template are also available in the server profiles 
 # 
-# Requirement: HPE OneView PowerShell Library
+# Requirements:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
 #
 #  Author: lionel.jullien@hpe.com
 #  Date:   March 2021
@@ -73,21 +75,52 @@
 #################################################################################
 #>
 
-# OneView Credentials and IP
-$username = "Administrator" 
-$password = "password" 
-$IP = "192.168.1.110" 
 
-# Import-Module HPEOneview.560
+# OneView Credentials and IP
+$OV_username = "Administrator"
+$OV_IP = "composer2.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+}
+catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+}
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-# Connection to the Synergy Composer
-$secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-               
-import-OVSSLCertificate -ApplianceConnection (${Global:ConnectedSessions} | Where-Object { $_.name -eq $IP })
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
+#################################################################################
+
 
 Get-OVServerprofiletemplate | Out-Host
         
