@@ -1,22 +1,22 @@
 <#
 .DESCRIPTION
-   Get-HPOVinterconnectstatistics gets the port statistics from a Virtual Connect SE 40Gb F8 Module for Synergy 
+   Get-OVinterconnectstatistics gets the port statistics from a Virtual Connect SE 100Gb F32 or 40Gb F8 Module for HPE Synergy 
    A port name must be provided
        
 .PARAMETER IP
-  IP address of the Composer
+  IP address of the HPE Synergy Composer
     
 .PARAMETER username
-  OneView administrator account of the Composer
+  OneView administrator account of the Synergy Composer
   Default: Administrator
   
 .PARAMETER password
-  password of the OneView administrator account 
+  Password of the HPE OneView administrator account of the Synergy Composer
   Default: password
   
 .PARAMETER interconnect
   Name of the interconnect module
-  This is normally retrieved with a 'Get-HPOVInterconnect' call like ' (get-HPovInterconnect | Where-Object {$_.name -match "interconnect 3" -and $_.model -match "Virtual" } ).name '
+  This is normally retrieved with a 'Get-OVInterconnect' call like ' (get-OVInterconnect | Where-Object {$_.name -match "interconnect 3" -and $_.model -match "Virtual" } ).name '
 
 .PARAMETER portname
   case-insensitive name of the port to query for statistics
@@ -33,19 +33,19 @@
   Provides the statistics of the FlexNICs of a given downlink port 
 
 .EXAMPLE
-  PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username Administrator -password password -portname "Q2" -interconnect "Frame1-CN7516060D, interconnect 3"
+  PS C:\> Get-OVinterconnectstatistics -IP 192.168.1.110 -username Administrator -password password -portname "Q2" -interconnect "Frame1-CN7516060D, interconnect 3"
   Provides the common statistics of 40Gb uplink port Q2 on the interconnect "Frame1-CN7516060D, interconnect 3"
   
 .EXAMPLE
-  PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "d2" -interconnect "Frame2-CN7515049L, interconnect 6" -throughputstatistics
+  PS C:\> Get-OVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "d2" -interconnect "Frame2-CN7515049L, interconnect 6" -throughputstatistics
   Provides the throughput statistics of downlink port d2 on the interconnect "Frame2-CN7515049L, interconnect 6"
   
 .EXAMPLE
-  PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "Q4:1" -interconnect "Frame2-CN7515049L, interconnect 6" -qos
+  PS C:\> Get-OVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "Q4:1" -interconnect "Frame2-CN7515049L, interconnect 6" -qos
   Provides the QoS statistics of 10G uplink port Q4:1 on the interconnect "Frame2-CN7515049L, interconnect 6"
 
 .EXAMPLE
-  PS C:\> Get-HPOVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "d8" -interconnect "Frame2-CN7515049L, interconnect 6" -flexNICs
+  PS C:\> Get-OVinterconnectstatistics -IP 192.168.1.110 -username administrator -password password -portname "d8" -interconnect "Frame2-CN7515049L, interconnect 6" -flexNICs
   Provides the FlexNICs statistics of downlink port d8 on the interconnect "Frame2-CN7515049L, interconnect 6"
 
 .COMPONENT
@@ -60,7 +60,7 @@
     Date:   August 2017 
     
 #################################################################################
-#                  Get-HPOVinterconnectstatistics.ps1                           #
+#                  Get-OVinterconnectstatistics.ps1                           #
 #                                                                               #
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
 #################################################################################
@@ -85,7 +85,7 @@
 #                                                                               #
 #################################################################################
 #>
-function Get-HPOVinterconnectstatistics {
+function Get-OVinterconnectstatistics {
 
   [cmdletbinding(DefaultParameterSetName = "All", 
     SupportsShouldProcess = $True
@@ -104,7 +104,7 @@ function Get-HPOVinterconnectstatistics {
 
     [parameter(ParameterSetName = "All")]
     [Alias('p', 'pwd')]
-    [string]$password = "password",
+    [string]$password = "",
 
     [parameter(ParameterSetName = "All")]
     [string]$interconnect = "",
@@ -123,8 +123,12 @@ function Get-HPOVinterconnectstatistics {
                                
   )
    
-   
-  # Import the OneView 3.1 library
+  # $username = "Administrator"
+  # $password = "password"
+  # $IP = "composer2.lj.lab"
+  # $interconnect = "frame4, interconnect 3"
+  # $portname = "d2"  # "Q1" 
+  # $FlexNICs = $True
 
   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -133,25 +137,25 @@ function Get-HPOVinterconnectstatistics {
 
   $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
   $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-  Connect-HPOVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
+  try {
+    Connect-OVMgmt -Hostname $IP -Credential $credentials -ErrorAction stop | Out-Null    
+  }
+  catch {
+    Write-Warning "Cannot connect to '$IP'! Exiting... "
+    return
+  }
                
-
-               
-  import-HPOVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
-
+  # import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP })
 
   # Creation of the header
 
-  $postParams = @{userName = $username; password = $password } | ConvertTo-Json 
   $headers = @{ } 
-  #$headers["Accept"] = "application/json" 
-  $headers["X-API-Version"] = "1200"
+  $headers["X-API-Version"] = "2200"
 
   # Capturing the OneView Session ID and adding it to the header
     
   $key = $ConnectedSessions[0].SessionID 
-
   $headers["auth"] = $key
 
   # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
@@ -170,46 +174,59 @@ function Get-HPOVinterconnectstatistics {
   [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-  $IC = get-HPovInterconnect -Name $interconnect
+  $IC = get-OVInterconnect -Name $interconnect -ErrorAction stop
+  
+  if (-not $IC) {
+    Write-Warning "Cannot find the interconnect named '$interconnect'! Exiting... "
+    Disconnect-OVMgmt
+    return 
+  }
 
   $uri = $IC.uri
 
   Write-Verbose "The interconnect is : $interconnect"
  
-  $stat1 = Invoke-WebRequest -Uri "https://$IP$uri/statistics/$portname" -ContentType "application/json" -Headers $headers -Method GET # -UseBasicParsing 
+  try {
+    $stat1 = Invoke-WebRequest -Uri "https://$IP$uri/statistics/$portname" -ContentType "application/json" -Headers $headers -Method GET -ErrorAction Stop # -UseBasicParsing   
+   
+  }
+  catch [System.Management.Automation.RuntimeException] {
+    Write-Warning "Cannot collect statistics! Exiting... "
+    $error[0].Exception 
+    Disconnect-OVMgmt
+    return 
+  }
+
  
-  Write-Verbose "The general stats are $stat1"
+  Write-Verbose "The general stats are $stat1" 
 
-  clear 
+  if (( (get-OVInterconnect -Name $interconnect).ports | ? name -eq $portname ) | ? fcPortProperties ) {
+    $configporttype = "FibreChannel"
+  }
+  else {
+    $configporttype = "Ethernet"
+  }
+  
+  $porttype = ( (get-OVInterconnect -Name $interconnect).ports | ? name -eq $portname ).portType
 
+  $portlinked = ( (get-OVInterconnect -Name $interconnect).ports | ? name -eq $portname ).portStatus
 
-  $configporttype = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).configPortTypes
-
-  $porttype = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).portType
-
-  $portlinked = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).portStatus
-
-  $moduletype = (get-HPovInterconnect -Name $interconnect).model
-
+  $moduletype = (get-OVInterconnect -Name $interconnect).model
 
 
   if ($portlinked -eq "Unlinked") { 
-    Write-host "" 
-    Write-warning "`n`nPort $portname is unlinked ! No statistics is available !`n" 
-    Disconnect-HPOVMgmt
+    Write-warning "Port $portname is unlinked ! No statistics is available !`n" 
+    Disconnect-OVMgmt
     return
   }
     
 
 
   if ($throughputstatistics -eq $False -and $qos -eq $False -and $FlexNICs -eq $False -and $configporttype -notmatch "FibreChannel") {
-    write-host "`nStatistics for $portname :"  -ForegroundColor Green
-    ($stat1.Content | convertfrom-Json).commonStatistics 
+    write-host "`nStatistics for $($portname):"  -ForegroundColor Green
+    ($stat1.Content | convertfrom-Json).commonStatistics #| select -skip 3
   }
      
-
-
-
 
   if ($qos -eq $False -and $configporttype -match 'FibreChannel' -and $FlexNICs -eq $False -and $throughputstatistics -eq $False) {
        
@@ -218,14 +235,12 @@ function Get-HPOVinterconnectstatistics {
     ($stat1.Content | convertfrom-Json).fcStatistics
   }
 
-    
-    
+        
   if ($throughputstatistics -eq $True -and $FlexNICs -eq $False) {   
     
-    if ($configporttype -match 'FibreChannel' -and $moduletype -match "Virtual Connect SE 40Gb F8 Module for Synergy") { 
-      Write-host "" 
-      Write-warning "`n`nThroughput statistics are currently not supported on a Fibre Channel Port on the HPE Virtual Connect SE 40Gb F8 Module for HPE Synergy !`n" 
-        
+    if ($configporttype -match 'FibreChannel' -and ( $moduletype -match "Virtual Connect SE 40Gb F8 Module for Synergy" -or $moduletype -match "Virtual Connect SE 100Gb F32 Module for Synergy")) { 
+      Write-warning "Throughput statistics are not currently supported on a Fibre Channel port of an HPE Virtual Connect SE 40Gb/100Gb module for HPE Synergy!`n" 
+      Disconnect-OVMgmt
       return
     }
         
@@ -241,34 +256,31 @@ function Get-HPOVinterconnectstatistics {
         
   if ($qos.IsPresent) {   
         
-    if ((($stat1.Content | convertfrom-Json).qosPortStatistics) -eq $Null) { 
-      Write-host "" 
-      Write-warning "`n`nThere is no QoS Statistics on $portname !`n" 
+    if (-not (($stat1.Content | convertfrom-Json).qosPortStatistics) ) { 
+      Write-warning "There is no QoS Statistics on $portname !`n" 
+      Disconnect-OVMgmt
       return
                 
     }
         
     write-host "`nQoS statistics:"  -ForegroundColor Green
-           
     ($stat1.Content | convertfrom-Json).qosPortStatistics
   } 
-
     
   if ($FlexNICs.IsPresent) {   
 
-    $subports = ( (get-HPovInterconnect -Name $interconnect).ports | ? name -eq $portname ).subports
+    $subports = ( (get-OVInterconnect -Name $interconnect).ports |  ? name -eq $portname ).subports
 
     if ($porttype -match "Uplink") { 
-      Write-host "" 
-      Write-warning "`n`nThere is no FlexNIC on $portname as it is an uplink !`n" 
-                
+      Write-warning "There is no FlexNIC on $portname as it is an uplink !`n"  
+      Disconnect-OVMgmt        
       return
     }
 
-    if ($subports -eq $Null -and $porttype -notmatch "Uplink") { 
-      Write-host "" 
-      Write-warning "`n`nNo statistics is available as $portname has no FlexNIC configured !`n" 
-      Disconnect-HPOVMgmt    
+    if (-not $subports -and $porttype -notmatch "Uplink") { 
+    
+      Write-warning "No statistics is available as $portname has no FlexNIC configured !`n" 
+      Disconnect-OVMgmt    
       return
     }
     
@@ -310,7 +322,7 @@ function Get-HPOVinterconnectstatistics {
 
   } 
 
-  Disconnect-HPOVMgmt
+  Disconnect-OVMgmt
 }
 
 
