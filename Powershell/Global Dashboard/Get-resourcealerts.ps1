@@ -1,20 +1,55 @@
-﻿# Provides the 5 latest alerts and the number of all alerts available in HPE OneView Global Dashboard
+﻿<# 
+
+Script to fetch the 5 latest alerts and the number of all alerts available in HPE OneView Global Dashboard
+
+
+Requirements:
+   - HPE Global Dashboard administrator account 
+
+
+  Author: lionel.jullien@hpe.com
+  Date:   March 2018
+    
+#################################################################################
+#                         Server FW Inventory in rows.ps1                       #
+#                                                                               #
+#        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
+#################################################################################
+#                                                                               #
+# Permission is hereby granted, free of charge, to any person obtaining a copy  #
+# of this software and associated documentation files (the "Software"), to deal #
+# in the Software without restriction, including without limitation the rights  #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     #
+# copies of the Software, and to permit persons to whom the Software is         #
+# furnished to do so, subject to the following conditions:                      #
+#                                                                               #
+# The above copyright notice and this permission notice shall be included in    #
+# all copies or substantial portions of the Software.                           #
+#                                                                               #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN     #
+# THE SOFTWARE.                                                                 #
+#                                                                               #
+#################################################################################
+#>
+
+
 
 # Global Dashboard information
 $username = "Administrator"
-$password = "password"
-$globaldashboard = "192.168.1.50"
+$globaldashboard = "oneview-global-dashboard.lj.lab"
  
-#Creation of the header
-$headers = @{ } 
-$headers["content-type"] = "application/json" 
-$headers["X-API-Version"] = "2"
 
-#Creation of the body
-#$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
-$Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
+#################################################################################
 
-# To avoid with self-signed certificate: could not establish trust relationship for the SSL/TLS Secure Channel – Invoke-WebRequest
+$secpasswd = read-host  "Please enter the OneView Global Dashboard password" -AsSecureString
+ 
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
 add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
@@ -28,6 +63,22 @@ add-type -TypeDefinition  @"
 "@
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
+################################################################################# 
+
+#Creation of the header
+$headers = @{ } 
+$headers["content-type"] = "application/json" 
+$headers["X-API-Version"] = "300"
+
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
+$password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
+
+#Creation of the body
+#$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
+$Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
+
 
 #Opening a login session with Global DashBoard
 $session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
