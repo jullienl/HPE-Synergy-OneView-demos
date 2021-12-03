@@ -2571,6 +2571,52 @@
 			]
 		},
 		{
+			"name": "Ethernet networks",
+			"item": [
+				{
+					"name": "Ethernet-Networks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/ethernet-networks",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"ethernet-networks"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "FW Bundle",
 			"item": [
 				{
@@ -2740,14 +2786,14 @@
 							}
 						],
 						"url": {
-							"raw": "https://{{composer}}/rest/server-profile-templates",
+							"raw": "https://{{composer}}/rest/logical-interconnects",
 							"protocol": "https",
 							"host": [
 								"{{composer}}"
 							],
 							"path": [
 								"rest",
-								"server-profile-templates"
+								"logical-interconnects"
 							]
 						},
 						"description": "Login Session"
@@ -5042,6 +5088,167 @@
 					"response": []
 				},
 				{
+					"name": "3- Get-Security-Modes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/modes",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"modes"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Modes - Current",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/modes/current-mode",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"modes",
+								"current-mode"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Modes - FIPS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/modes/FIPS",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"modes",
+								"FIPS"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
 					"name": "3- Get-Security-Protocols",
 					"event": [
 						{
@@ -5088,6 +5295,315 @@
 								"rest",
 								"security-standards",
 								"protocols"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Protocols - CNSA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/protocols/mode/CNSA",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"protocols",
+								"mode",
+								"CNSA"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Protocols Details - CNSA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/protocols/TLSv1.1?mode=CNSA",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"protocols",
+								"TLSv1.1"
+							],
+							"query": [
+								{
+									"key": "mode",
+									"value": "CNSA"
+								}
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Global-Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security/global-settings",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security",
+								"global-settings"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Algorithm - Signature / FIPS",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/service-algorithms/signature?mode=FIPS&external=true&list=true",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"service-algorithms",
+								"signature"
+							],
+							"query": [
+								{
+									"key": "mode",
+									"value": "FIPS"
+								},
+								{
+									"key": "external",
+									"value": "true"
+								},
+								{
+									"key": "list",
+									"value": "true"
+								},
+								{
+									"key": "application",
+									"value": "java",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Security-Algorithms - Signature / Legacy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/security-standards/service-algorithms/signature?mode=LEGACY&external=true&list=true",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"security-standards",
+								"service-algorithms",
+								"signature"
+							],
+							"query": [
+								{
+									"key": "mode",
+									"value": "LEGACY"
+								},
+								{
+									"key": "external",
+									"value": "true"
+								},
+								{
+									"key": "list",
+									"value": "true"
+								}
 							]
 						},
 						"description": "Login Session"
@@ -5243,6 +5759,109 @@
 						"description": "Fixes insecured TLS/SSL Server Supports The Use of Static Key Ciphers"
 					},
 					"response": []
+				},
+				{
+					"name": "3- Get-Appliance-Encryption-Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance-encryption-key",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance-encryption-key"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3- Get-Appliance-SSH-Host-Keys",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/sshhostkeys",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"sshhostkeys"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -5297,8 +5916,16 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
 									"\r",
-									""
+									"//Get Fabric URI\r",
+									"var uri =  jsonData.members[0].uri\r",
+									"\r",
+									"//Set environment variable\r",
+									"postman.setEnvironmentVariable(\"uri\", uri);\r",
+									"\r",
+									"//Display X-API-version in test results\r",
+									"tests[\"URI = \" + uri ] = true; "
 								],
 								"type": "text/javascript"
 							}
@@ -5332,6 +5959,45 @@
 									"key": "filter",
 									"value": "\"name EQ 'Frame4, bay 3'\""
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Server-Hardware iLO SSO URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}{{uri}}/iloSsoUrl",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{uri}}"
+							],
+							"path": [
+								"iloSsoUrl"
 							]
 						}
 					},
@@ -5430,7 +6096,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Profiles - Filter name ESXi-Ansible",
+					"name": "Get Profiles - Filter name rhel-1",
 					"event": [
 						{
 							"listen": "test",
@@ -5457,7 +6123,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://{{composer}}/rest/server-profiles?filter=\"name EQ 'rhel-Ansible'\"",
+							"raw": "https://{{composer}}/rest/server-profiles?filter=\"name EQ 'rhel-1'\"",
 							"protocol": "https",
 							"host": [
 								"{{composer}}"
@@ -5469,7 +6135,7 @@
 							"query": [
 								{
 									"key": "filter",
-									"value": "\"name EQ 'rhel-Ansible'\""
+									"value": "\"name EQ 'rhel-1'\""
 								}
 							]
 						},
@@ -5570,6 +6236,152 @@
 							],
 							"path": [
 								"{{taskresult}}"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Server Profile Templates",
+			"item": [
+				{
+					"name": "GET Profile Templates",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profile-templates",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profile-templates"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "GET Profile Templates of ESXi BFLD",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name EQ 'ESXi7 BFLD'\"",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profile-templates"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "\"name EQ 'ESXi7 BFLD'\""
+								}
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "POST Profile Templates",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"disabled": false,
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"disabled": false,
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n            \"name\": \"ESXi7 BFS-2\",\r\n            \"serverHardwareTypeUri\": \"/rest/server-hardware-types/D6EF0D2C-2000-4034-8CFF-030F1FCE6419\",\r\n            \"enclosureGroupUri\": \"/rest/enclosure-groups/382c6bbf-f3ab-4280-85e0-4d31d6a2e65f\",\r\n            \"affinity\": \"Bay\",\r\n            \"hideUnusedFlexNics\": true,\r\n            \"macType\": \"Virtual\",\r\n            \"wwnType\": \"Virtual\",\r\n            \"serialNumberType\": \"Virtual\",\r\n            \"iscsiInitiatorNameType\": \"AutoGenerated\",\r\n            \"osDeploymentSettings\": null,\r\n            \"firmware\": {\r\n                \"complianceControl\": \"Unchecked\",\r\n                \"manageFirmware\": false,\r\n                \"forceInstallFirmware\": false\r\n            },\r\n            \"connectionSettings\": {\r\n                \"complianceControl\": \"CheckedMinimum\",\r\n                \"manageConnections\": true,\r\n                \"connections\": [\r\n                    {\r\n                        \"id\": 1,\r\n                        \"name\": \"Mgmt1\",\r\n                        \"functionType\": \"Ethernet\",\r\n                        \"networkUri\": \"/rest/ethernet-networks/8da76921-44de-4a6b-b376-2a443960ba8c\",\r\n                        \"portId\": \"Mezz 3:1-a\",\r\n                        \"requestedVFs\": \"0\",\r\n                        \"requestedMbps\": \"2500\",\r\n                        \"boot\": {\r\n                            \"priority\": \"NotBootable\",\r\n                            \"bootVlanId\": null\r\n                        },\r\n                        \"lagName\": null,\r\n                        \"managed\": true,\r\n                        \"isolatedTrunk\": false,\r\n                        \"networkName\": null\r\n                    },\r\n                    {\r\n                        \"id\": 2,\r\n                        \"name\": \"Mgmt2\",\r\n                        \"functionType\": \"Ethernet\",\r\n                        \"networkUri\": \"/rest/ethernet-networks/8da76921-44de-4a6b-b376-2a443960ba8c\",\r\n                        \"portId\": \"Mezz 3:2-a\",\r\n                        \"requestedVFs\": \"0\",\r\n                        \"requestedMbps\": \"2500\",\r\n                        \"boot\": {\r\n                            \"priority\": \"NotBootable\",\r\n                            \"bootVlanId\": null\r\n                        },\r\n                        \"lagName\": null,\r\n                        \"managed\": true,\r\n                        \"isolatedTrunk\": false,\r\n                        \"networkName\": null\r\n                    },\r\n                    {\r\n                        \"id\": 3,\r\n                        \"name\": \"FC-A\",\r\n                        \"functionType\": \"FibreChannel\",\r\n                        \"networkUri\": \"/rest/fc-networks/be06e274-d7c9-48a9-a3e9-92576677ca1f\",\r\n                        \"portId\": \"Mezz 3:1-b\",\r\n                        \"requestedVFs\": null,\r\n                        \"requestedMbps\": \"2500\",\r\n                        \"boot\": {\r\n                            \"bootVolumeSource\": \"ManagedVolume\",\r\n                            \"priority\": \"LoadBalanced\",\r\n                            \"bootVlanId\": null\r\n                        },\r\n                        \"lagName\": null,\r\n                        \"managed\": true,\r\n                        \"isolatedTrunk\": false,\r\n                        \"networkName\": null\r\n                    },\r\n                    {\r\n                        \"id\": 4,\r\n                        \"name\": \"FC-B\",\r\n                        \"functionType\": \"FibreChannel\",\r\n                        \"networkUri\": \"/rest/fc-networks/2471664d-70f6-4ba5-9836-817a5dcb7d8e\",\r\n                        \"portId\": \"Mezz 3:2-b\",\r\n                        \"requestedVFs\": null,\r\n                        \"requestedMbps\": \"2500\",\r\n                        \"boot\": {\r\n                            \"bootVolumeSource\": \"ManagedVolume\",\r\n                            \"priority\": \"LoadBalanced\",\r\n                            \"bootVlanId\": null\r\n                        },\r\n                        \"lagName\": null,\r\n                        \"managed\": true,\r\n                        \"isolatedTrunk\": false,\r\n                        \"networkName\": null\r\n                    },\r\n                    {\r\n                        \"id\": 5,\r\n                        \"name\": \"\",\r\n                        \"functionType\": \"Ethernet\",\r\n                        \"networkUri\": \"/rest/network-sets/fe523364-9d6a-4f9e-ae7c-dc683d20b71e\",\r\n                        \"portId\": \"Mezz 3:1-d\",\r\n                        \"requestedVFs\": \"0\",\r\n                        \"requestedMbps\": \"2500\",\r\n                        \"boot\": {\r\n                            \"priority\": \"NotBootable\",\r\n                            \"bootVlanId\": null\r\n                        },\r\n                        \"lagName\": null,\r\n                        \"managed\": true,\r\n                        \"isolatedTrunk\": false,\r\n                        \"networkName\": null\r\n                    },\r\n                    {\r\n                        \"id\": 6,\r\n                        \"name\": \"\",\r\n                        \"functionType\": \"Ethernet\",\r\n                        \"networkUri\": \"/rest/network-sets/fe523364-9d6a-4f9e-ae7c-dc683d20b71e\",\r\n                        \"portId\": \"Mezz 3:2-d\",\r\n                        \"requestedVFs\": \"0\",\r\n                        \"requestedMbps\": \"2500\",\r\n                        \"boot\": {\r\n                            \"priority\": \"NotBootable\",\r\n                            \"bootVlanId\": null\r\n                        },\r\n                        \"lagName\": null,\r\n                        \"managed\": true,\r\n                        \"isolatedTrunk\": false,\r\n                        \"networkName\": null\r\n                    }\r\n                ]\r\n            },\r\n            \"bootMode\": {\r\n                \"complianceControl\": \"Checked\",\r\n                \"manageMode\": true,\r\n                \"mode\": \"UEFIOptimized\",\r\n                \"pxeBootPolicy\": \"Auto\",\r\n                \"secureBoot\": \"Unmanaged\"\r\n            },\r\n            \"boot\": {\r\n                \"complianceControl\": \"Checked\",\r\n                \"manageBoot\": true,\r\n                \"order\": [\r\n                    \"HardDisk\"\r\n                ]\r\n            },\r\n            \"bios\": {\r\n                \"complianceControl\": \"Unchecked\",\r\n                \"manageBios\": false,\r\n                \"overriddenSettings\": []\r\n            },\r\n            \"managementProcessor\": {\r\n                \"complianceControl\": \"Unchecked\",\r\n                \"manageMp\": false,\r\n                \"mpSettings\": []\r\n            },\r\n            \"localStorage\": {\r\n                \"complianceControl\": \"Unchecked\",\r\n                \"sasLogicalJBODs\": [],\r\n                \"controllers\": []\r\n            },\r\n            \"sanStorage\": {\r\n                \"complianceControl\": \"CheckedMinimum\",\r\n                \"manageSanStorage\": true,\r\n                \"hostOSType\": \"VMware (ESXi)\",\r\n                \"sanSystemCredentials\": [],\r\n                \"volumeAttachments\": [\r\n                    {\r\n                        \"id\": 2,\r\n                        \"associatedTemplateAttachmentId\": \"be2f4f29-1792-43f5-aa94-1e858f0518be\",\r\n                        \"lun\": null,\r\n                        \"lunType\": \"Auto\",\r\n                        \"storagePaths\": [\r\n                            {\r\n                                \"connectionId\": 4,\r\n                                \"networkUri\": \"/rest/fc-networks/2471664d-70f6-4ba5-9836-817a5dcb7d8e\",\r\n                                \"isEnabled\": true,\r\n                                \"targetSelector\": \"Auto\",\r\n                                \"targets\": []\r\n                            },\r\n                            {\r\n                                \"connectionId\": 3,\r\n                                \"networkUri\": \"/rest/fc-networks/be06e274-d7c9-48a9-a3e9-92576677ca1f\",\r\n                                \"isEnabled\": true,\r\n                                \"targetSelector\": \"Auto\",\r\n                                \"targets\": []\r\n                            }\r\n                        ],\r\n                        \"volumeUri\": \"/rest/storage-volumes/DA62AB55-5219-423E-96D8-AD81008A407D\",\r\n                        \"volume\": null,\r\n                        \"isPermanent\": true,\r\n                        \"volumeStorageSystemUri\": \"/rest/storage-systems/MXN6380203\",\r\n                        \"bootVolumePriority\": \"NotBootable\"\r\n                    },\r\n                    {\r\n                        \"id\": 5,\r\n                        \"associatedTemplateAttachmentId\": \"4b0fd278-781e-429e-980c-635b6c01f561\",\r\n                        \"lun\": null,\r\n                        \"lunType\": \"Auto\",\r\n                        \"storagePaths\": [\r\n                            {\r\n                                \"connectionId\": 4,\r\n                                \"networkUri\": \"/rest/fc-networks/2471664d-70f6-4ba5-9836-817a5dcb7d8e\",\r\n                                \"isEnabled\": true,\r\n                                \"targetSelector\": \"Auto\",\r\n                                \"targets\": []\r\n                            },\r\n                            {\r\n                                \"connectionId\": 3,\r\n                                \"networkUri\": \"/rest/fc-networks/be06e274-d7c9-48a9-a3e9-92576677ca1f\",\r\n                                \"isEnabled\": true,\r\n                                \"targetSelector\": \"Auto\",\r\n                                \"targets\": []\r\n                            }\r\n                        ],\r\n                        \"volumeUri\": null,\r\n                        \"volume\": {\r\n                            \"templateUri\": \"/rest/storage-volume-templates/6dc3e0e8-99c3-4893-8973-ad8000e62b91\",\r\n                            \"properties\": {\r\n                                \"name\": \"ESXi Boot\",\r\n                                \"description\": \"\",\r\n                                \"storagePool\": \"/rest/storage-pools/F8AA36B9-CE0B-46B7-8CC8-AD8000E62B87\",\r\n                                \"size\": 21474836480,\r\n                                \"provisioningType\": \"Thin\",\r\n                                \"isShareable\": false,\r\n                                \"templateVersion\": \"1.1\",\r\n                                \"snapshotPool\": \"/rest/storage-pools/F8AA36B9-CE0B-46B7-8CC8-AD8000E62B87\",\r\n                                \"isDeduplicated\": true\r\n                            },\r\n                            \"initialScopeUris\": null\r\n                        },\r\n                        \"isPermanent\": false,\r\n                        \"volumeStorageSystemUri\": \"/rest/storage-systems/MXN6380203\",\r\n                        \"bootVolumePriority\": \"Primary\"\r\n                    },\r\n                    {\r\n                        \"id\": 6,\r\n                        \"associatedTemplateAttachmentId\": \"9345303e-0891-4cbe-9b8a-0ddceaf7fb3e\",\r\n                        \"lun\": null,\r\n                        \"lunType\": \"Auto\",\r\n                        \"storagePaths\": [\r\n                            {\r\n                                \"connectionId\": 4,\r\n                                \"networkUri\": \"/rest/fc-networks/2471664d-70f6-4ba5-9836-817a5dcb7d8e\",\r\n                                \"isEnabled\": true,\r\n                                \"targetSelector\": \"Auto\",\r\n                                \"targets\": []\r\n                            },\r\n                            {\r\n                                \"connectionId\": 3,\r\n                                \"networkUri\": \"/rest/fc-networks/be06e274-d7c9-48a9-a3e9-92576677ca1f\",\r\n                                \"isEnabled\": true,\r\n                                \"targetSelector\": \"Auto\",\r\n                                \"targets\": []\r\n                            }\r\n                        ],\r\n                        \"volumeUri\": \"/rest/storage-volumes/8F8259AD-D16F-4783-A900-AD8100D8B751\",\r\n                        \"volume\": null,\r\n                        \"isPermanent\": true,\r\n                        \"volumeStorageSystemUri\": \"/rest/storage-systems/MXN6380203\",\r\n                        \"bootVolumePriority\": \"NotBootable\"\r\n                    }\r\n                ]\r\n            }\r\n\r\n        }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{composer}}/rest/server-profile-templates",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"server-profile-templates"
 							]
 						},
 						"description": "Login Session"
@@ -5912,49 +6724,7 @@
 			"response": []
 		},
 		{
-			"name": "Profile Templates",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"disabled": false,
-						"key": "X-API-Version",
-						"value": "{{xapiversion}}"
-					},
-					{
-						"disabled": false,
-						"key": "Auth",
-						"value": "{{sessionID}}"
-					}
-				],
-				"url": {
-					"raw": "https://{{composer}}/rest/server-profile-templates",
-					"protocol": "https",
-					"host": [
-						"{{composer}}"
-					],
-					"path": [
-						"rest",
-						"server-profile-templates"
-					]
-				},
-				"description": "Login Session"
-			},
-			"response": []
-		},
-		{
-			"name": "Get-Ethernet-Networks",
+			"name": "Get-Ethernet-Networks-on-appliance-1",
 			"request": {
 				"method": "GET",
 				"header": [
