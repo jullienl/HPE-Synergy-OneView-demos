@@ -2,6 +2,7 @@
 
 This repository stores a large number of PowerShell scripts, Ansible playbooks and more for HPE Synergy and Proliant Servers.
 
+Information and requirements are listed in the comment section of each scripts/playbooks.
 
 HPE-API-Postman-Collections contains various Postman collections of executable API requests for:
 
