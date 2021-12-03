@@ -1,4 +1,4 @@
-# HPE Synergy and HPE OneView scripts
+# HPE OneView and Synergy Composer Scripts, Playbooks and Postman collections 
 
 This repository stores a large number of PowerShell scripts, Ansible playbooks and more for HPE Synergy and Proliant Servers.
 
