@@ -69,13 +69,13 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 # Capture iLO IP adresses managed by OneView
-$iloIPs = Get-HPOVServer | where mpModel -eq iLO5 | % { $_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = Get-OVServer | where mpModel -eq iLO5 | % { $_.mpHostInfo.mpIpAddresses[1].address }
 clear
 
 if ($iloIPs) {
     write-host ""
     Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enabled :" 
-    $result = Get-HPOVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
+    $result = Get-OVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
     $result.ForEach( { [PSCustomObject]$_ }) | Format-Table -AutoSize | Out-Host
 
 }
@@ -104,7 +104,7 @@ add-type -TypeDefinition  @"
 Foreach ($iloIP in $iloIPs) {
     # Capture of the SSO Session Key
  
-    $ilosessionkey = (Get-HPOVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
+    $ilosessionkey = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-OVIloSso -IloRestSession)."X-Auth-Token"
  
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
@@ -136,4 +136,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt
