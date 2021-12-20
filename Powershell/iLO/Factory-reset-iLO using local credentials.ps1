@@ -1,6 +1,9 @@
 <# 
 
-PowerShell script to factory reset an iLO managed by HPE OneView. The IP address of the iLO must be provided at runtime.  
+PowerShell script to factory reset an iLO using an local iLO user.
+(case when OneView cannot generate an iLO SSO session key for some reason). 
+
+The IP address of the iLO must be provided at runtime.  
 
  After a factory reset, it is necessary to import the new iLO self-signed certificate into the Oneview trust store 
  and then to refresh the Server Hardware. This script performs these operations once the iLO factory reset is complete.
@@ -10,9 +13,10 @@ PowerShell script to factory reset an iLO managed by HPE OneView. The IP address
  Requirements:
    - HPE OneView Powershell Library
    - HPE OneView administrator account 
+   - HPE iLO credentails
 
  Author: lionel.jullien@hpe.com
- Date:   May 2021
+ Date:   Dec 2021
     
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -40,7 +44,11 @@ PowerShell script to factory reset an iLO managed by HPE OneView. The IP address
 #>
 
 
-# OneView Credentials and IP
+# iLO Credentials 
+$iLO_username = "Administrator"
+
+
+# HPE OneView 
 $OV_username = "Administrator"
 $OV_IP = "composer2.lj.lab"
 
@@ -57,14 +65,37 @@ $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
 # Connection to the OneView / Synergy Composer
 $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+Connect-OVMgmt -Hostname $OV_IP -Credential $credentials | Out-Null
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-}
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
-}
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+
+# Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
+# due to an invalid Remote Certificate
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+#################################################################################
+
+# Capture iLO Administrator account password
+$DefaultiLOpassword = "password"
+$seciLOpassword = Read-Host "Please enter the $($iLO_username) password [$($DefaultiLOpassword)]" -AsSecureString
+
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($seciLOpassword)
+$iLOpassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+
+$iLOpassword = ($DefaultiLOpassword, $iLOpassword)[[bool]$iLOpassword]
+
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -88,46 +119,45 @@ add-type -TypeDefinition  @"
 # iLO IP address
 $iloIP = read-host  "Please enter the iLO IP address you want to factory reset"
 
-$SH = Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP }
-$iloModel = $SH.mpModel
 
-try {
-    $ilosessionkey = ($SH | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-}
-catch {
-    Write-Warning "iLO [$iloip] cannot be found ! Fix any communication problem you have in OneView with this iLO/server hardware !"
-    return
-}
+#Creation of the body content to pass to iLO
+$body = @{
+    Password = $iLOpassword; 
+    UserName = $iLO_username 
+} | ConvertTo-Json 
 
 
-# Creation of the header using the SSO Session Key 
-$headerilo = @{ } 
-$headerilo["X-Auth-Token"] = $ilosessionkey 
-$headerilo["OData-Version"] = "4.0"
+$headers = @{}
+$headers.Add("OData-Version", "4.0")
+$headers.Add("Content-Type", "application/json")
 
-# Creation of the body for the iLO factory reset
-$bodyiloParams = @{ } 
-$bodyiloParams["ResetType"] = "Default"
-$bodyiloParams = $bodyiloParams | ConvertTo-Json  
+# Create session
+$response = Invoke-webrequest "https://$iloIP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body
+$xauthtoken = $response.Headers.'X-Auth-Token' 
 
-if ($iloModel -eq "ilo4") {
-    $url = "/redfish/v1/Managers/1/Actions/Oem/Hp/HpiLO.ResetToFactoryDefaults/"
-}
-else {
-    $url = "/redfish/v1/Managers/1/Actions/Oem/Hpe/HpeiLO.ResetToFactoryDefaults/"
-}
+# Create new header with session key
+$headers["X-Auth-Token"] = $xauthtoken 
+
+# Create body for iLO factory reset
+$body = @{
+    ResetType = "Default"
+} | ConvertTo-Json 
+
 
 #Proceeding iLO factory Reset
 try {
-    $rest = Invoke-WebRequest -Uri "https://$iloIP$url" -Body $bodyiloParams  -Headers $headerilo -ContentType "application/json" -Method POST -UseBasicParsing 
-    write-host "`niLO Factory reset is in progress... "
+    $response = Invoke-webrequest "https://$iloIP/redfish/v1/Managers/1/Actions/Oem/Hpe/HpeiLO.ResetToFactoryDefaults/" -Method 'POST' -Headers $headers -Body $body
+    $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+    Write-Host "iLO Factory reset in progress... Message returned: $($msg)"
 
 }
 catch {
-    Write-Warning "Factory Reset Error ! " 
-    $rest.Content
+    Write-Warning "iLO factory reset error ! Message returned: $($msg)"
     return
 }
+
+
+
 
 # Wait for OneView to issue an alert about a communication issue with the server hardware
 Do {
@@ -190,7 +220,7 @@ catch {
 }
 
 # If refresh is failing, we need to re-add the new iLO certificate and re-launch a server hardware refresh
-if ($refreshtask.taskState -eq "warning") {
+if ($refreshtask.taskState -eq "warning" -or $refreshtask.taskState -eq "Error") {
 
     # write-host "The refresh could not be completed successfuly, removing and re-adding the new iLO self-signed certificate..."
     sleep 5
@@ -206,6 +236,12 @@ if ($refreshtask.taskState -eq "warning") {
     # Perform a new refresh to re-establish the communication with the iLO
     $newrefreshtask = $SH | Update-OVServer | Wait-OVTaskComplete
     
+    if ($newrefreshtask -eq "Error") {
+        
+        $msg = $newrefreshtask.taskErrors[0].recommendedActions 
+        Write-Warning "Error - $($SH.name) refresh cannot be completed! - $($msg) "
+        break
+    }
 }
 
 
@@ -226,6 +262,7 @@ until ( $networkconnectivityalertresult.alertState -eq "Cleared" )
 
 
 write-host "iLO Factory reset completed successfully and communication between [$($SH.name)] and OneView has been restored!" -ForegroundColor Green 
+
 
 Disconnect-OVMgmt
 
