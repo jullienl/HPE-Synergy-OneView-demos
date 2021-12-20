@@ -119,7 +119,6 @@ add-type -TypeDefinition  @"
 # iLO IP address
 $iloIP = read-host  "Please enter the iLO IP address you want to factory reset"
 
-
 #Creation of the body content to pass to iLO
 $body = @{
     Password = $iLOpassword; 
@@ -155,8 +154,6 @@ catch {
     Write-Warning "iLO factory reset error ! Message returned: $($msg)"
     return
 }
-
-
 
 
 # Wait for OneView to issue an alert about a communication issue with the server hardware
@@ -265,5 +262,3 @@ write-host "iLO Factory reset completed successfully and communication between [
 
 
 Disconnect-OVMgmt
-
-
