@@ -4,7 +4,9 @@
 #
 # Create a User account in iLO4/iLO5 managed by OneView without using the iLO Administrator local account
 #
-# iLO modification is done through OneView and iLO SSOsession key using REST POST method
+# iLO modification is done through OneView and iLO SSO session key using REST POST method
+#
+# The iLO password must be provided at runtime.  
 #
 # Requirements:
 #    - HPE OneView Powershell Library
@@ -36,9 +38,8 @@
 #                                                                               #
 #################################################################################
 
-# iLO User/password to create 
-$newiLOLoginName = "Ilouser"
-$newiLOPassword = "Ilouserpassword"
+# iLO User to create 
+$newiLOLoginName = "admin"
 
 
 # OneView information
@@ -68,7 +69,14 @@ add-type -TypeDefinition  @"
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-    
+
+#########################################################################################################
+
+$newiLOsecpasswd = read-host  "Please enter the password for [$($newiLOLoginName)]" -AsSecureString
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($newiLOsecpasswd)
+$newiLOPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
+
+
 # Capture iLO4 and iLO5 IP adresses managed by OneView
 $servers = Get-OVServer
 $iloIPs = $servers | where { $_.mpModel -eq "iLO4" -or "iLO5" } | % { $_.mpHostInfo.mpIpAddresses[1].address }
