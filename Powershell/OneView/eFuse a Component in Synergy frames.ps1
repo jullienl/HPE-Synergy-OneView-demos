@@ -1,21 +1,45 @@
-# -------------------------------------------------------------------------------------------------------
-# by lionel.jullien@hpe.com
-# October 2016
-#
-# This is a POSH script to eFuse a component (compute, appliance, interconnect or flm) in Synergy frames
-# 
-# OneView administrator account is required. 
-# Script created for up to 3 frames
-# 
-# --------------------------------------------------------------------------------------------------------
+<# 
 
-#
-# $enc = Get-HPOVEnclosure -Name "Frame3-CN7515049C" 
-# Reset-HPOVEnclosureDevice -Enclosure $enc  -Component Device -DeviceID 6 -Efuse -confirm:$false
+This is a PowerShell script to eFuse a component (compute, appliance, interconnect or flm) in HPE Synergy frames
+
+Script supporting up to 5 frames. 
+
+Requirements: 
+- HPE OneView administrator account.
+
+
+  Author: lionel.jullien@hpe.com
+  Date:   October 2016
+    
+#################################################################################
+#        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
+#################################################################################
+#                                                                               #
+# Permission is hereby granted, free of charge, to any person obtaining a copy  #
+# of this software and associated documentation files (the "Software"), to deal #
+# in the Software without restriction, including without limitation the rights  #
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell     #
+# copies of the Software, and to permit persons to whom the Software is         #
+# furnished to do so, subject to the following conditions:                      #
+#                                                                               #
+# The above copyright notice and this permission notice shall be included in    #
+# all copies or substantial portions of the Software.                           #
+#                                                                               #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR    #
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,      #
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE   #
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER        #
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, #
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN     #
+# THE SOFTWARE.                                                                 #
+#                                                                               #
+#################################################################################
+#>
+
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -41,28 +65,39 @@ catch {
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+#################################################################################
 
-$numberofframes = @(Get-HPOVEnclosure).count
-$frames = Get-HPOVEnclosure | % { $_.name }
+$numberofframes = @(Get-OVEnclosure).count
+$frames = Get-OVEnclosure | % { $_.name }
     
 #clear
 #Which enclosure you want to eFuse a component?
 
 if ($numberofframes -gt 0) {
-    $interconnects = Get-HPOVInterconnect     
-    $whosframe1 = $interconnects | where { $_.partNumber -match "794502-B23" -and $_.name -match "interconnect 3" } | % { $_.enclosurename }
+    $interconnects = Get-OVInterconnect     
+    $whosframe1 = $interconnects | where { $_.model -match "Virtual Connect" -and $_.name -match "interconnect 3" } | % { $_.enclosurename }
 }
 
 if ($numberofframes -gt 1) {
-    $whosframe2 = $interconnects | where { $_.partNumber -match "794502-B23" -and $_.name -match "interconnect 6" } | % { $_.enclosurename }
+    $whosframe2 = $interconnects | where { $_.model -match "Virtual Connect" -and $_.name -match "interconnect 6" } | % { $_.enclosurename }
 }
 
 if ($numberofframes -gt 2) {
-    $frameswithsatellites = $interconnects | where -Property Partnumber -eq "779218-B21" 
-    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | % { $_.name }  
+    $frameswithsatellites = $interconnects | where -Property Model -match "Interconnect Link Module" 
+    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | select -first 1 | % { $_.name }  
 }
 
-if ($numberofframes -gt 3) { Write-Host "This script does not support more than 3 frames" }
+if ($numberofframes -gt 3) { 
+    $frameswithsatellites = $interconnects | where -Property Model -match "Interconnect Link Module" 
+    $whosframe4 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | select -Skip 1 | select -first 1 | % { $_.name }  
+
+}
+
+if ($numberofframes -gt 4) { 
+    $frameswithsatellites = $interconnects | where -Property Model -match "Interconnect Link Module" 
+    $whosframe5 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | select -Skip 2 | select -first 1 | % { $_.name }  
+
+}
 
 
 do {    
@@ -75,16 +110,18 @@ do {
         write-host "1 - $whosframe1"
         if ($numberofframes -gt 1) { write-host "2 - $whosframe2" }
         if ($numberofframes -gt 2) { write-host "3 - $whosframe3" }
+        if ($numberofframes -gt 3) { write-host "4 - $whosframe4" }
+        if ($numberofframes -gt 4) { write-host "5 - $whosframe5" }
         write-host ""
         write-host "X - Exit"
         write-host ""
-        write-host -nonewline "Type your choice (1, 2 or 3) and press Enter: "
+        write-host -nonewline "Type your choice (1, 2, ... or 5) and press Enter: "
         
         $choice = read-host
         
         write-host ""
         
-        $ok = $choice -match '^[123x]+$'
+        $ok = $choice -match '^[12345x]+$'
         
         if ( -not $ok) {
             write-host "Invalid selection"
@@ -93,7 +130,11 @@ do {
    
     } until ( $ok )
 
-    if ($choice -eq "x") { exit }
+    if ($choice -eq "x") { 
+    
+        Disconnect-OVMgmt
+        exit 
+    }
 
       
     switch -Regex ( $choice ) {
@@ -109,12 +150,20 @@ do {
             $frame = $whosframe3
         }
 
+        "4" {
+            $frame = $whosframe4
+        }
+
+        "5" {
+            $frame = $whosframe5
+        }
+
     }
     
    
-    $enclosure = Get-HPOVEnclosure | where { $_.name -Match $frame }
-    $frameuuid = (Get-HPOVEnclosure | where { $_.name -Match $frame }).uuid
-    $locationUri = (Get-HPOVEnclosure | where { $_.name -Match $frame }).uri
+    $enclosure = Get-OVEnclosure | where { $_.name -Match $frame }
+    $frameuuid = (Get-OVEnclosure | where { $_.name -Match $frame }).uuid
+    $locationUri = (Get-OVEnclosure | where { $_.name -Match $frame }).uri
     
 
     do {
@@ -149,7 +198,7 @@ do {
 
     if ($componenttoefuse -eq 1) {
         clear
-        $ert = Get-HPOVServer | where { $_.locationUri -eq $locationUri } 
+        $ert = Get-OVServer | where { $_.locationUri -eq $locationUri } 
 
         $ert | Select-Object @{Name = "Model"; expression = { $_.shortmodel } },
         @{Name = "Compute"; expression = { $_.name } },
@@ -164,7 +213,7 @@ do {
 
     if ($componenttoefuse -eq 2) {
         clear
-        $ert = Get-HPOVInterconnect | where { $_.enclosurename -eq $frame } 
+        $ert = Get-OVInterconnect | where { $_.enclosurename -eq $frame } 
                     
         $ert | Select @{Name = "Interconnect Model"; Expression = { $_.model } }, @{Name = "Status"; Expression = { $_.status } },
         @{Name = "Bay number"; Expression = { $_.interconnectlocation.locationEntries | where { $_.type -eq "Bay" } | select  value | % { $_.value } } } | Sort-Object -Property "Bay number" | Out-Host
@@ -177,7 +226,7 @@ do {
 
     if ($componenttoefuse -eq 3) {
         clear
-        $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
+        $ert = (Get-OVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
         $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
         
         $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2)"
@@ -187,7 +236,7 @@ do {
 
     if ($componenttoefuse -eq 4) {
         clear
-        $ert = (Get-HPOVEnclosure | where { $_.name -Match $frame }).managerbays
+        $ert = (Get-OVEnclosure | where { $_.name -Match $frame }).managerbays
         $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Role"; Expression = { $_.role } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
 
         $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2)"
@@ -195,10 +244,13 @@ do {
         $component = "FLM"  
     }
 
-    if ($componenttoefuse -eq "x") { exit }
+    if ($componenttoefuse -eq "x") { 
+        Disconnect-OVMgmt
+        exit 
+    }
 
     
-    $efusecomponent = Reset-HPOVEnclosureDevice -Enclosure $enclosure  -Component $component -DeviceID $baynb -Efuse -confirm:$false | Wait-HPOVTaskComplete
+    $efusecomponent = Reset-OVEnclosureDevice -Enclosure $enclosure  -Component $component -DeviceID $baynb -Efuse -confirm:$false | Wait-OVTaskComplete
     
     #sleep 15
 
@@ -208,5 +260,7 @@ do {
     pause
  
 } until ( $componenttoefuse -eq "X" )
+
+Disconnect-OVMgmt
 
 
