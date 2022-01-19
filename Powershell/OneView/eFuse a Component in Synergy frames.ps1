@@ -1,6 +1,6 @@
 <# 
 
-This is a PowerShell script to eFuse a component (compute, appliance, interconnect or flm) in HPE Synergy frames
+This is a PowerShell script to eFuse a component (Compute, appliance, interconnect or Frame Link Module) in a HPE Synergy frame.
 
 At the beginning of the execution, the script displays a list of logical enclosures (LE) available in HPE OneView. 
 Once you select an LE, a list of frames belonging to that LE is displayed. Once a frame is selected, you can select 
