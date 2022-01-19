@@ -2,11 +2,16 @@
 
 This is a PowerShell script to eFuse a component (compute, appliance, interconnect or flm) in HPE Synergy frames
 
-Script supporting up to 5 frames. 
+At the beginning of the execution, the script displays a list of logical enclosures (LE) available in HPE OneView. 
+Once you select an LE, a list of frames belonging to that LE is displayed. Once a frame is selected, you can select 
+the component you want to e-fuse (Compute module, Interconnect, appliance or FLM). Once a component type is selected, 
+a list of components with bay numbers is displayed. Once you provide a bay number, the component corresponding to this bay is efused.
+
+This script supports up to 5 frames per LE with a maximum of 21 Logical Enclosures.
 
 Requirements: 
 - HPE OneView administrator account.
-
+- The names of the Logical Enclosure and frame must be known
 
   Author: lionel.jullien@hpe.com
   Date:   October 2016
@@ -67,41 +72,190 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #################################################################################
 
-$numberofframes = @(Get-OVEnclosure).count
-$frames = Get-OVEnclosure | % { $_.name }
-    
-#clear
-#Which enclosure you want to eFuse a component?
+$LEs = Get-OVLogicalEnclosure
 
-if ($numberofframes -gt 0) {
-    $interconnects = Get-OVInterconnect     
-    $whosframe1 = $interconnects | where { $_.model -match "Virtual Connect" -and $_.name -match "interconnect 3" } | % { $_.enclosurename }
+if ( ($LEs | gm)[0].TypeName -eq "HPEOneView.LogicalEnclosure") {
+    $whosLE1 = $LEs.name
+    $NumberofLEs = 1
+}    
+else {
+    $NumberofLEs = $LEs.length
+    $LE_array = @{}
+    for ($i = 0; $i -le $LEs.length - 1; $i++) { 
+        $nb = $i + 1
+        $LE_array[$i]
+        New-Variable -name whosLE$nb -Value $LEs[$i].name -Force
+    }   
 }
 
-if ($numberofframes -gt 1) {
-    $whosframe2 = $interconnects | where { $_.model -match "Virtual Connect" -and $_.name -match "interconnect 6" } | % { $_.enclosurename }
-}
-
-if ($numberofframes -gt 2) {
-    $frameswithsatellites = $interconnects | where -Property Model -match "Interconnect Link Module" 
-    $whosframe3 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | select -first 1 | % { $_.name }  
-}
-
-if ($numberofframes -gt 3) { 
-    $frameswithsatellites = $interconnects | where -Property Model -match "Interconnect Link Module" 
-    $whosframe4 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | select -Skip 1 | select -first 1 | % { $_.name }  
-
-}
-
-if ($numberofframes -gt 4) { 
-    $frameswithsatellites = $interconnects | where -Property Model -match "Interconnect Link Module" 
-    $whosframe5 = $frameswithsatellites | group-object -Property enclosurename | ? { $_.Count -gt 1 } | select -Skip 2 | select -first 1 | % { $_.name }  
-
-}
-
-
+ 
 do {    
+
+    do {
+        
+        clear
+        write-host "On which Logical Enclosure do you want to eFuse a component?"
+        write-host ""
+        write-host "1 - $whosLE1"
+        if ($NumberofLEs -gt 1) { write-host "2 - $whosLE2" }
+        if ($NumberofLEs -gt 2) { write-host "3 - $whosLE3" }
+        if ($NumberofLEs -gt 3) { write-host "4 - $whosLE4" }
+        if ($NumberofLEs -gt 4) { write-host "5 - $whosLE5" }
+        if ($NumberofLEs -gt 5) { write-host "6 - $whosLE6" }
+        if ($NumberofLEs -gt 6) { write-host "7 - $whosLE7" }
+        if ($NumberofLEs -gt 7) { write-host "8 - $whosLE8" }
+        if ($NumberofLEs -gt 8) { write-host "9 - $whosLE9" }
+        if ($NumberofLEs -gt 9) { write-host "10 - $whosLE10" }
+        if ($NumberofLEs -gt 10) { write-host "11 - $whosLE11" }
+        if ($NumberofLEs -gt 11) { write-host "12 - $whosLE12" }
+        if ($NumberofLEs -gt 12) { write-host "13 - $whosLE13" }
+        if ($NumberofLEs -gt 13) { write-host "14 - $whosLE14" }
+        if ($NumberofLEs -gt 14) { write-host "15 - $whosLE15" }
+        if ($NumberofLEs -gt 15) { write-host "16 - $whosLE16" }
+        if ($NumberofLEs -gt 16) { write-host "17 - $whosLE17" }
+        if ($NumberofLEs -gt 17) { write-host "18 - $whosLE18" }
+        if ($NumberofLEs -gt 18) { write-host "19 - $whosLE19" }
+        if ($NumberofLEs -gt 19) { write-host "20 - $whosLE20" }
+        if ($NumberofLEs -gt 20) { write-host "21 - $whosLE21" }
+        write-host ""
+        write-host "X - Exit"
+        write-host ""
+        write-host -nonewline "Type your choice (1, 2...) and press Enter: "
+        
+        $choice = read-host
+        
+        write-host ""
+        
+        
+        if ($NumberofLEs -gt 0) {
+            $ok = $choice -match '^[1x]+$'
+        }
+        elseif ($NumberofLEs -gt 1) {
+            $ok = $choice -match '^[12x]+$'
+        }
+        elseif ($NumberofLEs -gt 2) {
+            $ok = $choice -match '^[123x]+$'
+        }
+        elseif ($NumberofLEs -gt 3) {
+            $ok = $choice -match '^[1234x]+$'
+        }
+        elseif ($NumberofLEs -gt 4) {
+            $ok = $choice -match '^[12345x]+$'
+        }
+        elseif ($NumberofLEs -gt 5) {
+            $ok = $choice -match '^[123456x]+$'
+        }
+        elseif ($NumberofLEs -gt 6) {
+            $ok = $choice -match '^[1234567x]+$'
+        }
+        elseif ($NumberofLEs -gt 7) {
+            $ok = $choice -match '^[12345678x]+$'
+        }
+        elseif ($NumberofLEs -gt 8) {
+            $ok = $choice -match '^[123456789x]+$'
+        }
+        elseif ($NumberofLEs -gt 9) {
+            $ok = $choice -match '^([1-9]|x|10)$'  
+        }
+        elseif ($NumberofLEs -gt 10) {
+            $ok = $choice -match '^([1-9]|x|1[0-1])$'
+        }
+        elseif ($NumberofLEs -gt 11) {
+            $ok = $choice -match '^([1-9]|x|1[0-2])$'
+        }
+        elseif ($NumberofLEs -gt 12) {
+            $ok = $choice -match '^([1-9]|x|1[0-3])$'
+        }
+        elseif ($NumberofLEs -gt 13) {
+            $ok = $choice -match '^([1-9]|x|1[0-4])$'
+        }
+        elseif ($NumberofLEs -gt 14) {
+            $ok = $choice -match '^([1-9]|x|1[0-5])$'
+        }
+        elseif ($NumberofLEs -gt 15) {
+            $ok = $choice -match '^([1-9]|x|1[0-6])$'
+        }
+        elseif ($NumberofLEs -gt 16) {
+            $ok = $choice -match '^([1-9]|x|1[0-7])$'
+        }
+        elseif ($NumberofLEs -gt 17) {
+            $ok = $choice -match '^([1-9]|x|1[0-8])$'
+        }
+        elseif ($NumberofLEs -gt 18) {
+            $ok = $choice -match '^([1-9]|x|1[0-9])$'
+        }
+        elseif ($NumberofLEs -gt 19) {
+            $ok = $choice -match '^([1-9]|x|1[0-9]|20)$'
+        }
+        elseif ($NumberofLEs -gt 20) {
+            $ok = $choice -match '^([1-9]|x|1[0-9]|2[0-1])$'
+        }
+        
+        if ( -not $ok) {
+            write-host "Invalid selection"
+            write-host ""
+        }
    
+    } until ( $ok )
+
+    if ($choice -eq "x") { 
+    
+        Disconnect-OVMgmt
+        exit 
+    }
+
+      
+    switch -Regex ( $choice ) {
+        "1" { $LE = $whosLE1 }
+        "2" { $LE = $whosLE2 }
+        "3" { $LE = $whosLE3 }
+        "4" { $LE = $whosLE4 }
+        "5" { $LE = $whosLE5 }
+        "6" { $LE = $whosLE6 }
+        "7" { $LE = $whosLE7 }
+        "8" { $LE = $whosLE8 }
+        "9" { $LE = $whosLE9 }
+        "10" { $LE = $whosLE10 }
+        "11" { $LE = $whosLE11 }
+        "12" { $LE = $whosLE12 }
+        "13" { $LE = $whosLE13 }
+        "14" { $LE = $whosLE14 }
+        "15" { $LE = $whosLE15 }
+        "16" { $LE = $whosLE16 }
+        "17" { $LE = $whosLE17 }
+        "18" { $LE = $whosLE18 }
+        "19" { $LE = $whosLE19 }
+        "20" { $LE = $whosLE20 }
+        "21" { $LE = $whosLE21 }
+    }
+
+
+    # Get Fames information
+    $enclosureUris = (Get-OVLogicalEnclosure -Name $LE).enclosureUris
+    [array]::Reverse($enclosureUris)
+
+    # Number of frames
+    $numberofframes = $enclosureUris.Count
+    
+    $whosframe1 = (Send-OVRequest -Uri $enclosureUris[0]).name
+
+    if ($numberofframes -gt 1) {
+        $whosframe2 = (Send-OVRequest -Uri $enclosureUris[1]).name
+    }
+
+    if ($numberofframes -gt 2) {
+        $whosframe3 = (Send-OVRequest -Uri $enclosureUris[2]).name
+    }
+   
+    if ($numberofframes -gt 3) {
+        $whosframe4 = (Send-OVRequest -Uri $enclosureUris[3]).name
+    }   
+    if ($numberofframes -gt 4) {
+        $whosframe5 = (Send-OVRequest -Uri $enclosureUris[4]).name
+    }
+
+
+
     do {
         
         clear
@@ -121,7 +275,22 @@ do {
         
         write-host ""
         
-        $ok = $choice -match '^[12345x]+$'
+        
+        if ($numberofframes -gt 0) {
+            $ok = $choice -match '^[1x]+$'
+        }
+        if ($numberofframes -gt 1) {
+            $ok = $choice -match '^[12x]+$'
+        }
+        elseif ($numberofframes -gt 2) {
+            $ok = $choice -match '^[123x]+$'
+        }
+        elseif ($numberofframes -gt 3) {
+            $ok = $choice -match '^[1234x]+$'
+        }
+        elseif ($numberofframes -gt 4) {
+            $ok = $choice -match '^[12345x]+$'
+        }
         
         if ( -not $ok) {
             write-host "Invalid selection"
