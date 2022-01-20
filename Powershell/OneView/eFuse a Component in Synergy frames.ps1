@@ -130,64 +130,64 @@ do {
         if ($NumberofLEs -gt 0) {
             $ok = $choice -match '^[1x]+$'
         }
-        elseif ($NumberofLEs -gt 1) {
+        if ($NumberofLEs -gt 1) {
             $ok = $choice -match '^[12x]+$'
         }
-        elseif ($NumberofLEs -gt 2) {
+        if ($NumberofLEs -gt 2) {
             $ok = $choice -match '^[123x]+$'
         }
-        elseif ($NumberofLEs -gt 3) {
+        if ($NumberofLEs -gt 3) {
             $ok = $choice -match '^[1234x]+$'
         }
-        elseif ($NumberofLEs -gt 4) {
+        if ($NumberofLEs -gt 4) {
             $ok = $choice -match '^[12345x]+$'
         }
-        elseif ($NumberofLEs -gt 5) {
+        if ($NumberofLEs -gt 5) {
             $ok = $choice -match '^[123456x]+$'
         }
-        elseif ($NumberofLEs -gt 6) {
+        if ($NumberofLEs -gt 6) {
             $ok = $choice -match '^[1234567x]+$'
         }
-        elseif ($NumberofLEs -gt 7) {
+        if ($NumberofLEs -gt 7) {
             $ok = $choice -match '^[12345678x]+$'
         }
-        elseif ($NumberofLEs -gt 8) {
+        if ($NumberofLEs -gt 8) {
             $ok = $choice -match '^[123456789x]+$'
         }
-        elseif ($NumberofLEs -gt 9) {
+        if ($NumberofLEs -gt 9) {
             $ok = $choice -match '^([1-9]|x|10)$'  
         }
-        elseif ($NumberofLEs -gt 10) {
+        if ($NumberofLEs -gt 10) {
             $ok = $choice -match '^([1-9]|x|1[0-1])$'
         }
-        elseif ($NumberofLEs -gt 11) {
+        if ($NumberofLEs -gt 11) {
             $ok = $choice -match '^([1-9]|x|1[0-2])$'
         }
-        elseif ($NumberofLEs -gt 12) {
+        if ($NumberofLEs -gt 12) {
             $ok = $choice -match '^([1-9]|x|1[0-3])$'
         }
-        elseif ($NumberofLEs -gt 13) {
+        if ($NumberofLEs -gt 13) {
             $ok = $choice -match '^([1-9]|x|1[0-4])$'
         }
-        elseif ($NumberofLEs -gt 14) {
+        if ($NumberofLEs -gt 14) {
             $ok = $choice -match '^([1-9]|x|1[0-5])$'
         }
-        elseif ($NumberofLEs -gt 15) {
+        if ($NumberofLEs -gt 15) {
             $ok = $choice -match '^([1-9]|x|1[0-6])$'
         }
-        elseif ($NumberofLEs -gt 16) {
+        if ($NumberofLEs -gt 16) {
             $ok = $choice -match '^([1-9]|x|1[0-7])$'
         }
-        elseif ($NumberofLEs -gt 17) {
+        if ($NumberofLEs -gt 17) {
             $ok = $choice -match '^([1-9]|x|1[0-8])$'
         }
-        elseif ($NumberofLEs -gt 18) {
+        if ($NumberofLEs -gt 18) {
             $ok = $choice -match '^([1-9]|x|1[0-9])$'
         }
-        elseif ($NumberofLEs -gt 19) {
+        if ($NumberofLEs -gt 19) {
             $ok = $choice -match '^([1-9]|x|1[0-9]|20)$'
         }
-        elseif ($NumberofLEs -gt 20) {
+        if ($NumberofLEs -gt 20) {
             $ok = $choice -match '^([1-9]|x|1[0-9]|2[0-1])$'
         }
         
@@ -250,6 +250,7 @@ do {
     if ($numberofframes -gt 3) {
         $whosframe4 = (Send-OVRequest -Uri $enclosureUris[3]).name
     }   
+
     if ($numberofframes -gt 4) {
         $whosframe5 = (Send-OVRequest -Uri $enclosureUris[4]).name
     }
@@ -269,7 +270,7 @@ do {
         write-host ""
         write-host "X - Exit"
         write-host ""
-        write-host -nonewline "Type your choice (1, 2, ... or 5) and press Enter: "
+        write-host -nonewline "Type your choice (1, 2...) and press Enter: "
         
         $choice = read-host
         
@@ -282,13 +283,13 @@ do {
         if ($numberofframes -gt 1) {
             $ok = $choice -match '^[12x]+$'
         }
-        elseif ($numberofframes -gt 2) {
+        if ($numberofframes -gt 2) {
             $ok = $choice -match '^[123x]+$'
         }
-        elseif ($numberofframes -gt 3) {
+        if ($numberofframes -gt 3) {
             $ok = $choice -match '^[1234x]+$'
         }
-        elseif ($numberofframes -gt 4) {
+        if ($numberofframes -gt 4) {
             $ok = $choice -match '^[12345x]+$'
         }
         
@@ -300,32 +301,17 @@ do {
     } until ( $ok )
 
     if ($choice -eq "x") { 
-    
         Disconnect-OVMgmt
         exit 
     }
 
       
     switch -Regex ( $choice ) {
-        "1" {
-            $frame = $whosframe1
-        }
-        
-        "2" {
-            $frame = $whosframe2
-        }
-
-        "3" {
-            $frame = $whosframe3
-        }
-
-        "4" {
-            $frame = $whosframe4
-        }
-
-        "5" {
-            $frame = $whosframe5
-        }
+        "1" { $frame = $whosframe1 }        
+        "2" { $frame = $whosframe2 }
+        "3" { $frame = $whosframe3 }
+        "4" { $frame = $whosframe4 }
+        "5" { $frame = $whosframe5 }
 
     }
     
