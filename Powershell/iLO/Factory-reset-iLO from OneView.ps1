@@ -146,8 +146,7 @@ catch {
 # Wait for OneView to issue an alert about a communication issue with the server hardware
 Do {
     # Collect data for the 'network connectivity has been lost' alert
-    $networkconnectivityalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
-        Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
+    $networkconnectivityalert = ( $serverhardware | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
             $_.description -Match "Network connectivity has been lost for server hardware"   
         })
     sleep 2
@@ -157,8 +156,7 @@ until ($networkconnectivityalert)
 # Wait for OneView to issue an alert about a trusted communication issue with the iLO due to invalid iLO certificate
 Do {
     # Collect data for the 'Unable to establish trusted communication with server' alert
-    $ilocertalert = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | 
-        Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
+    $ilocertalert = ( $serverhardware | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
             $_.description -Match "Unable to establish trusted communication with server"     
         })
 
