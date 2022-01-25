@@ -191,11 +191,6 @@ do {
             $ok = $choice -match '^([1-9]|x|1[0-9]|2[0-1])$'
         }
         
-        if ( -not $ok) {
-            write-host "Invalid selection"
-            write-host ""
-        }
-   
     } until ( $ok )
 
     if ($choice -eq "x") { 
@@ -292,12 +287,7 @@ do {
         if ($numberofframes -gt 4) {
             $ok = $choice -match '^[12345x]+$'
         }
-        
-        if ( -not $ok) {
-            write-host "Invalid selection"
-            write-host ""
-        }
-   
+           
     } until ( $ok )
 
     if ($choice -eq "x") { 
@@ -338,11 +328,6 @@ do {
         write-host ""
         
         $ok = $componenttoefuse -match '^[1234x]+$'
-        
-        if ( -not $ok) {
-            write-host "Invalid selection"
-            write-host ""
-        }
    
     } until ( $ok )
 
@@ -352,51 +337,102 @@ do {
     #Creation of the body content to efsue a Compute Module
 
     if ($componenttoefuse -eq 1) {
-        clear
-        $ert = Get-OVServer | where { $_.locationUri -eq $locationUri } 
 
-        $ert | Select-Object @{Name = "Model"; expression = { $_.shortmodel } },
-        @{Name = "Compute"; expression = { $_.name } },
-        @{Name = "PowerState"; expression = { $_.powerState } },
-        @{Name = "Status"; expression = { $_.Status } },
-        @{Name = "Profile"; expression = { $_.state } } | Format-Table -AutoSize | out-host
+        do {
+
+            clear
+            $ert = Get-OVServer | where { $_.locationUri -eq $locationUri } 
+
+            $ert | Select-Object @{Name = "Model"; expression = { $_.shortmodel } },
+            @{Name = "Compute"; expression = { $_.name } },
+            @{Name = "PowerState"; expression = { $_.powerState } },
+            @{Name = "Status"; expression = { $_.Status } },
+            @{Name = "Profile"; expression = { $_.state } } | Format-Table -AutoSize | out-host
                   
-        $baynb = Read-Host "Please enter the Computer Module Bay number to efuse (1 to 12)"
-        #$body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
-        $component = "Device"  
+            $baynb = Read-Host "Please enter the Computer Module Bay number to efuse (1 to 12) or X to exit"
+            #$body = '[{"op":"replace","path":"/deviceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]' 
+            $component = "Device"  
+
+            $ok = $baynb -match '^([1-9]|x|1[0-2])$'
+
+        } until ($ok)
+
+        if ($baynb -eq "x") { 
+            Disconnect-OVMgmt
+            exit 
+        }
     }
 
     if ($componenttoefuse -eq 2) {
-        clear
-        $ert = Get-OVInterconnect | where { $_.enclosurename -eq $frame } 
+
+        do {
+
+            clear
+            $ert = Get-OVInterconnect | where { $_.enclosurename -eq $frame } 
                     
-        $ert | Select @{Name = "Interconnect Model"; Expression = { $_.model } }, @{Name = "Status"; Expression = { $_.status } },
-        @{Name = "Bay number"; Expression = { $_.interconnectlocation.locationEntries | where { $_.type -eq "Bay" } | select  value | % { $_.value } } } | Sort-Object -Property "Bay number" | Out-Host
+            $ert | Select @{Name = "Interconnect Model"; Expression = { $_.model } }, @{Name = "Status"; Expression = { $_.status } },
+            @{Name = "Bay number"; Expression = { $_.interconnectlocation.locationEntries | where { $_.type -eq "Bay" } | select  value | % { $_.value } } } | Sort-Object -Property "Bay number" | Out-Host
 
 
-        $baynb = Read-Host "Please enter the Interconnect Module Bay number to efuse (1 to 6)"
-        #$body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-        $component = "ICM"  
+            $baynb = Read-Host "Please enter the Interconnect Module Bay number to efuse (1 to 6) or X to exit"
+            #$body = '[{"op":"replace","path":"/interconnectBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+            $component = "ICM"  
+
+            $ok = $baynb -match '^[1-6|x]+$'  
+
+        } until ($ok)
+
+        if ($baynb -eq "x") { 
+            Disconnect-OVMgmt
+            exit 
+        }
+
     }
 
     if ($componenttoefuse -eq 3) {
-        clear
-        $ert = (Get-OVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
-        $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
+
+        do {
+
+            clear
+            $ert = (Get-OVEnclosure | where { $_.name -Match $frame }).applianceBays | where { $_.devicePresence -eq "Present" }
+            $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
         
-        $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2)"
-        #$body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-        $component = "Appliance"  
+            $baynb = Read-Host "Please enter the Appliance Bay number to efuse (1 or 2) or X to exit"
+            #$body = '[{"op":"replace","path":"/applianceBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+            $component = "Appliance"  
+
+            $ok = $baynb -match '^[12x]+$'
+
+        } until ($ok)
+
+        if ($baynb -eq "x") { 
+            Disconnect-OVMgmt
+            exit 
+        }
+        
     }
 
     if ($componenttoefuse -eq 4) {
-        clear
-        $ert = (Get-OVEnclosure | where { $_.name -Match $frame }).managerbays
-        $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Role"; Expression = { $_.role } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
 
-        $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2)"
-        #$body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
-        $component = "FLM"  
+        do {
+
+            clear
+            $ert = (Get-OVEnclosure | where { $_.name -Match $frame }).managerbays
+            $ert | Select @{Name = "Model"; Expression = { $_.model } }, @{Name = "Bay number"; Expression = { $_.baynumber } }, @{Name = "Role"; Expression = { $_.role } }, @{Name = "Status"; Expression = { $_.status } } | Out-Host
+
+            $baynb = Read-Host "Please enter the FLM Bay number to efuse (1 or 2) or X to exit"
+            #$body = '[{"op":"replace","path":"/managerBays/' + $baynb + '/bayPowerState","value":"E-Fuse"}]'   
+            $component = "FLM"  
+
+            $ok = $baynb -match '^[12x]+$'
+
+        } until ($ok)
+
+        if ($baynb -eq "x") { 
+            Disconnect-OVMgmt
+            exit 
+        }
+
     }
 
     if ($componenttoefuse -eq "x") { 
