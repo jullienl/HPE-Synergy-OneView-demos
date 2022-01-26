@@ -38,7 +38,7 @@
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "oneview.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -76,7 +76,7 @@ clear
 
 if ($computes) {
     write-host ""
-    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enable:" 
+    Write-host $computes.Count "iLO5 can support REST API commands and will be configured with password complexity to enable:" 
     $computes | Format-Table -autosize | Out-Host
 
 }
@@ -120,28 +120,22 @@ Foreach ($compute in $computes) {
     $headerilo = @{ } 
     $headerilo["X-Auth-Token"] = $ilosessionkey 
 
-    Try {
 
-        $error.clear()
 
-        # Modification of the password complexity
-        $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/accountservice" -Body $bodyiloParams -ContentType "application/json" -Headers $headerilo -Method PATCH -UseBasicParsing
-
-        if ($Error[0] -eq $Null) {
-            write-host ""
-            Write-Host "iLO password complexity option has been enabled in iLo $iloIP"
-        }
+    # Modification of the password complexity
+    try {
+        $response = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/accountservice" -Body $bodyiloParams -ContentType "application/json" -Headers $headerilo -Method PATCH -UseBasicParsing -ErrorAction Stop
+        $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+        Write-Host "iLO password complexity option has been enabled in iLo $iloIP. Message returned: [$($msg)]"
 
     }
-
-    #Error is returned if iLO FW is not supported
-    catch [System.Net.WebException] { 
-        write-host ""
-        Write-Warning "$_"
-        Write-Warning "The firmware of iLO: $iloIP might be too old ! The iLO password complexity option has not been changed !" 
+    catch {
+        $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+        $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO: $($iloIP): The iLO password complexity option has not been changed ! ! Message returned: [$($msg)]"
         continue
     }
- 
+
 }
 
 write-host ""

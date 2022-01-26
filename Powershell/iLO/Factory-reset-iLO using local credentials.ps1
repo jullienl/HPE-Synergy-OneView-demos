@@ -50,7 +50,7 @@ $iLO_username = "Administrator"
 
 # HPE OneView 
 $OV_username = "Administrator"
-$OV_IP = "composer.lj.lab"
+$OV_IP = "oneview.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -85,6 +85,7 @@ add-type -TypeDefinition  @"
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
+
 #################################################################################
 
 # Capture iLO Administrator account password
@@ -97,35 +98,10 @@ $iLOpassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 $iLOpassword = ($DefaultiLOpassword, $iLOpassword)[[bool]$iLOpassword]
 
 
-
 #################################################################################
 
 # iLO IP address
 $iloIP = read-host  "Please enter the iLO IP address you want to factory reset"
-
-#Creation of the body content to pass to iLO
-$body = @{
-    Password = $iLOpassword; 
-    UserName = $iLO_username 
-} | ConvertTo-Json 
-
-
-$headers = @{}
-$headers.Add("OData-Version", "4.0")
-$headers.Add("Content-Type", "application/json")
-
-# Create session
-$response = Invoke-webrequest "https://$iloIP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body
-$xauthtoken = $response.Headers.'X-Auth-Token' 
-
-# Create new header with session key
-$headers["X-Auth-Token"] = $xauthtoken 
-
-# Create body for iLO factory reset
-$body = @{
-    ResetType = "Default"
-} | ConvertTo-Json 
-
 
 # Collect the server hardware corresponding to the iLO IP
 $SH = Get-OVServer
@@ -144,6 +120,47 @@ foreach ($item in $SH) {
     }
 }
 
+if (-not $serverhardware) {
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "No server found in $($OV_IP) corresponding to iLO=$($iloIP) "
+    Disconnect-OVMgmt
+    return
+}
+
+#Creation of the body content to pass to iLO
+$body = @{
+    Password = $iLOpassword; 
+    UserName = $iLO_username 
+} | ConvertTo-Json 
+
+
+$headers = @{}
+$headers.Add("OData-Version", "4.0")
+$headers.Add("Content-Type", "application/json")
+
+# Create session
+try {
+    $response = Invoke-webrequest "https://$iloIP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body -ErrorAction Stop
+    $xauthtoken = $response.Headers.'X-Auth-Token' 
+}
+catch {
+    $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+    $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "Error ! Cannot create an iLO session:" $msg
+    Disconnect-OVMgmt
+    exit
+}
+
+
+
+# Create new header with session key
+$headers["X-Auth-Token"] = $xauthtoken 
+
+# Create body for iLO factory reset
+$body = @{
+    ResetType = "Default"
+} | ConvertTo-Json 
+
+
 $iloModel = $serverhardware.mpModel
 
 
@@ -156,13 +173,16 @@ else {
 
 # Proceeding iLO factory Reset
 try {
-    $response = Invoke-webrequest -Uri "https://$iloIP$url" -Method 'POST' -Headers $headers -Body $body
+    $response = Invoke-webrequest -Uri "https://$iloIP$url" -Method 'POST' -Headers $headers -Body $body -ErrorAction Stop
     $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
-    Write-Host "iLO Factory reset in progress... Message returned: $($msg)"
+    Write-Host "iLO Factory reset in progress... Message returned: [$($msg)]"
 
 }
 catch {
-    Write-Warning "iLO factory reset error ! Message returned: $($msg)"
+    $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+    $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO factory reset error ! Message returned: [$($msg)]"
+    Disconnect-OVMgmt
     exit
 }
 
@@ -202,7 +222,6 @@ try {
 }
 catch {
     write-host "Old iLO certificate has not been removed from the Oneview trust store !" -ForegroundColor red
-    return
 }
 
 sleep 10

@@ -107,25 +107,18 @@ Foreach ($compute in $computes) {
     $headerilo["X-Auth-Token"] = $ilosessionkey 
 
 
-    Try {
-
-        $error.clear()
-
-        # Modification of the Administrator password
-        $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/accountservice/accounts/1/" -Body $bodyiloParams -ContentType "application/json" -Headers $headerilo -Method PATCH -UseBasicParsing
-
-        if ($Error[0] -eq $Null) {
-            write-host ""
-            Write-Host "Administrator password has been changed in iLO $iloIP"
-        }
+    
+    # Modification of the Administrator password
+    try {
+        $response = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/accountservice/accounts/1/" -Body $bodyiloParams -ContentType "application/json" -Headers $headerilo -Method PATCH -UseBasicParsing -ErrorAction Stop
+        $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+        Write-Host "Administrator password has been changed in iLO $iloIP, message returned: [$($msg)]"
 
     }
-
-    #Error is returned if iLO FW is not supported
-    catch [System.Net.WebException] { 
-        write-host ""
-        Write-Warning "$_"
-        Write-Warning "The firmware of iLO: $iloIP might be too old ! The password has not been changed !" 
+    catch {
+        $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+        $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloIP): Error ! Password cannot be changed ! Message returned: [$($msg)]"
         continue
     }
  

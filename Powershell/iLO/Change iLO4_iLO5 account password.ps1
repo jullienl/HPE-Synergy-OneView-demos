@@ -191,13 +191,9 @@ ForEach ($compute in $computes) {
         }
     
         catch [System.Net.WebException] { 
-            $global:result = $_.Exception.Response.GetResponseStream()
-            $global:reader = New-Object System.IO.StreamReader($global:result)
-            $global:responseBody = $global:reader.ReadToEnd();
-
-            $error_message = ($global:responsebody | ConvertFrom-Json).error | % '@Message.ExtendedInfo' | % MessageId
-        
-            Write-Host -ForegroundColor Yellow "`n${Ilohostname}: $account password cannot be changed in $iloModel $iloIP [$serverName - $Model] - $error_message" 
+            $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+            $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+            Write-Host -BackgroundColor:Black -ForegroundColor:Red "`n${Ilohostname}: $account password cannot be changed in $iloModel $iloIP [$serverName - $Model] -" $msg
         }
     }
     else {

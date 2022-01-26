@@ -139,7 +139,10 @@ try {
     write-host "`niLO Factory reset is in progress... Message from API:" ($rest.Content | convertfrom-json).error.'@Message.ExtendedInfo'.MessageId
 }
 catch {
-    Write-Warning "Factory Reset Error ! " 
+    $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+    $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO factory reset error ! Message returned: [$($msg)]"
+    Disconnect-OVMgmt
     exit
 }
 
