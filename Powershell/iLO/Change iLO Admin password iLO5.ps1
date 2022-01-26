@@ -46,21 +46,53 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
-Clear-Host
 
 
-# Capture iLO IP adresses managed by OneView
-$iloIPs = Get-OVServer | where mpModel -eq iLO5 | % { $_.mpHostInfo.mpIpAddresses[1].address }
+# Capture iLO5 IP adresses managed by OneView
+$SH = Get-OVServer | where mpModel -eq iLO5
+
+$iloIPs = @()
+$Results = @()
+
+foreach ($item in $SH) {
+
+    $IPs = $item.mpHostInfo.mpIpAddresses
+
+    foreach ($ip in $IPs) {
+            
+        if ($ip.type -ne "LinkLocal") {
+
+            $ItemDetails = [PSCustomObject]@{    
+                IPAddress    = $ip.address
+                Name         = $item.name
+                Model        = $item.model
+                SerialNumber = $item.serialNumber
+            }
+
+            $iloIPs += $ip.address
+            
+            #Add data to array
+            $Results += $ItemDetails
+
+        }
+    }      
+}
+
 
 clear
 
 if ($iloIPs) {
     write-host ""
-    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with a new password :" 
-    $result = Get-OVServer | where mpModel -eq iLO5 | select @{Name = "IP Address"; expression = { $_.mpHostInfo.mpIpAddresses[1].address } }, name, shortModel, serialNumber 
-    $result.ForEach( { [PSCustomObject]$_ }) | Format-Table -AutoSize | Out-Host
+    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enabled:" 
+    $results | Out-Host
 
 }
+else {
+    Write-Warning "No iLO5 servers found ! Exiting... !"
+    Disconnect-OVMgmt
+    exit
+}
+
 
 
 # Capture iLO Administrator account password
@@ -92,10 +124,12 @@ add-type -TypeDefinition  @"
 
 
 
-Foreach ($iloIP in $iloIPs) {
+Foreach ($result in $results) {
+
     # Capture of the SSO Session Key
  
-    $ilosessionkey = (Get-OVServer | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+    $ilosessionkey = (Get-OVServer -Name $result.name | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+    $iloIP = $result.IPAddress
  
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
@@ -121,6 +155,7 @@ Foreach ($iloIP in $iloIPs) {
         write-host ""
         Write-Warning "$_"
         Write-Warning "The firmware of iLO: $iloIP might be too old ! The password has not been changed !" 
+        continue
     }
  
 }

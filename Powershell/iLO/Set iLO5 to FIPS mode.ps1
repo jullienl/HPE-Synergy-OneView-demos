@@ -111,9 +111,7 @@ $directorypath = Split-Path $MyInvocation.MyCommand.Path
 Start-Transcript -path $directorypath\$report -append
 
 
-
 clear-host
-
 
 ForEach ($compute in $computes) {
 
@@ -121,7 +119,8 @@ ForEach ($compute in $computes) {
     $iloSession = $compute | Get-OVIloSso -IloRestSession
     $ilosessionkey = $iloSession."X-Auth-Token"
 
-    $iloIP = $compute  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+    $iloIP = $compute.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
+
     $Ilohostname = $compute  | % { $_.mpHostInfo.mpHostName }
     $iloModel = $compute  | % mpmodel
     $serverName = $compute  | % serverName

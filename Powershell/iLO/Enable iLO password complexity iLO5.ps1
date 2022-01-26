@@ -146,7 +146,7 @@ Foreach ($result in $results) {
 
         $error.clear()
 
-        # Modification of the Administrator password
+        # Modification of the password complexity
         $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/accountservice" -Body $bodyiloParams -ContentType "application/json" -Headers $headerilo -Method PATCH -UseBasicParsing
 
         if ($Error[0] -eq $Null) {

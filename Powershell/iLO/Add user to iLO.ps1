@@ -39,12 +39,23 @@
 #################################################################################
 
 # iLO User to create 
-$newiLOLoginName = "admin"
+$newiLOLoginName = "iLOadmin"
 
 
 # OneView information
 $username = "Administrator"
 $IP = "composer.lj.lab"
+
+
+# MODULES TO INSTALL
+
+# HPEOneView
+# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+
+#################################################################################
+
+
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
 # Connection to the Synergy Composer
@@ -128,8 +139,6 @@ else {
     Disconnect-OVMgmt
     exit
 }
-
-# write-host "`nAddress(es): $iloIPs"
 
 
 Foreach ($result in $results) {

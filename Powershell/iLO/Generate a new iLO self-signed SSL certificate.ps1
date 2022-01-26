@@ -200,8 +200,17 @@ ForEach ($servertoimport in $serverstoimport) {
 
     sleep 5
 
-    # Remove old iLO certificate
-    $removecerttask = Get-OVApplianceTrustedCertificate -Name $servertoimport.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
+    # Remove the old iLO certificate from the OneView trust store
+    try {
+        $iLOcertificatename = $servertoimport | Get-OVApplianceTrustedCertificate | % name
+        Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+        Write-Host "`tThe old iLO certificate has been successfully removed from the Oneview trust store"
+    }
+    catch {
+        write-host "Old iLO certificate has not been removed from the Oneview trust store !" -ForegroundColor red
+        continue
+    }
+
 
     sleep 10
 
@@ -214,7 +223,7 @@ ForEach ($servertoimport in $serverstoimport) {
     else {
         Write-Warning "Error - New iLO self-signed certificate of $($servertoimport.name) cannot be added to the OneView trust store !"
         $addcerttask.taskErrors
-        break
+        continue
     }
 
     sleep 5
@@ -229,7 +238,7 @@ ForEach ($servertoimport in $serverstoimport) {
     catch {
         Write-Warning "Error - $($servertoimport.name) refresh cannot be completed!"
         $refreshtask.taskErrors
-        break
+        continue
     }
 
     # If refresh is failing, we need to re-add the new iLO certificate and re-launch a server hardware refresh
@@ -239,8 +248,9 @@ ForEach ($servertoimport in $serverstoimport) {
         sleep 5
     
         # Remove iLO certificate again
-        $removecerttask = Get-OVApplianceTrustedCertificate -Name $servertoimport.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
-    
+        $iLOcertificatename = $servertoimport | Get-OVApplianceTrustedCertificate | % name
+        Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+
         # Add again the new iLO self-signed certificate to OneView trust store 
         $addcerttaskretry = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete
     

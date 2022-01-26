@@ -162,7 +162,9 @@ else {
 
         $iloSession = $server | Get-OVIloSso -IloRestSession
   
-        $iloIP = $server  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+        #$iloIP = $server  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
+        $iloIP = $server.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
+
         $Ilohostname = $server  | % { $_.mpHostInfo.mpHostName }
         $iloModel = $server  | % mpmodel
         
@@ -301,9 +303,9 @@ else {
 
             Write-Host "`tImport Certificate Successful on iLo $iloIP `n`tPlease wait, iLO Reset in Progress..."
        
-            # Remove the old iLO self-signed certificate from the Oneview trust store
+            # Remove the old iLO self-signed certificate from the OneView trust store
             try {
-                $iLOcertificatename = Get-OVServer -Name $Server.name -ErrorAction Stop | Get-OVApplianceTrustedCertificate | % name
+                $iLOcertificatename = $Server | Get-OVApplianceTrustedCertificate | % name
                 Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
                 Write-Host "`tThe old iLO Self-Signed certificate has been successfully removed from the Oneview trust store"
             }
@@ -311,6 +313,7 @@ else {
                 write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Old iLO Self-Signed certificate has not been removed from the Oneview trust store !" -ForegroundColor red
             }
             
+
             # Wait for OneView to raise a task after the certificate change 
             $appliancename = ${Global:ConnectedSessions} | % name
             $applianceversion = Get-OVVersion | % $appliancename | % ApplianceVersion

@@ -30,7 +30,7 @@ Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
 #Capturing iLO IP adresses managed by OneView
-$iloIPs = Get-OVServer | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4 | % { $_.mpHostInfo.mpIpAddresses[1].address }
+$iloIPs = (Get-OVServer  | ? refreshState -Match "RefreshFailed" | where mpModel -eq iLO4).mpHostInfo.mpIpAddresses | ? type -ne "LinkLocal" | % address
 
 
 #Proceeding factory Reset

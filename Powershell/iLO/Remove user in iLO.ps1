@@ -4,7 +4,7 @@
 #
 # Delete a User account in iLO4/iLO5 managed by OneView without using the iLO Administrator local account
 #
-# iLO modification is done through OneView and iLO SSOsession key using REST POST method
+# iLO modification is done through OneView and iLO SSO session key using REST POST method
 #
 # Requirements:
 #    - HPE OneView Powershell Library
@@ -38,12 +38,12 @@
 
 
 # iLO User to remove 
-$iLOLoginName = "Ilouser"
+$iLOLoginName = "iLOadmin"
 
 
-# OneView Credentials and IP
-$OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+# OneView information
+$username = "Administrator"
+$IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -54,20 +54,16 @@ $OV_IP = "composer2.lj.lab"
 
 #################################################################################
 
+
 $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the OneView / Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+# Connection to the Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-}
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
-}
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+Clear-Host
+
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -86,23 +82,68 @@ add-type -TypeDefinition  @"
 
 #################################################################################
 
-    
+
 # Capture iLO4 and iLO5 IP adresses managed by OneView
-$servers = Get-HPOVServer
-$iloIPs = $servers | where { $_.mpModel -eq "iLO4" -or "iLO5" } | % { $_.mpHostInfo.mpIpAddresses[1].address }
+$servers = Get-OVServer
+
+
+$iloIPs = @()
+$Results = @()
+
+foreach ($item in $servers) {
+
+    $IPs = $item.mpHostInfo.mpIpAddresses
+
+    foreach ($ip in $IPs) {
+            
+        if ($ip.type -ne "LinkLocal") {
+
+            $ItemDetails = [PSCustomObject]@{    
+                IPAddress    = $ip.address
+                Name         = $item.name
+                Model        = $item.model
+                MPModel      = $item.mpModel
+                SerialNumber = $item.serialNumber
+            }
+
+            $iloIPs += $ip.address
+            
+            #Add data to array
+            $Results += $ItemDetails
+
+        }
+    }      
+}
+
+
+$iloIPs = $Results.ipaddress
 
 $nbilo4 = ($servers | where mpModel -eq "iLO4" ).count
 $nbilo5 = ($servers | where mpModel -eq "iLO5" ).count
 
-write-host "`n $($iloIPs.count) iLO found : $nbilo4 x iLO4 - $nbilo5 x iLO5 " -f Green
-# write-host "`nAddress(es): $iloIPs"
+
+clear
+
+if ($iloIPs) {
+    write-host ""
+    write-host "`n $($iloIPs.count) iLO found : $nbilo4 x iLO4 - $nbilo5 x iLO5 " -f Green
+    $results | Format-Table -autosize | Out-Host
+
+}
+else {
+    Write-Warning "No servers found ! Exiting... !"
+    Disconnect-OVMgmt
+    exit
+}
 
 
-Foreach ($iloIP in $iloIPs) {
+
+Foreach ($result in $results) {
     # Capture of the SSO Session Key
- 
-    $ilosessionkey = ($servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | Get-HPOVIloSso -IloRestSession)."X-Auth-Token"
-    $iloModel = $servers | where { $_.mpHostInfo.mpIpAddresses[1].address -eq $iloIP } | % mpModel
+    $ilosessionkey = (Get-OVServer -Name $result.name | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+    $iloIP = $result.IPAddress
+
+    $iloModel = $result.MPModel
 
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
@@ -155,6 +196,7 @@ Foreach ($iloIP in $iloIPs) {
         
         write-host ""
         Write-Warning "[$iLOLoginName] cannot be deleted in iLO [$iloIP] !" 
+        continue
     }   
 
  
@@ -163,4 +205,4 @@ Foreach ($iloIP in $iloIPs) {
 
 write-host ""
 Read-Host -Prompt "Operation done ! Hit return to close" 
-Disconnect-HPOVMgmt
+Disconnect-OVMgmt

@@ -174,9 +174,17 @@ ForEach ($server in $servers) {
         write-host "iLO [$($iloIP)] communication failure detected, removing old certificate and adding the new iLO self-signed certificate to the OneView trust store..."
 
         sleep 5
-
-        # Remove old iLO certificate
-        $removecerttask = Get-OVApplianceTrustedCertificate -Name $server.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
+      
+        # Remove the old iLO certificate from the OneView trust store
+        try {
+            $iLOcertificatename = $Server | Get-OVApplianceTrustedCertificate | % name
+            Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+            Write-Host "`tThe old iLO Self-Signed certificate has been successfully removed from the Oneview trust store"
+        }
+        catch {
+            write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Old iLO Self-Signed certificate has not been removed from the Oneview trust store !" -ForegroundColor red
+        }
+            
 
         sleep 10
 
@@ -214,7 +222,8 @@ ForEach ($server in $servers) {
             sleep 5
     
             # Remove iLO certificate again
-            $removecerttask = Get-OVApplianceTrustedCertificate -Name $server.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
+            $iLOcertificatename = $Server | Get-OVApplianceTrustedCertificate | % name
+            Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
     
             # Add again the new iLO self-signed certificate to OneView trust store 
             $addcerttaskretry = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete

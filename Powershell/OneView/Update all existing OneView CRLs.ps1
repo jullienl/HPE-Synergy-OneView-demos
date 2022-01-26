@@ -76,8 +76,8 @@ function Failure {
 }
 
 
+Clear-Host
 
-<#
 add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
@@ -91,14 +91,14 @@ add-type -TypeDefinition  @"
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-#>
-   
+
+#############################################################################################################   
 
 # Creation of the header
   
 $headers = @{ } 
 $headers["Accept"] = "application/json" 
-$headers["X-API-Version"] = "600"
+$headers["X-API-Version"] = "2300"
 $key = $ConnectedSessions[0].SessionID 
 $headers["Auth"] = $key
 

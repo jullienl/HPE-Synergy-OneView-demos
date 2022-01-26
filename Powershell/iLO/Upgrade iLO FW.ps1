@@ -66,15 +66,15 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
-# Get the IP addresses of the iLOs we want to upgrade
-$iLOserverIPs = Get-OVServer | Where-Object { $_.mpModel -eq "iLO4" | % { $_.mpHostInfo.mpIpaddresses[1].address } # | select -first 1 
+# Get the IP addresses of iLO4 we want to upgrade
+$iLOserverIPs = (Get-OVServer  | where mpModel -eq iLO4).mpHostInfo.mpIpAddresses | ? type -ne "LinkLocal" | % address # | select -first 1 
 
-  <#
+<#
   - To retrieve the iLO IP of a single server, you can use:
-    $iLOserverIPs = Get-OVServer -name "Encl1, bay 1" | % { $_.mpHostInfo.mpIpaddresses[1].address }  
+    $iLOserverIPs = ( Get-OVServer -name "Frame1, bay 1" ).mpHostInfo.mpIpAddresses | ? type -ne "LinkLocal" | % address   
 
-  - To retrieve the iLO IPs of the servers that have an iLO version 2.33 or lower, you can use:  
-    $iLOserverIPs = (Get-OVServer | ? mpModel -eq "ilo5" | ? {$_.mpFirmwareVersion.SubString(0,4) -le 2.33 }) | % { $_.mpHostInfo.mpIpaddresses[1].address }  
+  - To retrieve the iLO5 IPs of the servers that have an iLO version 2.33 or lower, you can use:  
+    $iLOserverIPs = (Get-OVServer  | where mpModel -eq iLO5 | ? {$_.mpFirmwareVersion.SubString(0,4) -le 2.33 }).mpHostInfo.mpIpAddresses | ? type -ne "LinkLocal" | % address 
 
   - To retrieve the iLO IPs of the servers impacted by the new SHT change issue: https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00113315en_us 
     $impactedservers = (Get-OVAlert -severity Critical -AlertState Active | Where-Object { 
@@ -82,19 +82,19 @@ $iLOserverIPs = Get-OVServer | Where-Object { $_.mpModel -eq "iLO4" | % { $_.mpH
             -and $_.description -match "originally used to create this server profile" 
             -and $_.description -match "expected serverhardware type"
         }).associatedResource.resourcename
-    $iLOserverIPs = foreach ($item in $impactedservers) { Get-OVServer -Name $item | % { $_.mpHostInfo.mpIpaddresses[1].address } }
+    $iLOserverIPs = foreach ($item in $impactedservers) { (Get-OVServer -Name $item).mpHostInfo.mpIpAddresses | ? type -ne "LinkLocal" | % address }
 #>
 
-  foreach ($item in $iLOserverIPs) {
+foreach ($item in $iLOserverIPs) {
 
-    $connection = connect-hpeilo -Credential $ilocreds -Address $item 
-    $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False -Force
-    Write-Host "iLO $item : $($task.statusinfo.message)"
-    Disconnect-HPEiLO -Connection $connection
+  $connection = connect-hpeilo -Credential $ilocreds -Address $item 
+  $task = Update-HPEiLOFirmware -Location $Location -Connection $connection -Confirm:$False -Force
+  Write-Host "iLO $item : $($task.statusinfo.message)"
+  Disconnect-HPEiLO -Connection $connection
     
-  }
+}
    
-  Disconnect-OVMgmt 
+Disconnect-OVMgmt 
 
 
 

@@ -170,9 +170,17 @@ sleep 5
 
 ################## Post-execution #########################
 
-# Remove old iLO certificate
-$removecerttask = Get-OVApplianceTrustedCertificate -Name $serverhardware.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
-
+# Remove the old iLO certificate from the OneView trust store
+try {
+    $iLOcertificatename = $Serverhardware | Get-OVApplianceTrustedCertificate | % name
+    Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+    Write-Host "`tThe old iLO certificate has been successfully removed from the Oneview trust store"
+}
+catch {
+    write-host "Old iLO certificate has not been removed from the Oneview trust store !" -ForegroundColor red
+    return
+}
+            
 sleep 10
 
 # Add new iLO self-signed certificate to OneView trust store
