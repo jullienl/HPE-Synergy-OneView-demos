@@ -4,7 +4,7 @@
 #
 # Change the iLO password complexity option in every iLO5 managed by OneView without using any iLO local account
 #
-# iLO modification is done through OneView and iLO SSOsession key using REST PATCH method
+# iLO modification is done through OneView and iLO SSO session key using REST PATCH method
 #
 # Requirements:
 #    - HPE OneView Powershell Library
@@ -69,48 +69,24 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 # Capture iLO5 IP adresses managed by OneView
-$SH = Get-OVServer | where mpModel -eq iLO5
+$computes = Get-OVServer | where mpModel -eq iLO5
 
-$iloIPs = @()
-$Results = @()
-
-foreach ($item in $SH) {
-
-    $IPs = $item.mpHostInfo.mpIpAddresses
-
-    foreach ($ip in $IPs) {
-            
-        if ($ip.type -ne "LinkLocal") {
-
-            $ItemDetails = [PSCustomObject]@{    
-                IPAddress    = $ip.address
-                Name         = $item.name
-                Model        = $item.model
-                SerialNumber = $item.serialNumber
-            }
-
-            $iloIPs += $ip.address
-            
-            #Add data to array
-            $Results += $ItemDetails
-
-        }
-    }      
-}
 
 clear
 
-if ($iloIPs) {
+if ($computes) {
     write-host ""
-    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enabled:" 
-    $results | Out-Host
+    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enable:" 
+    $computes | Format-Table -autosize | Out-Host
 
 }
 else {
-    Write-Warning "No iLO5 servers found ! Exiting... !"
+    Write-Warning "No iLO5 server found ! Exiting... !"
     Disconnect-OVMgmt
     exit
 }
+
+
 
 #Creation of the body content to enable iLO password complexity
 $bodyiloParams = ConvertTo-Json   @{ Oem = @{ Hpe = @{ EnforcePasswordComplexity = $True } } } -Depth 99
@@ -130,13 +106,15 @@ add-type -TypeDefinition  @"
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
+#####################################################################################################################
 
-Foreach ($result in $results) {
+Foreach ($compute in $computes) {
 
     # Capture of the SSO Session Key
-     
-    $ilosessionkey = (Get-OVServer -Name $result.name | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-    $iloIP = $result.IPAddress
+    $iloSession = $compute | Get-OVIloSso -IloRestSession
+    $ilosessionkey = $iloSession."X-Auth-Token"
+
+    $iloIP = $compute.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
 
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 

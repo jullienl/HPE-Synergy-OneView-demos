@@ -4,7 +4,7 @@
 #
 # Change the default Administrator account password in all iLOs managed by OneView without using any iLO local account
 #
-# iLO5 modification is done through OneView and iLO SSOsession key using REST POST method
+# iLO5 modification is done through OneView and iLO SSO session key using REST POST method
 # 
 # Requirements:
 #    - HPE OneView Powershell Library
@@ -46,53 +46,23 @@ $credentials = New-Object System.Management.Automation.PSCredential ($username, 
 Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
 
 
-
-
 # Capture iLO5 IP adresses managed by OneView
-$SH = Get-OVServer | where mpModel -eq iLO5
-
-$iloIPs = @()
-$Results = @()
-
-foreach ($item in $SH) {
-
-    $IPs = $item.mpHostInfo.mpIpAddresses
-
-    foreach ($ip in $IPs) {
-            
-        if ($ip.type -ne "LinkLocal") {
-
-            $ItemDetails = [PSCustomObject]@{    
-                IPAddress    = $ip.address
-                Name         = $item.name
-                Model        = $item.model
-                SerialNumber = $item.serialNumber
-            }
-
-            $iloIPs += $ip.address
-            
-            #Add data to array
-            $Results += $ItemDetails
-
-        }
-    }      
-}
+$computes = Get-OVServer | where mpModel -eq iLO5
 
 
 clear
 
-if ($iloIPs) {
+if ($computes) {
     write-host ""
-    Write-host $iloIPs.Count "iLO5 can support REST API commands and will be configured with password complexity to enabled:" 
-    $results | Out-Host
+    Write-host $computes.Count "iLO5 can support REST API commands and will be configured with password complexity to enable:" 
+    $computes | Format-Table -autosize | Out-Host
 
 }
 else {
-    Write-Warning "No iLO5 servers found ! Exiting... !"
+    Write-Warning "No iLO5 server found ! Exiting... !"
     Disconnect-OVMgmt
     exit
 }
-
 
 
 # Capture iLO Administrator account password
@@ -122,14 +92,15 @@ add-type -TypeDefinition  @"
 "@
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
+#####################################################################################################################
 
-
-Foreach ($result in $results) {
+Foreach ($compute in $computes) {
 
     # Capture of the SSO Session Key
- 
-    $ilosessionkey = (Get-OVServer -Name $result.name | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-    $iloIP = $result.IPAddress
+    $iloSession = $compute | Get-OVIloSso -IloRestSession
+    $ilosessionkey = $iloSession."X-Auth-Token"
+
+    $iloIP = $compute.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
  
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
@@ -145,7 +116,7 @@ Foreach ($result in $results) {
 
         if ($Error[0] -eq $Null) {
             write-host ""
-            Write-Host "Administrator password has been changed in iLo $iloIP"
+            Write-Host "Administrator password has been changed in iLO $iloIP"
         }
 
     }

@@ -2,7 +2,7 @@
 # by lionel.jullien@hpe.com
 # April 2020
 #
-# Delete a User account in iLO4/iLO5 managed by OneView without using the iLO Administrator local account
+# Delete a User account in iLO4/iLO5 managed by HPE OneView without using the iLO Administrator local account
 #
 # iLO modification is done through OneView and iLO SSO session key using REST POST method
 #
@@ -43,7 +43,7 @@ $iLOLoginName = "iLOadmin"
 
 # OneView information
 $username = "Administrator"
-$IP = "composer.lj.lab"
+$IP = "oneview.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -87,63 +87,33 @@ add-type -TypeDefinition  @"
 $servers = Get-OVServer
 
 
-$iloIPs = @()
-$Results = @()
-
-foreach ($item in $servers) {
-
-    $IPs = $item.mpHostInfo.mpIpAddresses
-
-    foreach ($ip in $IPs) {
-            
-        if ($ip.type -ne "LinkLocal") {
-
-            $ItemDetails = [PSCustomObject]@{    
-                IPAddress    = $ip.address
-                Name         = $item.name
-                Model        = $item.model
-                MPModel      = $item.mpModel
-                SerialNumber = $item.serialNumber
-            }
-
-            $iloIPs += $ip.address
-            
-            #Add data to array
-            $Results += $ItemDetails
-
-        }
-    }      
-}
-
-
-$iloIPs = $Results.ipaddress
-
-$nbilo4 = ($servers | where mpModel -eq "iLO4" ).count
-$nbilo5 = ($servers | where mpModel -eq "iLO5" ).count
+$nbilo4 = ($computes | where mpModel -eq "iLO4" ).count
+$nbilo5 = ($computes | where mpModel -eq "iLO5" ).count
 
 
 clear
 
-if ($iloIPs) {
+if ($computes) {
     write-host ""
-    write-host "`n $($iloIPs.count) iLO found : $nbilo4 x iLO4 - $nbilo5 x iLO5 " -f Green
-    $results | Format-Table -autosize | Out-Host
+    write-host "`n $($computes.count) iLO found : $nbilo4 x iLO4 - $nbilo5 x iLO5 " -f Green
+    $computes | Format-Table -autosize | Out-Host
 
 }
 else {
-    Write-Warning "No servers found ! Exiting... !"
+    Write-Warning "No server found ! Exiting... !"
     Disconnect-OVMgmt
     exit
 }
 
 
+Foreach ($compute in $computes) {
 
-Foreach ($result in $results) {
     # Capture of the SSO Session Key
-    $ilosessionkey = (Get-OVServer -Name $result.name | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-    $iloIP = $result.IPAddress
-
-    $iloModel = $result.MPModel
+    $iloSession = $compute | Get-OVIloSso -IloRestSession
+    $ilosessionkey = $iloSession."X-Auth-Token"
+ 
+    $iloIP = $compute.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
+    $iloModel = $compute.MPModel
 
     # Creation of the header using the SSO Session Key 
     $headerilo = @{ } 
@@ -185,7 +155,7 @@ Foreach ($result in $results) {
                 $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/AccountService/Accounts/$id" -Headers $headerilo -ContentType "application/json" -Method DELETE -UseBasicParsing
             }
 
-            Write-Host "`n[$iLOLoginName] has been deleted successfuly in iLo [$iloIP]" -ForegroundColor Green
+            Write-Host "`n[$iLOLoginName] has been deleted successfuly in iLO [$iloIP]" -ForegroundColor Green
         }
         
      
