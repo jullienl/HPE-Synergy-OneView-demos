@@ -74,19 +74,13 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 $LEs = Get-OVLogicalEnclosure
 
-if ( ($LEs | gm)[0].TypeName -eq "HPEOneView.LogicalEnclosure") {
-    $whosLE1 = $LEs.name
-    $NumberofLEs = 1
-}    
-else {
-    $NumberofLEs = $LEs.length
-    $LE_array = @{}
-    for ($i = 0; $i -le $LEs.length - 1; $i++) { 
-        $nb = $i + 1
-        $LE_array[$i]
-        New-Variable -name whosLE$nb -Value $LEs[$i].name -Force
-    }   
-}
+$NumberofLEs = $LEs.length
+$LE_array = @{}
+for ($i = 0; $i -le $LEs.length - 1; $i++) { 
+    $nb = $i + 1
+    $LE_array[$i]
+    New-Variable -name whosLE$nb -Value $LEs[$i].name -Force
+}   
 
  
 do {    
