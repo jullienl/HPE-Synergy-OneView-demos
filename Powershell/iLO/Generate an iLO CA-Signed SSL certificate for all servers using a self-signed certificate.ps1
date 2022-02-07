@@ -69,7 +69,7 @@ $IP = "composer.lj.lab"
 
 # HPEONEVIEW
 # If (-not (get-module HPEOneView.550 -ListAvailable )) { Install-Module -Name HPEOneView.550 -scope Allusers -Force }
-# import-module HPEOneView.550
+# import-module HPEOneView.630
 
 # PSPKI
 # CA scripts -
@@ -105,21 +105,9 @@ add-type -TypeDefinition  @"
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-function Failure {
-    $global:helpme = $body
-    $global:helpmoref = $moref
-    $global:result = $_.Exception.Response.GetResponseStream()
-    $global:reader = New-Object System.IO.StreamReader($global:result)
-    $global:responseBody = $global:reader.ReadToEnd();
-    Write-Host -BackgroundColor:Black -ForegroundColor:Red "Status: A system exception was caught."
-    Write-Host -BackgroundColor:Black -ForegroundColor:Red $global:responsebody
-    Write-Host -BackgroundColor:Black -ForegroundColor:Red "The request body has been saved to `$global:helpme"
-    break
-}
-
 $servers = Get-OVServer
 # $servers = Get-OVServer | select -first 1
-# $servers = Get-OVServer -Name "Frame1, bay 6"
+# $servers = Get-OVServer -Name "Frame1, bay 2"
 
 ## Finding the first trusted Certification Authority server available on the network
 ## Note: this command only works if the machine from where you execute this script is in a domain
@@ -139,16 +127,16 @@ else {
     $CA_cert_in_OV_Store = Get-OVApplianceTrustedCertificate -Name $CA_displayname -ErrorAction SilentlyContinue
 
     if (-not $CA_cert_in_OV_Store) {
-        write_host "The trusted CA root certificate is not found in the OneView trust store, adding it now..."
+        write-host "The trusted CA root certificate is not found in the OneView trust store, adding it now..."
     
         ## Collecting the PEM CA certificate 
         ( Get-IssuedRequest -CertificationAuthority $CA -Property "RawCertificate" | ? CommonName -eq $CA_displayname).RawCertificate.trim("`r`n") | Out-File C:\Temp\CAcert.cer 
         
         # Adding trusted CA root certificate to OneView trust store
-        $addcerttask = Get-ChildItem C:\temp\cacert.cer  | Add-OVApplianceTrustedCertificate 
+        $addcerttask = Get-ChildItem C:\temp\cacert.cer | Add-OVApplianceTrustedCertificate 
     
         if ($addcerttask.taskstate -eq "Completed" ) {
-            write-host "Trusted CA root certificated added successfully yo OneView trust store !"   
+            write-host "Trusted CA root certificated added successfully to OneView trust store !"   
         }
         else {
             Write-Warning "Error - Trusted CA root certificated cannot be added to the OneView trust store !"
@@ -156,6 +144,10 @@ else {
             return
         }
 
+    }
+    # Skipping the add operation if certificate found
+    else {
+        write-host "The trusted CA root certificate has been found in the OneView trust store, skipping the add operation."
     }
 
     ForEach ($server in $servers) {
@@ -246,8 +238,9 @@ else {
                 Write-Host "`tGenerating CSR on iLo $iloIP. Please wait..."
             }
             Catch { 
-                failure
-                write-host "`t$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Generate Certificate Signing Request failure !" -ForegroundColor red
+                $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+                $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+                Write-Host -BackgroundColor:Black -ForegroundColor:Red "`t$($server.name) - iLO $($iloip): Generate Certificate Signing Request failure ! Message returned: [$($msg)]"
                 break
             }     
      
@@ -296,8 +289,9 @@ else {
                 $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/" -Headers $headerilo -Body $bodyiloParams -Method Post  
             }
             Catch { 
-                failure
-                write-host "`n$($server.name) - iLO $iloIP :" -f Cyan -NoNewline; Write-Host " Import CA-Signed certificate failure !" -ForegroundColor red
+                $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+                $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+                Write-Host -BackgroundColor:Black -ForegroundColor:Red "`t$($server.name) - iLO $($iloip): Import CA-Signed certificate failure ! ! Message returned: [$($msg)]"
                 break 
             }
 
