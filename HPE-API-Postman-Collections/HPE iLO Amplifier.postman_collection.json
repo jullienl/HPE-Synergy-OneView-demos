@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "cfce36d7-6674-40b6-a3f8-c8f0b541a68b",
-		"name": "iLO Amplifier",
+		"name": "HPE iLO Amplifier",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [

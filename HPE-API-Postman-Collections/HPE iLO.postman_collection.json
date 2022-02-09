@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "019f9e85-6afa-4fc7-aa5d-9c13a07398a7",
-		"name": "Redfish with iLO",
+		"name": "HPE iLO",
 		"description": "Redfish in Houston B172",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},

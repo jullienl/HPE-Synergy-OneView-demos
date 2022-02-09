@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "2c3f16c8-d4ac-4541-9339-bd0508cef77a",
-		"name": "HPE-Synergy-Software-Releases-API",
+		"name": "HPE Synergy Software Releases API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [

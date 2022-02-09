@@ -1,0 +1,380 @@
+{
+	"info": {
+		"_postman_id": "7ef632f1-dd39-45f9-82d3-780f1488f292",
+		"name": "HPE OneView Global Dashboard",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create a session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"GDsessionID\", jsonData.sessionID);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-API-Version",
+						"value": "{{xapiversion}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"userName\":\"{{username}}\",\n\t\"password\":\"{{password}}\",\n\t\"authLoginDomain\":\"local\"\n\t\n}"
+				},
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/login-sessions",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"login-sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-X-API-Version",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"",
+							"var xapiversion =  jsonData.currentVersion;",
+							"",
+							"//Set environment variable",
+							"postman.setEnvironmentVariable(\"xapiversion\", xapiversion);",
+							"",
+							"//Display X-API-version in test results",
+							"tests[\"X API version = \" + xapiversion ] = true; "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "300"
+					},
+					{
+						"key": "Auth",
+						"value": "{{sessionID}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/version",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"version"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Appliances",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"var appliance =  jsonData.members;\r",
+							"var appliancenumber = jsonData.total;\r",
+							"var applianceXAPI = jsonData.currentApiVersion;\r",
+							"\r",
+							"\r",
+							"var appl = [];\r",
+							"for (i = 0; i < appliancenumber; ++i) {\r",
+							"\r",
+							"    var appliancename = \"appliance-\" + (i+1);\r",
+							"    var applianceid = \"appliance-\" + (i+1) + \"-id\";\r",
+							"    var applianceXAPI = \"appliance-\" + (i+1) + \"-XAPI\";\r",
+							"\r",
+							"    //Set environment variable\r",
+							"    postman.setEnvironmentVariable(appliancename, appliance[i].hostname );\r",
+							"    tests[appliancename + \" = \" + appliance[i].hostname] = true; \r",
+							"\r",
+							"    postman.setEnvironmentVariable(applianceid, appliance[i].id );\r",
+							"    tests[applianceid + \" = \" + appliance[i].id] = true; \r",
+							"\r",
+							"    postman.setEnvironmentVariable(applianceXAPI, appliance[i].currentApiVersion );\r",
+							"    tests[applianceXAPI + \" = \" + appliance[i].currentApiVersion] = true; \r",
+							"    \r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-version",
+						"value": "{{xapiversion}}",
+						"type": "text"
+					},
+					{
+						"key": "auth",
+						"value": "{{GDsessionID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/appliances",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"appliances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Resources-alerts",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-version",
+						"value": "{{xapiversion}}",
+						"type": "text"
+					},
+					{
+						"key": "auth",
+						"value": "{{GDsessionID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/resource-alerts",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"resource-alerts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Appliance-1-SSO",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"var sessionId =  jsonData.sessionId;\r",
+							"var baseuri = jsonData.baseUri;\r",
+							"\r",
+							"postman.setEnvironmentVariable('appliance-1-ssoId', sessionId);\r",
+							"\r",
+							"tests[\"session ID: \" + sessionId] = true;\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-version",
+						"value": "{{xapiversion}}",
+						"type": "text"
+					},
+					{
+						"key": "auth",
+						"value": "{{GDsessionID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/appliances/{{appliance-1-id}}/sso",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"appliances",
+						"{{appliance-1-id}}",
+						"sso"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Appliance-2-SSO",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"var sessionId =  jsonData.sessionId;\r",
+							"var baseuri = jsonData.baseUri;\r",
+							"\r",
+							"postman.setEnvironmentVariable('appliance-2-ssoId', sessionId);\r",
+							"\r",
+							"tests[\"session ID: \" + sessionId] = true;"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-version",
+						"value": "{{xapiversion}}",
+						"type": "text"
+					},
+					{
+						"key": "auth",
+						"value": "{{GDsessionID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{globaldashboard}}/rest/appliances/{{appliance-2-id}}/sso",
+					"protocol": "https",
+					"host": [
+						"{{globaldashboard}}"
+					],
+					"path": [
+						"rest",
+						"appliances",
+						"{{appliance-2-id}}",
+						"sso"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get-Ethernet-Networks-appliance-1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"var networks =  jsonData.members;\r",
+							"var networknumber = jsonData.total;\r",
+							"\r",
+							"var net = [];\r",
+							"for (i = 0; i < networknumber; ++i) {\r",
+							"    \r",
+							"    tests[\"Network name: \" + networks[i].name + \" - VLAN ID: \" + networks[i].vlanId + \" - Category: \" + networks[i].purpose] = true; \r",
+							"    \r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Version",
+						"value": "{{appliance-1-XAPI}}"
+					},
+					{
+						"key": "Auth",
+						"value": "{{appliance-1-ssoId}}"
+					}
+				],
+				"url": {
+					"raw": "https://{{appliance-1}}/rest/ethernet-networks",
+					"protocol": "https",
+					"host": [
+						"{{appliance-1}}"
+					],
+					"path": [
+						"rest",
+						"ethernet-networks"
+					]
+				},
+				"description": "Login Session"
+			},
+			"response": []
+		}
+	]
+}
