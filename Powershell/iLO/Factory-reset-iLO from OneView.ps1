@@ -42,7 +42,7 @@ PowerShell script to factory reset an iLO managed by HPE OneView. The IP address
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "oneview.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -136,27 +136,18 @@ else {
 #Proceeding iLO factory Reset
 try {
     $rest = Invoke-WebRequest -Uri "https://$iloIP$url" -Body $bodyiloParams -Headers $headerilo -ContentType "application/json" -Method POST -UseBasicParsing 
-    write-host "`niLO Factory reset is in progress... Message from API:" ($rest.Content | convertfrom-json).error.'@Message.ExtendedInfo'.MessageId
+    write-host "`niLO $($iloip) Factory reset is in progress... API response: [$(($rest.Content | convertfrom-json).error.'@Message.ExtendedInfo'.MessageId)]"
 }
 catch {
     $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
     $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO factory reset error ! Message returned: [$($msg)]"
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) factory reset error ! Message returned: [$($msg)]"
     Disconnect-OVMgmt
     exit
 }
 
-# Wait for OneView to issue an alert about a communication issue with the server hardware
-Do {
-    # Collect data for the 'network connectivity has been lost' alert
-    $networkconnectivityalert = ( $serverhardware | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
-            $_.description -Match "Network connectivity has been lost for server hardware"   
-        })
-    sleep 2
-}
-until ($networkconnectivityalert)
-
 # Wait for OneView to issue an alert about a trusted communication issue with the iLO due to invalid iLO certificate
+write-host "Waiting for OneView to issue an [Unable to establish trusted communication with server] alert"
 Do {
     # Collect data for the 'Unable to establish trusted communication with server' alert
     $ilocertalert = ( $serverhardware | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
@@ -167,70 +158,88 @@ Do {
 }
 until ( $ilocertalert )
 
-write-host "iLO communication failure detected, removing old certificate and adding the new iLO self-signed certificate to the OneView trust store..."
+write-host "Alert [Unable to establish trusted communication with server] raised by OneView !"
 
 sleep 5
 
-################## Post-execution #########################
+write-host "iLO communication failure detected, removing old certificate and adding the new iLO self-signed certificate to the OneView trust store..."
 
 # Remove the old iLO certificate from the OneView trust store
 try {
     $iLOcertificatename = $Serverhardware | Get-OVApplianceTrustedCertificate | % name
     Get-OVApplianceTrustedCertificate -Name $iLOcertificatename | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
-    Write-Host "`tThe old iLO certificate has been successfully removed from the Oneview trust store"
+    Write-Host "The old iLO certificate has been successfully removed from the Oneview trust store"
 }
 catch {
     write-host "Old iLO certificate has not been removed from the Oneview trust store !" -ForegroundColor red
     return
 }
-            
-sleep 10
-
-# Add new iLO self-signed certificate to OneView trust store
-$addcerttask = Add-OVApplianceTrustedCertificate -ComputerName ($serverhardware.mpHostInfo.mpIpAddresses | ? address -match fe80 | % address)  -force | Wait-OVTaskComplete
-
-if ($addcerttask.taskstate -eq "Completed" ) {
-    write-host "New iLO self-signed certificate added successfully to the OneView trust store !"   
-}
-else {
-    Write-Warning "Error - New iLO self-signed certificate cannot be added to the OneView trust store !"
-    $addcerttask.taskErrors
-    return
-}
 
 sleep 5
 
-# Perform a server hardware refresh to re-establish the communication with the iLO
-try {
-    write-host "$($serverhardware.name) refresh in progress..."
-    $refreshtask = $serverhardware | Update-OVServer | Wait-OVTaskComplete
+
+################## Post-execution #########################
+   
+
+# If refresh (1) is failing, we need to re-add the new iLO certificate and re-launch a server hardware refresh
+if ($refreshtask1.taskState -eq "completed" ) {
+  
+    write-host "$($serverhardware.name) refresh (1) completed successfully !"
     
 }
-catch {
-    Write-Warning "Error - $($serverhardware.name) refresh cannot be completed!"
-    $refreshtask.taskErrors
-    return
+else {
+    write-host "Refresh (1) could not be completed successfully, adding the iLO self-signed certificate and performing a new refresh..."
+   
+    # Add new iLO self-signed certificate to OneView trust store
+    $addcerttask1 = Add-OVApplianceTrustedCertificate -ComputerName ($serverhardware.mpHostInfo.mpIpAddresses | ? address -match fe80 | % address)  -force | Wait-OVTaskComplete
+
+    if ($addcerttask1.taskstate -eq "Completed" ) {
+        write-host "New iLO self-signed certificate added successfully to the OneView trust store ! Please wait..."   
+    }
+    else {
+        Write-Warning "Error ! New iLO self-signed certificate cannot be added to the OneView trust store !"
+        $addcerttask1.taskErrors
+        Disconnect-OVMgmt
+        return
+    }
+
+    sleep 10
+
+    # Perform another server hardware refresh (2) to re-establish the communication with the iLO 
+    write-host "$($serverhardware.name) refresh (2) in progress..."
+
+    $refreshtask2 = $Serverhardware | Update-OVServer | Wait-OVTaskComplete
+    
+    sleep 60
+
+    if ($refreshtask2.taskState -eq "completed" ) {
+        write-host "$($serverhardware.name) refresh (2) completed successfully !"
+    }
+    else {
+        # If refresh (2) is failing, we need to wait a bit and re-add certificate and re-launch a server hardware refresh (3)
+        write-host "Refresh (2) could not be completed successfully, let's wait a bit and do another refresh..."
+        
+        sleep 60
+           
+        # Add again new iLO self-signed certificate to OneView trust store
+        $addcerttask2 = Add-OVApplianceTrustedCertificate -ComputerName ($serverhardware.mpHostInfo.mpIpAddresses | ? address -match fe80 | % address)  -force | Wait-OVTaskComplete
+        
+        sleep 5
+
+        # Perform another server hardware refresh to re-establish the communication with the iLO 
+        $refreshtask3 = $Serverhardware | Update-OVServer | Wait-OVTaskComplete
+        write-host "$($serverhardware.name) refresh (3) in progress..."
+    
+        if ($refreshtask3.taskState -eq "completed" ) {
+            write-host "$($serverhardware.name) refresh (3) completed successfully !"
+        }
+        else {
+            write-host "$($serverhardware.name) refresh (3) task cannot be completed ! `nError: $($refreshtask3.taskErrors | select recommendedActions | % recommendedActions)"
+            Disconnect-OVMgmt
+            return
+        }
+    }
 }
-
-# If refresh is failing, we need to re-add the new iLO certificate and re-launch a server hardware refresh
-if ($refreshtask.taskState -eq "warning") {
-
-    # write-host "The refresh could not be completed successfuly, removing and re-adding the new iLO self-signed certificate..."
-    sleep 5
-    
-    # Remove iLO certificate again
-    $removecerttask = Get-OVApplianceTrustedCertificate -Name $serverhardware.mpHostInfo.mpHostName | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete
-    
-    # Add again the new iLO self-signed certificate to OneView trust store 
-    $addcerttaskretry = Add-OVApplianceTrustedCertificate -ComputerName $iloip  -force | Wait-OVTaskComplete
-    
-    sleep 5
-    
-    # Perform a new refresh to re-establish the communication with the iLO
-    $newrefreshtask = $serverhardware | Update-OVServer | Wait-OVTaskComplete
-    
-}
-
 
 # Wait for the trusted communication established with server.
 Do {
@@ -240,16 +249,6 @@ Do {
 until ( $ilocertalertresult.alertState -eq "Cleared" )
 
 
-# Wait for the network connectivity to be restored
-Do {
-    $networkconnectivityalertresult = Send-OVRequest -uri $networkconnectivityalert.uri
-    sleep 2
-}
-until ( $networkconnectivityalertresult.alertState -eq "Cleared" )
-
-
 write-host "iLO Factory reset completed successfully and communication between [$($serverhardware.name)] and OneView has been restored!" -ForegroundColor Green 
 
 Disconnect-OVMgmt
-
-
