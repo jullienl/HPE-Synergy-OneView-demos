@@ -561,50 +561,6 @@
 					"response": []
 				},
 				{
-					"name": "Get Appliance IP and State Copy",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"disabled": false,
-								"key": "X-API-Version",
-								"value": "{{xapiversion}}"
-							},
-							{
-								"disabled": false,
-								"key": "Auth",
-								"value": "{{sessionID}}"
-							}
-						],
-						"url": {
-							"raw": "https://{{composer}}/rest/appliance/nodeinfo/version",
-							"protocol": "https",
-							"host": [
-								"{{composer}}"
-							],
-							"path": [
-								"rest",
-								"appliance",
-								"nodeinfo",
-								"version"
-							]
-						},
-						"description": "Login Session"
-					},
-					"response": []
-				},
-				{
 					"name": "Get Appliance Health status",
 					"event": [
 						{
@@ -2535,7 +2491,143 @@
 							"script": {
 								"exec": [
 									"\r",
-									""
+									"\r",
+									"var jsonData = JSON.parse(responseBody);\r",
+									"// Get Enclousre URI\r",
+									"for (count = 0; count < jsonData.members.length; count++)\r",
+									"    {\r",
+									"            var enclosure = jsonData.members[count]\r",
+									"            \r",
+									"            var enclosuretname =  enclosure.name ;\r",
+									"            var enclosureuri =  enclosure.uri;\r",
+									"            var enclosureserialNumber =  enclosure.serialNumber;\r",
+									"            tests[\"SN: \"+ enclosureserialNumber + \" - Name: \" + enclosuretname + \" - URI: \" + enclosureuri] = true;  \r",
+									"                 \r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/enclosures/",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"enclosures",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Enclosures - FLM IPv6 LL Addresses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"\r",
+									"var jsonData = JSON.parse(responseBody);\r",
+									"// Get Enclousre URI\r",
+									"for (count = 0; count < jsonData.members.length; count++)\r",
+									"    {\r",
+									"            var enclosure = jsonData.members[count]\r",
+									"            \r",
+									"            var enclosuretname =  enclosure.name ;\r",
+									"            var enclosureuri =  enclosure.uri;\r",
+									"            var enclosureserialNumber =  enclosure.serialNumber;\r",
+									"            tests[\"SN: \"+ enclosureserialNumber + \" - Name: \" + enclosuretname + \" - URI: \" + enclosureuri] = true;  \r",
+									"            \r",
+									"            for (flmcount = 0; flmcount < enclosure.managerBays.length; flmcount++)\r",
+									"            {\r",
+									"                var flm = enclosure.managerBays[flmcount];\r",
+									"                var flmmodel = flm.model;\r",
+									"                var flmIPv6 = flm.ipAddress;\r",
+									"                \r",
+									"                tests[\" - \" + flmmodel + \" - IPv6: \" + flmIPv6] = true;  \r",
+									"\r",
+									"            }       \r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/enclosures/",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"enclosures",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Enclosures - Appliance IPv6 LL Addresses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"\r",
+									"\r",
+									"var jsonData = JSON.parse(responseBody);\r",
+									"// Get Enclousre URI\r",
+									"for (count = 0; count < jsonData.members.length; count++)\r",
+									"    {\r",
+									"            var enclosure = jsonData.members[count]\r",
+									"            \r",
+									"            var enclosuretname =  enclosure.name ;\r",
+									"            var enclosureuri =  enclosure.uri;\r",
+									"            var enclosureserialNumber =  enclosure.serialNumber;\r",
+									"            tests[\"SN: \"+ enclosureserialNumber + \" - Name: \" + enclosuretname + \" - URI: \" + enclosureuri] = true;  \r",
+									"            \r",
+									"            for (appliancecount = 0; appliancecount < enclosure.applianceBays.length; appliancecount++)\r",
+									"            {\r",
+									"                var appliance = enclosure.applianceBays[appliancecount];\r",
+									"                var appliancemodel = appliance.model;\r",
+									"                var applianceSN = appliance.serialNumber;\r",
+									"                \r",
+									"                tests[\" - \" + appliancemodel + \" - SN: \" + applianceSN] = true;  \r",
+									"\r",
+									"            }       \r",
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -3511,6 +3603,50 @@
 						"body": {
 							"mode": "raw",
 							"raw": "[\r\n    {\r\n        \"path\":  \"/netOpPasswd\",\r\n        \"op\":  \"replace\",\r\n        \"value\":  \"netoppwd\"\r\n    }\r\n]\r\n"
+						},
+						"url": {
+							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}",
+							"protocol": "https",
+							"host": [
+								"{{composer}}{{VC-Frame2-interconnect6_uri}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH-Factory reset and reapply previous configuration - interconnect VC F2-b6 -",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n    {\r\n        \"path\":  \"/factoryResetState\",\r\n        \"op\":  \"replace\",\r\n        \"value\":  \"ReapplyConfiguration\"\r\n    }\r\n]\r\n"
 						},
 						"url": {
 							"raw": "https://{{composer}}{{VC-Frame2-interconnect6_uri}}",
@@ -4699,6 +4835,136 @@
 			]
 		},
 		{
+			"name": "Scopes",
+			"item": [
+				{
+					"name": "Get-Scopes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/appliance/network-interfaces",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"appliance",
+								"network-interfaces"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Labels",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/labels",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"labels"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				},
+				{
+					"name": "Get-Labels 3 resources",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Version",
+								"value": "{{xapiversion}}"
+							},
+							{
+								"key": "Auth",
+								"value": "{{sessionID}}"
+							}
+						],
+						"url": {
+							"raw": "https://{{composer}}/rest/labels/resources/rest/server-hardware/39313738-3034-5A43-3231-32343036474A",
+							"protocol": "https",
+							"host": [
+								"{{composer}}"
+							],
+							"path": [
+								"rest",
+								"labels",
+								"resources",
+								"rest",
+								"server-hardware",
+								"39313738-3034-5A43-3231-32343036474A"
+							]
+						},
+						"description": "Login Session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Second network interface (only for VM appliance)",
 			"item": [
 				{
@@ -4988,6 +5254,375 @@
 		{
 			"name": "Security",
 			"item": [
+				{
+					"name": "Certificates",
+					"item": [
+						{
+							"name": "Get-Client SSL certificates",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"// Display client certificates ",
+											"for (count = 0; count < jsonData.members.length; count++)",
+											"    {",
+											"       ",
+											"            var certificate_name = jsonData.members[count].certDetails.commonName;",
+											"            var certificate_issuer =  jsonData.members[count].certDetails.issuer;",
+											"            var certificate_aliasname = jsonData.members[count].aliasName",
+											"            tests[\"Name: \" + certificate_name + \" -- Issuer=\" + certificate_issuer + \" -- Alias name=\" + certificate_aliasname ] = true;  ",
+											"              ",
+											"    }",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										""
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Get-SSL CA certificates - Tests displays Root and Leaf",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"",
+											"tests[jsonData.members.length + \" certificates found!\" ] = true; ",
+											"",
+											"tests[\"CA Root certificates:\" ] = true;    ",
+											"// Display CA certificates ",
+											"for (count = 0; count < jsonData.members.length; count++)",
+											"    {",
+											"        if ( jsonData.members[count].certType.includes(\"ROOT\") )",
+											"        {",
+											"            var certificate_name = jsonData.members[count].uri;",
+											"            var certificate_subjectname =  jsonData.members[count].subjectName;",
+											"            tests[\"- URI: \" + certificate_name + \" -- Subject name=\" + certificate_subjectname ] = true;  ",
+											"        }      ",
+											"    }",
+											" //tests[\" \" ] = true;    ",
+											" tests[\"Leaf CA certificates:\" ] = true;    ",
+											"",
+											"// Display client certificates ",
+											"for (count = 0; count < jsonData.members.length; count++)",
+											"    {",
+											"        if ( jsonData.members[count].certType == \"LEAF_CERT\")",
+											"        {",
+											"            var certificate_name = jsonData.members[count].uri;",
+											"            var certificate_subjectname =  jsonData.members[count].subjectName;",
+											"            tests[\"- URI: \" + certificate_name + \" -- Subject name=\" + certificate_subjectname ] = true;  ",
+											"        }      ",
+											"    }"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/ca",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										"ca"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Get-Internal Certificate Authority certificate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/ca?filter=certType:INTERNAL",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										"ca"
+									],
+									"query": [
+										{
+											"key": "filter",
+											"value": "certType:INTERNAL"
+										}
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Generates an internal CA signed certificate for RabbitMQ clients",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"content-length": true,
+									"host": true,
+									"user-agent": true,
+									"accept": true,
+									"accept-encoding": true,
+									"connection": true,
+									"content-type": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n   \"commonName\" : \"default\"\r\n}"
+								},
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/client/rabbitmq",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										"client",
+										"rabbitmq"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Get-SCMB RabbitMq default certificate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "800"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/client/rabbitmq/keypair/default",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										"client",
+										"rabbitmq",
+										"keypair",
+										"default"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Get-LIOGW Root CA certificate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "800"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/ca/LIOGW-CA",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										"ca",
+										"LIOGW-CA"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						},
+						{
+							"name": "Get-Server SSL certificate of hpe.com",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-API-Version",
+										"value": "{{xapiversion}}"
+									},
+									{
+										"key": "Auth",
+										"value": "{{sessionID}}"
+									}
+								],
+								"url": {
+									"raw": "https://{{composer}}/rest/certificates/https/remote/hpe.com",
+									"protocol": "https",
+									"host": [
+										"{{composer}}"
+									],
+									"path": [
+										"rest",
+										"certificates",
+										"https",
+										"remote",
+										"hpe.com"
+									]
+								},
+								"description": "Login Session"
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "1- Login-sessions",
 					"event": [
@@ -6317,7 +6952,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name EQ 'ESXi7 BFLD'\"",
+							"raw": "https://{{composer}}/rest/server-profile-templates?filter=\"name EQ 'RHEL_BFS_Frame4'\"",
 							"protocol": "https",
 							"host": [
 								"{{composer}}"
@@ -6329,7 +6964,7 @@
 							"query": [
 								{
 									"key": "filter",
-									"value": "\"name EQ 'ESXi7 BFLD'\""
+									"value": "\"name EQ 'RHEL_BFS_Frame4'\""
 								}
 							]
 						},
