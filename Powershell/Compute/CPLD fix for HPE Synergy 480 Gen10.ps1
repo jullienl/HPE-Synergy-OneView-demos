@@ -1,6 +1,6 @@
 <#
 
-This PowerShell script upgrades the CPLD of all HPE Synergy 480 Gen10 managed by HPE OneView impacted by the CPLD issue.
+This PowerShell script updates the CPLD component of all HPE Synergy 480 Gen10 managed by HPE OneView impacted by the CPLD issue.
 
 Advisory: HPE Synergy 480 Gen10 Compute Modules - CPLD Update Required to Prevent Unexpected Power Off of Server
 https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00121027en_us 
