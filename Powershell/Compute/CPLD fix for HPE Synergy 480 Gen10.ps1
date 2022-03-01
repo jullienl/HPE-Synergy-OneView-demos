@@ -56,9 +56,8 @@ Requirements:
 
 # VARIABLES
 
-# Location of the iLO5 firmware, download from https://support.hpe.com/hpesc/public/swd/detail?swItemId=MTX-82b53f00662944558a0a7dc191
-$iLO5_Location = "Y:\\_HP\\iLO\\iLO5\\CPLD_SY480_Gen10_v0F0F.fwpkg" 
-
+# Location of the CPLD components, you can download it from https://support.hpe.com/hpesc/public/swd/detail?swItemId=MTX-82b53f00662944558a0a7dc191
+$iLO5_CPDL_Location = "Y:\\_HP\\iLO\\iLO5\\CPLD_SY480_Gen10_v0F0F.fwpkg" 
 
 
 # HPE OneView 
@@ -198,7 +197,7 @@ ForEach ($server in $impactedservers) {
     $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
 
     try {
-        $task = Update-HPEiLOFirmware -Location $iLO5_location -Connection $connection -Confirm:$False -Force 
+        $task = Update-HPEiLOFirmware -Location $iLO5_CPDL_Location -Connection $connection -Confirm:$False -Force 
         Write-Host "$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
         #$($task.statusinfo.message)"
     }
