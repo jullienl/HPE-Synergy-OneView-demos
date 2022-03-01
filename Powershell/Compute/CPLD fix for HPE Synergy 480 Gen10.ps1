@@ -120,20 +120,20 @@ foreach ($compute in $Computes) {
     }
 }
 
-if (! $impactedservers) {
-    write-host "No vulnerable Compute found! Exiting... "
-    Disconnect-OVMgmt
-    exit
-}
-else {
-    write-host "$($impactedservers.count) servers impacted by the CPLD issue!"
-    $impactedservers
-    write-host "Starting the CPLD update procedure..."
-}
+# if (! $impactedservers) {
+#     write-host "No vulnerable Compute found! Exiting... "
+#     Disconnect-OVMgmt
+#     exit
+# }
+# else {
+#     write-host "$($impactedservers.count) servers impacted by the CPLD issue!"
+#     $impactedservers
+#     write-host "Starting the CPLD update procedure..."
+# }
 
 #######################################################################################################################
 
-# $impactedservers = "Frame4, bay 2"
+$impactedservers = "Frame4, bay 2", "Frame4, bay 3"
 
 # Starting transcription to save the output of the script in the defined file, saved in the execution directory
 $directorypath = Split-Path $MyInvocation.MyCommand.Path
@@ -163,159 +163,171 @@ ForEach ($server in $impactedservers) {
     if (! $serverName) { $serverName = "Unnamed" }
     $serverpowerstatus = $compute.powerState
 
-    # Procedure if server is off
-    if ($serverpowerstatus -eq "off" ) {
-        do {
-            $powerup = read-host "$server ($iloIP - $Ilohostname - $serverName) - server is off - Do you want to power it on to update the CPLD component [y or n]?"
-        } until ($powerup -match '^[yn]+$')
-        
-        if ($powerup -eq "y") {      
 
-            Start-OVServer $compute
+    # Checking CPLD current version
+    $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
+    $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
+       
+    if ( $cpldversion -eq "0x0F") {
+        Write-Host "$server - server is already running CPLD version 0x0F! Skipping this server !" -ForegroundColor Yellow
+        continue
+    }
+    else {
+
+        # Procedure if server is off
+        if ($serverpowerstatus -eq "off" ) {
+            do {
+                $powerup = read-host "$server ($iloIP - $Ilohostname - $serverName) - server is off - Do you want to power it on to update the CPLD component [y or n]?"
+            } until ($powerup -match '^[yn]+$')
+        
+            if ($powerup -eq "y") {      
+
+                Start-OVServer $compute
             
-            # wait end of POST
+                # wait end of POST
+                $headerilo = @{ } 
+                $headerilo["X-Auth-Token"] = $ilosessionkey 
+        
+                do {
+                    $system = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Systems/1/" -Headers $headerilo -Method GET -UseBasicParsing 
+                    write-host "$server - Waiting for POST to complete..."
+                    sleep 5 
+                } until (($system.Content | ConvertFrom-Json).oem.hpe.PostState -match "InPostDiscoveryComplete")
+
+            }
+            else {
+                write-host "$server ($iloIP - $Ilohostname - $serverName) - The update of the CPLD cannot be completed as the server is off !"
+                $serversoff += $server
+                continue
+            }        
+        }
+
+        # Updating the CPLD component using HPEiLOCmdlets
+
+        # Connection to iLO
+        $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
+
+        try {
+            $task = Update-HPEiLOFirmware -Location $iLO5_CPDL_Location -Connection $connection -Confirm:$False -Force 
+            Write-Host "$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
+            #$($task.statusinfo.message)"
+        }
+        catch {
+            Write-Host -ForegroundColor Red "$server ($iloIP - $Ilohostname - $serverName) - CPLD update failure! Canceling server!" 
+            $serversfailure += $server
+            continue
+        }
+    
+        # Waiting for the CPDL firmware update success task to appear in the iLO event log
+        do {
+
+            $taskresult = (Get-HPEiLOEventLog -Connection $connection).EventLog | ? { $_.Message -match "firmware update success" -and [datetime]$_.created -gt $getdate }
+            sleep 2
+
+        } until ($taskresult)     
+
+        # Asking if server can be turned off to activate the CPLD update
+        # This command will request a "Momentary Press" request to initiate a server to shutdown gracefully.
+    
+        do {
+            $powerdown = read-host "$server ($iloIP - $Ilohostname - $serverName) - Do you want to initiate the shutdown to activate the CPLD update [y or n]?"
+        } until ($powerdown -match '^[yn]+$')
+
+   
+        if ($powerdown -eq "n") {
+            write-host "$server ($iloIP - $Ilohostname - $serverName) - The update of the CPLD cannot be completed, you will need to restart the server to activate the new version of the CPLD..."
+            $serverstoreboot += $server
+        }
+        else {
+        
+            # Turning off the server triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
+            Get-OVServer -Name $server | Stop-OVServer -Confirm:$false | Wait-OVTaskComplete
+            sleep 10
+
+            # Waiting for the server to be removed from OneView and then returned
+            do {
+                sleep 10
+                $serverback = Get-OVServer -Name $server -ErrorAction SilentlyContinue
+                write-host "$server - Wait for the server to be removed and re-added to OneView..."
+            } until ( $serverback)
+
+        
+            do {
+                sleep 5
+                # Waiting for a new Add task to be created and completed 
+                $serveraddtask = Get-OVServer -Name $server |  Get-OVTask -name add | ? { [datetime]$_.created -gt $getdate -and $_.taskstate -eq "Completed" }
+                write-host "$server - Wait for the Add task to complete..."
+            } until ($serveraddtask)
+
+            sleep 20
+
+            # If a profile is applied, we need to wait for the profile apply action to complete
+            if ((Get-OVServer -Name $server).serverProfileUri  ) {
+                do {
+                    sleep 5
+                    # Wait for the profile apply to complete
+                    $serveraddtask = Get-OVServer -Name $server |  Get-OVTask | ? name -match "Apply profile" | ? { [datetime]$_.created -gt $getdate -and $_.taskstate -eq "Completed" }
+                    write-host "$server - Wait for the Server Profile apply task to complete..."
+                } until ($serveraddtask)
+            }
+       
+            $compute = Get-OVServer -name $server
+            
+            # Powering on the server
+            $powerONtask = $compute | Start-OVServer | Wait-OVTaskComplete
+
+            sleep 5
+
+            # If the server cannot be powered on, we need to reset the iLO 
+            if ($powerONtask.taskstate -ne "Completed") {
+
+                write-host "$server - The server is unable to power on, resetting iLO..."
+            
+                # Reconnecting to iLO (required after the Add task)
+                $ilosessionkey = ($compute | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+                $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
+            
+                # Resetting iLO
+                # Triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
+                $resetilo = Reset-HPEiLO -Connection $connection -Device iLO -Confirm:$False
+                write-host "$server - ilo reset in progress..."
+                sleep 60 # Maybe sleep is too long... can be adjusted.
+            
+                # Turning on $server if off
+                $serverpowerstate = Get-OVServer -Name $server | % powerState
+
+                if ($serverpowerstate -eq "off") {
+                    write-host "$server - Powering on server..."
+                    $powerONtask = $compute | Start-OVServer | Wait-OVTaskComplete
+                }
+            }
+
+            # Waiting end of POST
+            # Retrieving iLO session key again (required after the iLO reset task)
+            $ilosessionkey = (  Get-OVServer -name $server | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+           
             $headerilo = @{ } 
             $headerilo["X-Auth-Token"] = $ilosessionkey 
         
             do {
                 $system = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Systems/1/" -Headers $headerilo -Method GET -UseBasicParsing 
-                write-host "$server - Waiting for POST to complete..."
+                write-host "$server - Wait for POST to complete..."
                 sleep 5 
             } until (($system.Content | ConvertFrom-Json).oem.hpe.PostState -match "InPostDiscoveryComplete")
 
-        }
-        else {
-            write-host "$server ($iloIP - $Ilohostname - $serverName) - The update of the CPLD cannot be completed as the server is off !"
-            $serversoff += $server
-            break
-        }        
-    }
+            # Waiting for iLO to update the firmware information
+            sleep 30
 
-    # Updating the CPLD component using HPEiLOCmdlets
-
-    # Connection to iLO
-    $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
-
-    try {
-        $task = Update-HPEiLOFirmware -Location $iLO5_CPDL_Location -Connection $connection -Confirm:$False -Force 
-        Write-Host "$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
-        #$($task.statusinfo.message)"
-    }
-    catch {
-        Write-Host -ForegroundColor Red "$server ($iloIP - $Ilohostname - $serverName) - CPLD update failure! Canceling server!" 
-        $serversfailure += $server
-        break
-    }
-    
-    # Waiting for the CPDL firmware update success task to appear in the iLO event log
-    do {
-
-        $taskresult = (Get-HPEiLOEventLog -Connection $connection).EventLog | ? { $_.Message -match "firmware update success" -and [datetime]$_.created -gt $getdate }
-        sleep 2
-
-    } until ($taskresult)     
-
-    # Asking if server can be turned off to activate the CPLD update
-    # This command will request a "Momentary Press" request to initiate a server to shutdown gracefully.
-    
-    do {
-        $powerdown = read-host "$server ($iloIP - $Ilohostname - $serverName) - Do you want to initiate the shutdown to activate the CPLD update [y or n]?"
-    } until ($powerdown -match '^[yn]+$')
-
-   
-    if ($powerdown -eq "n") {
-        write-host "$server ($iloIP - $Ilohostname - $serverName) - The update of the CPLD cannot be completed, you will need to restart the server to activate the new version of the CPLD..."
-        $serverstoreboot += $server
-    }
-    else {
+            # Checking CPLD update version
+            $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
+            $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
         
-        # Turning off the server triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
-        Get-OVServer -Name $server | Stop-OVServer -Confirm:$false | Wait-OVTaskComplete
-        sleep 10
-
-        # Waiting for the server to be removed from OneView and then returned
-        do {
-            sleep 10
-            $serverback = Get-OVServer -Name $server -ErrorAction SilentlyContinue
-            write-host "$server - Wait for the server to be removed and re-added to OneView..."
-        } until ( $serverback)
-
-        
-        do {
-            sleep 5
-            # Waiting for a new Add task to be created and completed 
-            $serveraddtask = Get-OVServer -Name $server |  Get-OVTask -name add | ? { [datetime]$_.created -gt $getdate -and $_.taskstate -eq "Completed" }
-            write-host "$server - Wait for the Add task to complete..."
-        } until ($serveraddtask)
-
-        sleep 5
-
-        # If a profile is applied, we need to wait for the profile apply action to complete
-        if ((Get-OVServer -Name $server).serverProfileUri  ) {
-            do {
-                sleep 5
-                # Wait for the profile apply to complete
-                $serveraddtask = Get-OVServer -Name $server |  Get-OVTask | ? name -match "Apply profile" | ? { [datetime]$_.created -gt $getdate -and $_.taskstate -eq "Completed" }
-                write-host "$server - Wait for the Server Profile apply task to complete..."
-            } until ($serveraddtask)
-        }
-       
-        $compute = Get-OVServer -name $server
-        
-        # Powering on the server
-        $powerONtask = $compute | Start-OVServer | Wait-OVTaskComplete
-
-        sleep 5
-
-        # If the server cannot be powered on, we need to reset the iLO 
-        if ($powerONtask.taskstate -ne "Completed") {
-
-            write-host "$server - The server is unable to power on, resetting iLO..."
-            
-            # Reconnecting to iLO (required after the Add task)
-            $ilosessionkey = ($compute | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-            $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
-            
-            # Resetting iLO
-            # Triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
-            $resetilo = Reset-HPEiLO -Connection $connection -Device iLO -Confirm:$False
-            write-host "$server - ilo reset in progress..."
-            sleep 60 # Maybe sleep is too long... can be adjusted.
-            
-            # Turning on $server if off
-            $serverpowerstate = Get-OVServer -Name $server | % powerState
-
-            if ($serverpowerstate -eq "off") {
-                write-host "$server - Powering on server..."
-                $powerONtask = $compute | Start-OVServer | Wait-OVTaskComplete
+            if ( $cpldversion -eq "0x0F") {
+                Write-Host "$server - server has been successfully updated with CPLD version 0x0F and is back online!" -ForegroundColor Yellow
             }
-        }
-
-        # Waiting end of POST
-        # Retrieving iLO session key again (required after the iLO reset task)
-        $ilosessionkey = (  Get-OVServer -name $server | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-           
-        $headerilo = @{ } 
-        $headerilo["X-Auth-Token"] = $ilosessionkey 
-        
-        do {
-            $system = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Systems/1/" -Headers $headerilo -Method GET -UseBasicParsing 
-            write-host "$server - Wait for POST to complete..."
-            sleep 5 
-        } until (($system.Content | ConvertFrom-Json).oem.hpe.PostState -match "InPostDiscoveryComplete")
-
-        # Waiting for iLO to update the firmware information
-        sleep 30
-
-        # Checking CPLD update version
-        $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
-        $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
-        
-        if ( $cpldversion -eq "0x0F") {
-            Write-Host "$server - server has been successfully updated with CPLD version 0x0F and is back online!" -ForegroundColor Yellow
-        }
-        else {
-            Write-Host "$server - An error occurred ! Server is running CPLD version $($cpldversion) and not 0x0F! " -ForegroundColor Red
+            else {
+                Write-Host "$server - An error occurred ! Server is running CPLD version $($cpldversion) and not 0x0F! " -ForegroundColor Red
+            }
         }
     }
 }
