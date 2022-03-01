@@ -121,20 +121,20 @@ foreach ($compute in $Computes) {
     }
 }
 
-# if (! $impactedservers) {
-#     write-host "No vulnerable Compute found! Exiting... "
-#     Disconnect-OVMgmt
-#     exit
-# }
-# else {
-#     write-host "$($impactedservers.count) servers impacted by the CPLD issue!"
-#     $impactedservers
-#     write-host "Starting the CPLD update procedure..."
-# }
+if (! $impactedservers) {
+    write-host "No vulnerable Compute found! Exiting... "
+    Disconnect-OVMgmt
+    exit
+}
+else {
+    write-host "$($impactedservers.count) servers impacted by the CPLD issue!"
+    $impactedservers
+    write-host "Starting the CPLD update procedure..."
+}
 
 #######################################################################################################################
 
-$impactedservers = "Frame4, bay 2", "Frame4, bay 3"
+# $impactedservers = "Frame4, bay 2", "Frame4, bay 3"
 
 # Starting transcription to save the output of the script in the defined file, saved in the execution directory
 $directorypath = Split-Path $MyInvocation.MyCommand.Path
