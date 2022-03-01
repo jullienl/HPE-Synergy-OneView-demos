@@ -5,10 +5,20 @@ This PowerShell script updates the CPLD component of all HPE Synergy 480 Gen10 m
 Customer advisory: HPE Synergy 480 Gen10 Compute Modules - CPLD Update Required to Prevent Unexpected Power Off of Server
 https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00121027en_us 
 
-Note: All servers that are switched off will be switched back on for the update
+Note:
+All servers should be powered on at either RBSU or the server OS prior to the CPLD flash so during the execution, the script asks for each impacted/turned off server if it can be powered on or not.
+If you decide not to power on a server, the CPLD update will not take place and the server will be skipped. 
 
-Note: The servers must be restarted to activate the CPLD update, the script asks for each impacted server if you want to restart the server gracefully or not.
-If you decide not to restart a server during the execution, the reboot will have to be intiated manually outside this script.
+Note: 
+All servers must be restarted to activate the CPLD update so during the execution, the script asks for each impacted server if you want to restart the server gracefully or not.
+If you decide not to restart a server, the CPLD update will not take place and the reboot will have to be initiated manually outside this script to activate the update.
+
+Note:
+For reporting purposes, 3 lists are displayed at the end of the script execution: 
+ - A list of servers (if any) that must be restarted for the CPLD flash activation
+ - A list of servers (if any) that have not been updated because they are down.
+ - A list of servers (if any) that have not been updated because they faced a CPLD component update issue
+
 
 Requirements: 
 - Latest HPEOneView PowerShell library
@@ -20,7 +30,7 @@ Requirements:
   Date:   Feb 2022
    
 #################################################################################
-#        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
+#        (C) Copyright 2022 Hewlett Packard Enterprise Development LP           #
 #################################################################################
 #                                                                               #
 # Permission is hereby granted, free of charge, to any person obtaining a copy  #
@@ -157,7 +167,7 @@ ForEach ($server in $impactedservers) {
     # Procedure if server is off
     if ($serverpowerstatus -eq "off" ) {
         do {
-            $powerup = read-host "[$($server)] is off - Do you want to power it on to update the CPLD component [y or n]?"
+            $powerup = read-host "$server ($iloIP - $Ilohostname - $serverName) - server is off - Do you want to power it on to update the CPLD component [y or n]?"
         } until ($powerup -match '^[yn]+$')
         
         if ($powerup -eq "y") {      
@@ -176,7 +186,7 @@ ForEach ($server in $impactedservers) {
 
         }
         else {
-            write-host "[$($server)] - The update of the CPLD cannot be completed as the server is off !"
+            write-host "$server ($iloIP - $Ilohostname - $serverName) - The update of the CPLD cannot be completed as the server is off !"
             $serversoff += $server
             break
         }        
@@ -189,11 +199,11 @@ ForEach ($server in $impactedservers) {
 
     try {
         $task = Update-HPEiLOFirmware -Location $iLO5_location -Connection $connection -Confirm:$False -Force 
-        Write-Host "[$server]($iloIP - $Ilohostname - $serverName): CPLD update in progress..."
+        Write-Host "$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
         #$($task.statusinfo.message)"
     }
     catch {
-        Write-Host -ForegroundColor Red "[$server]($iloIP - $Ilohostname - $serverName): CPLD update failure! Canceling server!" 
+        Write-Host -ForegroundColor Red "$server ($iloIP - $Ilohostname - $serverName) - CPLD update failure! Canceling server!" 
         $serversfailure += $server
         break
     }
@@ -210,12 +220,12 @@ ForEach ($server in $impactedservers) {
     # This command will request a "Momentary Press" request to initiate a server to shutdown gracefully.
     
     do {
-        $powerdown = read-host "Do you want to initiate the shutdown of [$($server)] to activate the CPLD update [y or n]?"
+        $powerdown = read-host "$server ($iloIP - $Ilohostname - $serverName) - Do you want to initiate the shutdown to activate the CPLD update [y or n]?"
     } until ($powerdown -match '^[yn]+$')
 
    
     if ($powerdown -eq "n") {
-        write-host "The update of the CPLD is not finished, you will have to restart the server [$($server)] to activate the new version of the CPLD."
+        write-host "$server ($iloIP - $Ilohostname - $serverName) - The update of the CPLD cannot be completed, you will need to restart the server to activate the new version of the CPLD..."
         $serverstoreboot += $server
     }
     else {
@@ -224,7 +234,7 @@ ForEach ($server in $impactedservers) {
         Get-OVServer -Name $server | Stop-OVServer -Confirm:$false | Wait-OVTaskComplete
         sleep 10
 
-        # Waiting for the server to be removed from Oneview and then returned
+        # Waiting for the server to be removed from OneView and then returned
         do {
             sleep 10
             $serverback = Get-OVServer -Name $server -ErrorAction SilentlyContinue
@@ -261,17 +271,17 @@ ForEach ($server in $impactedservers) {
         # If the server cannot be powered on, we need to reset the iLO 
         if ($powerONtask.taskstate -ne "Completed") {
 
-            write-host "$server - The server is unable to power on, reseting iLO..."
+            write-host "$server - The server is unable to power on, resetting iLO..."
             
             # Reconnecting to iLO (required after the Add task)
             $ilosessionkey = ($compute | Get-OVIloSso -IloRestSession)."X-Auth-Token"
             $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
             
-            # Reseting iLO
+            # Resetting iLO
             # Triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
             $resetilo = Reset-HPEiLO -Connection $connection -Device iLO -Confirm:$False
             write-host "$server - ilo reset in progress..."
-            sleep 60 # Maybe sleep is too long... can be ajusted.
+            sleep 60 # Maybe sleep is too long... can be adjusted.
             
             # Turning on $server if off
             $serverpowerstate = Get-OVServer -Name $server | % powerState
@@ -306,7 +316,7 @@ ForEach ($server in $impactedservers) {
             Write-Host "$server - server has been successfully updated with CPLD version 0x0F and is back online!" -ForegroundColor Yellow
         }
         else {
-            Write-Host "$server - An error occured ! Server is running CPLD version $($cpldversion) and not 0x0F! " -ForegroundColor Red
+            Write-Host "$server - An error occurred ! Server is running CPLD version $($cpldversion) and not 0x0F! " -ForegroundColor Red
         }
     }
 }
@@ -317,12 +327,12 @@ if ($serverstoreboot) {
 }
 
 if ($serversoff) {
-    write-host "`nThe following servers have not been updated as they are shut down:"
+    write-host "`nThe following servers have not been updated because they are down:"
     $serversoff
 }
 
 if ($serversfailure) {
-    write-host "`nThe following servers have not been updated as they faced a CPLD component update issue:"
+    write-host "`nThe following servers have not been updated because they faced a CPLD component update issue:"
     $serversfailure
 }
 
