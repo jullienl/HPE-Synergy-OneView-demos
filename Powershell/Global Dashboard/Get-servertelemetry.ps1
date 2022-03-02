@@ -112,6 +112,7 @@ $session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions"
 $key = ($session.content | ConvertFrom-Json).sessionID
 $headers["auth"] = $key
 
+# Capturing managed appliances
 $ManagedAppliances = (invoke-webrequest -Uri "https://$globaldashboard/rest/appliances" -Headers $headers -Method GET) | ConvertFrom-Json
 
 $OVappliances = $ManagedAppliances.members
