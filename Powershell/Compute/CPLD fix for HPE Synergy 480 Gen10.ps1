@@ -141,8 +141,6 @@ else {
 $directorypath = Split-Path $MyInvocation.MyCommand.Path
 Start-Transcript -path $directorypath\$report -append
 
-clear-host
-
 $getdate = [datetime]::Now
 
 # Setting up arrays to store the various server states for reporting purposes
