@@ -170,8 +170,8 @@ ForEach ($server in $impactedservers) {
     $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
     $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
        
-    if ( $cpldversion -eq "0x0F") {
-        Write-Host "$server - server is already running CPLD version 0x0F! Skipping this server !" -ForegroundColor Yellow
+    if ( $cpldversion -eq "0x1D") {
+        Write-Host "$server - server is already running CPLD version 0x1D! Skipping this server !" -ForegroundColor Yellow
         continue
     }
     else {
@@ -324,11 +324,11 @@ ForEach ($server in $impactedservers) {
             $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
             $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
         
-            if ( $cpldversion -eq "0x0F") {
-                Write-Host "$server - server has been successfully updated with CPLD version 0x0F and is back online!" -ForegroundColor Yellow
+            if ( $cpldversion -eq "0x1D") {
+                Write-Host "$server - server has been successfully updated with CPLD version 0x1D and is back online!" -ForegroundColor Yellow
             }
             else {
-                Write-Host "$server - An error occurred ! Server is running CPLD version $($cpldversion) and not 0x0F! " -ForegroundColor Red
+                Write-Host "$server - An error occurred ! Server is running CPLD version $($cpldversion) and not 0x1D! " -ForegroundColor Red
             }
         }
     }
