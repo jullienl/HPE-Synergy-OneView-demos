@@ -129,7 +129,7 @@ if (! $impactedservers) {
 }
 else {
     write-host "$($impactedservers.count) servers impacted by the CPLD issue!"
-    $impactedservers
+    $impactedservers | Out-Host
     write-host "Starting the CPLD update procedure..."
 }
 
@@ -293,7 +293,17 @@ ForEach ($server in $impactedservers) {
                 # Triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
                 $resetilo = Reset-HPEiLO -Connection $connection -Device iLO -Confirm:$False
                 write-host "$server - ilo reset in progress..."
-                sleep 60 # Sleep may be too long... can be adjusted.
+
+                # Waiting iLO reset to complete
+                sleep 60 
+
+                # Wait for an iLO connection to be granted
+                do {
+                    sleep 5
+                    $ilosessionkey = ($compute | Get-OVIloSso -IloRestSession -ErrorAction Continue)."X-Auth-Token"
+                } until ($ilosessionkey)
+            
+                sleep 15 # Sleep may be too short... can be adjusted.                
             
                 # Turning on $server if off
                 $serverpowerstate = Get-OVServer -Name $server | % powerState
