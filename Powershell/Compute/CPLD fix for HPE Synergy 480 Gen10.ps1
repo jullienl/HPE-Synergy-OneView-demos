@@ -28,7 +28,8 @@ Requirements:
   
 
  Author: lionel.jullien@hpe.com
-  Date:   Feb 2022
+ Date:   Feb 2022
+ 
    
 #################################################################################
 #        (C) Copyright 2022 Hewlett Packard Enterprise Development LP           #
@@ -58,7 +59,7 @@ Requirements:
 # VARIABLES
 
 # Location of the CPLD components, you can download it from https://support.hpe.com/hpesc/public/swd/detail?swItemId=MTX-82b53f00662944558a0a7dc191
-$iLO5_CPDL_Location = "Y:\\_HP\\iLO\\iLO5\\CPLD_SY480_Gen10_v0F0F.fwpkg" 
+$CPDL_Location = "C:\\HPE\\CPLD_SY480_Gen10_v0F0F.fwpkg" 
 
 
 # HPE OneView 
@@ -209,7 +210,7 @@ ForEach ($server in $impactedservers) {
         $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
 
         try {
-            $task = Update-HPEiLOFirmware -Location $iLO5_CPDL_Location -Connection $connection -Confirm:$False -Force 
+            $task = Update-HPEiLOFirmware -Location $CPDL_Location -Connection $connection -Confirm:$False -Force 
             Write-Host "$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
             #$($task.statusinfo.message)"
         }
@@ -292,7 +293,7 @@ ForEach ($server in $impactedservers) {
                 # Triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
                 $resetilo = Reset-HPEiLO -Connection $connection -Device iLO -Confirm:$False
                 write-host "$server - ilo reset in progress..."
-                sleep 60 # Maybe sleep is too long... can be adjusted.
+                sleep 60 # Sleep may be too long... can be adjusted.
             
                 # Turning on $server if off
                 $serverpowerstate = Get-OVServer -Name $server | % powerState
@@ -317,7 +318,7 @@ ForEach ($server in $impactedservers) {
             } until (($system.Content | ConvertFrom-Json).oem.hpe.PostState -match "InPostDiscoveryComplete")
 
             # Waiting for iLO to update the firmware information
-            sleep 30
+            sleep 40 # Sleep may not be long enough... can be adjusted.
 
             # Checking CPLD update version
             $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
