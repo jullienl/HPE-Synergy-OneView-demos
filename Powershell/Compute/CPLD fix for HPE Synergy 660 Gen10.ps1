@@ -16,7 +16,7 @@ If you decide not to restart a server, the CPLD update will not take place and t
 
 Note:
 For reporting purposes, 3 lists are displayed at the end of the script execution: 
- - A list of servers (if any) that must be restarted for the CPLD flash activation
+ - A list of servers (if any) that must be restarted for the CPLD flash activation. For each server, you will need to follow the instructions in steps 6 and following of the Customer Advisory.
  - A list of servers (if any) that have not been updated because they are down.
  - A list of servers (if any) that have not been updated because they faced a CPLD component update issue
 
