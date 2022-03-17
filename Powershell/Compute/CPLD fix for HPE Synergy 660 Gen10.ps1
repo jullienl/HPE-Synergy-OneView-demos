@@ -114,7 +114,7 @@ $Computes = Get-OVServer | ? model -eq "Synergy 660 Gen10"
 foreach ($compute in $Computes) {
     
     $serialnumber = $compute.SerialNumber
-    $scope = $serialnumber.SubString(4, 3)
+    $scope = $serialnumber.SubString(3, 3)
 
     if ($scope -in 116..210 ) {
         # Write-Host "$($compute.name) is impacted!"
