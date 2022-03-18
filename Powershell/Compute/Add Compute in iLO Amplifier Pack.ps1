@@ -6,7 +6,7 @@ Support both Synergy Compute modules and DL servers in either Managed or Monitor
 The script also create an iLO local account for iLO Amplifier Pack authentication.
 
 Requirements: 
-- HPEOneView library 5.30 or later
+- HPEOneView library 
 - OneView and iLO Amplifier Pack administrator accounts.
 
 
@@ -46,12 +46,12 @@ $newiLOPassword = "iLO_Amplifier_password"
 # iLO Amplifier Credentials and IP
 $iLOAmplifierusername = "Administrator" 
 $iLOAmplifierpassword = "password" 
-$iLOAmplifierIP = "192.168.x.x"
+$iLOAmplifierIP = "ilo-amplifier.lj.lab"
 
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -66,13 +66,15 @@ $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
 # Connection to the OneView / Synergy Composer
 $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+if (! $connectedsessions) {
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-}
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
+    try {
+        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
 }
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
