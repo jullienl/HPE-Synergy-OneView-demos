@@ -59,37 +59,6 @@ $globaldashboard = "oneview-global-dashboard.lj.lab"
 
 $secpasswd = read-host  "Please enter the OneView Global Dashboard password" -AsSecureString
  
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-
-################################################################################# 
-
-#Creation of the header
-$headers = @{ } 
-$headers["content-type"] = "application/json" 
-$headers["X-API-Version"] = "300"
-
-$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
-$password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
-
-#Creation of the body
-#$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
-$Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
-
 # To avoid with self-signed certificate: could not establish trust relationship for the SSL/TLS Secure Channel – Invoke-WebRequest
 add-type -TypeDefinition  @"
         using System.Net;
@@ -104,6 +73,26 @@ add-type -TypeDefinition  @"
 "@
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+################################################################################# 
+
+#Creation of the header
+$headers = @{ } 
+$headers["content-type"] = "application/json" 
+
+# Capturing X-API Version
+$xapiversion = ((invoke-webrequest -Uri "https://$globaldashboard/rest/version" -Headers $headers -Method GET ).Content | Convertfrom-Json).currentVersion
+
+$headers["X-API-Version"] = $xapiversion
+
+
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
+$password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
+
+#Creation of the body
+#$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
+$Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
+
 
 #Opening a login session with Global DashBoard
 $session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
@@ -123,7 +112,7 @@ Clear-Host
 
 foreach ($OVappliance in $OVappliances) {
 
-    $OVssoid = $flase
+    $OVssoid = $false
     Write-host "`nAppliance name: "-nonewline ; Write-Host $OVappliance.applianceName -f Green  
     Write-host "Appliance IP: "-nonewline ; Write-Host $OVappliance.applianceLocation -f Green  
 
