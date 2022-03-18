@@ -70,7 +70,12 @@ add-type -TypeDefinition  @"
 #Creation of the header
 $headers = @{ } 
 $headers["content-type"] = "application/json" 
-$headers["X-API-Version"] = "300"
+
+# Capturing X-API Version
+$xapiversion = ((invoke-webrequest -Uri "https://$globaldashboard/rest/version" -Headers $headers -Method GET ).Content | Convertfrom-Json).currentVersion
+
+$headers["X-API-Version"] = $xapiversion
+
 
 $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
 $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
