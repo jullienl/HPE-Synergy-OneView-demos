@@ -5,15 +5,15 @@ This PowerShell script generates an iLO SSL certificate signed by a Certificate 
 Steps of this script: 
 1- Find the first trusted Certification Authority server available on the network
         Note: Only works if the host from which you are running this script is in an AD domain
-2- Add the CA server's root certificate to the Oneview trust store if it is not present
+2- Add the CA server's root certificate to the OneView trust store if it is not present
 3- Collect iLO certificate information from all servers to check if they are self-signed (using RedFish)
 4- For servers using a self-signed certificate:
-    - Create a Certificate Signing Request in iLO using the 'Certificate Signing Request variables' (at the begining of the script) 
+    - Create a Certificate Signing Request in iLO using the 'Certificate Signing Request variables' (at the beginning of the script) 
     - Submit CSR to the Certificate Authority server 
     - Import new CA-signed certificate on iLOs (triggers an iLO reset)
     - Remove old iLO self-signed certificate to the OneView trust store
-    - Perform a server hartdware refresh to re-establish the communication with the iLO (only with OneView < 6.10)
-    - Make sure the alert 'network connectivty has been lost' is cleared (only with OneView < 6.10)
+    - Perform a server hardware refresh to re-establish the communication with the iLO (only with OneView < 6.10)
+    - Make sure the alert 'network connectivity has been lost' is cleared (only with OneView < 6.10)
 
 Gen9 and Gen10 servers are supported 
 
@@ -79,13 +79,14 @@ $IP = "composer.lj.lab"
 If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
 import-module PSPKI
 
-
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+if (! $ConnectedSessions) {
+    
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-
+    # Connection to the Synergy Composer
+    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+    Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+}
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP }) 
@@ -123,7 +124,7 @@ else {
     $CA_computername = $CA | % Computername
     $CA_displayname = $CA | % displayname
 
-    # Is the CA root certificate present in the Oneview Trust store?
+    # Is the CA root certificate present in the OneView Trust store?
     $CA_cert_in_OV_Store = Get-OVApplianceTrustedCertificate -Name $CA_displayname -ErrorAction SilentlyContinue
 
     if (-not $CA_cert_in_OV_Store) {
@@ -268,20 +269,14 @@ else {
   
             ## Building the certificate 
             "-----BEGIN CERTIFICATE-----" | Out-File C:\temp\mycert.cer
-            ( Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Property "RawCertificate" | select -Last 1 ).RawCertificate.trim("`r`n") | Out-File C:\Temp\mycert.cer -Append
+            ( Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Property "RawCertificate" | ? CommonName -eq $CommonName | select -last 1 ).RawCertificate.trim("`r`n") | Out-File C:\Temp\mycert.cer -Append #-Encoding ascii
             "-----END CERTIFICATE-----" | Out-File C:\temp\mycert.cer -Append
+
 
             ## Formatting the built certificate for the JSON body content
             $certificate = Get-Content C:\temp\mycert.cer -raw
 
-            $certificate = $certificate -join "`n"
-
-            $bodyiloParams = @"
-     {
-        "Certificate": "$certificate"
-}
-"@
- 
+            $bodyiloParams = ConvertTo-Json  @{ Certificate = "$certificate" }
 
             # Importing new certificate in iLO
   
@@ -362,11 +357,11 @@ else {
                 }
                 until ( $ilocertalert )
 
-                # Add new iLO CA-signed certificate to the Oneview trust store
+                # Add new iLO CA-signed certificate to the OneView trust store
                 $addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloIP -force | Wait-OVTaskComplete
 
                 if ($addcerttask.taskstate -eq "Completed" ) {
-                    write-host "`tiLO CA-signed certificate added successfully to the Oneview trust store !"   
+                    write-host "`tiLO CA-signed certificate added successfully to the OneView trust store !"   
                 }
                 else {
                     Write-Warning "`tError - iLO CA-signed certificate cannot be added to the OneView trust store !"
@@ -385,7 +380,7 @@ else {
                     return
                 }
 
-                # Check that the alert 'network connectivty has been lost' has been cleared.
+                # Check that the alert 'network connectivity has been lost' has been cleared.
                 $networkconnectivityalertresult = Send-OVRequest -uri $ilocertalert.uri
 
                 if ($networkconnectivityalertresult.alertState -eq "Cleared" ) {
