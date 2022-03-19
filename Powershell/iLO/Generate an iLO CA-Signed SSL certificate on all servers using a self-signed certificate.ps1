@@ -180,7 +180,7 @@ else {
         catch {
             Write-Warning "Error ! The iLO certificate information cannot be collected for server [$($server.name)] " 
             $certificate.Content
-            break
+            continue
     
         }
 
@@ -242,7 +242,7 @@ else {
                 $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
                 $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
                 Write-Host -BackgroundColor:Black -ForegroundColor:Red "`t$($server.name) - iLO $($iloip): Generate Certificate Signing Request failure ! Message returned: [$($msg)]"
-                break
+                continue
             }     
      
             # Collecting CSR from iLO
@@ -287,7 +287,7 @@ else {
                 $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
                 $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
                 Write-Host -BackgroundColor:Black -ForegroundColor:Red "`t$($server.name) - iLO $($iloip): Import CA-Signed certificate failure ! ! Message returned: [$($msg)]"
-                break 
+                continue 
             }
 
             Write-Host "`tImport Certificate Successful on iLo $iloIP `n`tPlease wait, iLO Reset in Progress..."
