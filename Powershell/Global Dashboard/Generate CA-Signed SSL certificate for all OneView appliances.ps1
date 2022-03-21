@@ -398,7 +398,7 @@ else {
 }
 
 if (-not $found) {
-    write-host "Operation completed! All appliances already use an unexpired certificate signed by the certificate authority!"
+    write-host "Operation completed! All appliances use an unexpired certificate signed by the certificate authority!"
 }
 else {
     write-host "Operation completed ! All other appliances use an unexpired certificate signed by the certification authority!"

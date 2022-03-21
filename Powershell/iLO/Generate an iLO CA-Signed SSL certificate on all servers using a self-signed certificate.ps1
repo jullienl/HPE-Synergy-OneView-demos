@@ -1,17 +1,20 @@
 <# 
 
-This PowerShell script generates an iLO SSL certificate signed by a Certificate Authority (CA) for all servers managed by HPE OneView that are using a self-signed certificate.
+This PowerShell script generates an iLO SSL certificate signed by a Certificate Authority (CA) 
+for all servers managed by HPE OneView that use a self-signed certificate or soon-to-expire CA-signed certificate. 
+
+$days_before_expiration defined in the variable section specifies the number of days before the expiration date when the certificates should be replaced.  
 
 Steps of this script: 
 1- Find the first trusted Certification Authority server available on the network
         Note: Only works if the host from which you are running this script is in an AD domain
-2- Add the CA server's root certificate to the OneView trust store if it is not present
-3- Collect iLO certificate information from all servers to check if they are self-signed (using RedFish)
-4- For servers using a self-signed certificate:
+2- Import the CA server's root certificate into the OneView trust store if it is not present
+3- Collect iLO certificate information from all servers to check if they are self-signed or soon-to-expire CA-signed certificate (using RedFish)
+4- For servers using a self-signed or soon-to-expire CA-signed certificate:
     - Create a Certificate Signing Request in iLO using the 'Certificate Signing Request variables' (at the beginning of the script) 
     - Submit CSR to the Certificate Authority server 
-    - Import new CA-signed certificate on iLOs (triggers an iLO reset)
-    - Remove old iLO self-signed certificate to the OneView trust store
+    - Import new CA-signed certificate into iLOs (triggers an iLO reset)
+    - Remove old iLO self-signed certificate from the OneView trust store
     - Perform a server hardware refresh to re-establish the communication with the iLO (only with OneView < 6.10)
     - Make sure the alert 'network connectivity has been lost' is cleared (only with OneView < 6.10)
 
@@ -52,6 +55,8 @@ Requirements:
 #>
 
 # VARIABLES
+# Number of days before the certificate expiration date when the signed certificate must be replaced. 
+$days_before_expiration = "365"
 
 # Certificate Signing Request variables
 $city = "Houston"
@@ -79,14 +84,6 @@ $IP = "composer.lj.lab"
 If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
 import-module PSPKI
 
-if (! $ConnectedSessions) {
-    
-    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
- 
-    # Connection to the Synergy Composer
-    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-    Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
-}
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 #import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP }) 
@@ -104,11 +101,23 @@ add-type -TypeDefinition  @"
 "@
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+  
+#################################################################################
 
+Clear-Host
+
+if (! $ConnectedSessions) {
+    
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+    # Connection to the Synergy Composer
+    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
+    Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+}
 
 $servers = Get-OVServer
-# $servers = Get-OVServer | select -first 1
-# $servers = Get-OVServer -Name "Frame1, bay 2"
+# $server = Get-OVServer | select -first 1
+# $server = Get-OVServer -Name "Frame1, bay 2"
 
 ## Finding the first trusted Certification Authority server available on the network
 ## Note: this command only works if the machine from where you execute this script is in a domain
@@ -130,8 +139,10 @@ else {
     if (-not $CA_cert_in_OV_Store) {
         write-host "The trusted CA root certificate is not found in the OneView trust store, adding it now..."
     
-        ## Collecting the PEM CA certificate 
-        ( Get-IssuedRequest -CertificationAuthority $CA -Property "RawCertificate" | ? CommonName -eq $CA_displayname).RawCertificate.trim("`r`n") | Out-File C:\Temp\CAcert.cer 
+        ## Collecting trusted CA root certificate 
+        $CA.Certificate | % { set-content -value $($_.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)) -encoding byte -path "C:\Temp\CAcert.cer" }
+        $cerBytes = Get-Content "C:\Temp\CAcert.cer" -Encoding Byte
+        [System.Convert]::ToBase64String($cerBytes) | Out-File C:\Temp\CAcert.cer
         
         # Adding trusted CA root certificate to OneView trust store
         $addcerttask = Get-ChildItem C:\temp\cacert.cer | Add-OVApplianceTrustedCertificate 
@@ -150,6 +161,8 @@ else {
     else {
         write-host "The trusted CA root certificate has been found in the OneView trust store, skipping the add operation."
     }
+
+    $found = $false
 
     ForEach ($server in $servers) {
 
@@ -184,14 +197,21 @@ else {
     
         }
 
-        $issuer = (($certificate.Content | Convertfrom-Json).X509CertificateInformation.Issuer)
-        $found = $false
-        
-        if ($issuer -match "Default Issuer" ) {
+        $issuer = ($certificate.Content | Convertfrom-Json).X509CertificateInformation.Issuer
+        $ValidNotAfter = ($certificate.Content | Convertfrom-Json).X509CertificateInformation.ValidNotAfter
+        $expiresInDays = [math]::Ceiling((([datetime]$ValidNotAfter) - (Get-Date)).TotalDays)
+
+        if ($issuer -match "Default Issuer" -or [int]$expiresInDays -lt $days_before_expiration ) {
 
             $found = $true
-            write-host "`n[$($server.name)] uses an iLO self-signed certificate, generating a new CA-signed certificate..."
-            
+
+            if ($issuer -match "Default Issuer") {
+                write-host "`n[$($server.name)] uses an iLO self-signed certificate, generating a new CA-signed certificate..."
+            }
+            else {
+                Write-Host "`n[$($server.name)] uses a CA-signed certificate that will expire in less than $days_before_expiration days, generating a new CA-Signed certificate..."  
+            }
+
             # Creation of the body content to pass to iLO to request a CSR
 
             # Certificate Signing Request information
@@ -411,15 +431,19 @@ else {
                 write-host "`tiLO [$($iloIP)] CA-signed certificate operation completed successfully !" -ForegroundColor Cyan 
                 
             }
+        } 
+        else {
+            Write-Host "`n[$($server.name)] uses a CA-signed certificate with an expiration date greater than $days_before_expiration days, no action required..."
+           
         }
       
     }
 
     if (-not $found) {
-        write-host "Operation completed ! All servers use iLO CA-signed certificate ! "
+        write-host "Operation completed ! All servers use an unexpired iLO certificate signed by the certificate authority!"
     }
     else {
-        write-host "Operation completed ! All other servers use iLO CA-signed certificate ! "
+        write-host "Operation completed ! All other servers use an unexpired iLO certificate signed by the certification authority!"
     }
 }
         
