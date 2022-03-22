@@ -1,6 +1,9 @@
 <#
 This PowerShell script generates a CSV report with the iLO IP addresses and corresponding MAC addresses of each server managed by HPE OneView.
 
+To get the MAC address of the iLO, the script extracts the IPv6 of the iLO from the server's hardware resource and uses a public API to convert an IPv6 address into a MAC address.
+
+
 "iLO_IP","MAC_Address"
 "192.168.0.xx","xx:xx:xx:67:2C:xx"
 "192.168.0.xx","xx:xx:xx:67:2C:xx"
@@ -10,6 +13,7 @@ This PowerShell script generates a CSV report with the iLO IP addresses and corr
 Requirements:
    - HPE OneView Powershell Library
    - HPE OneView administrator account 
+   - Access to internet
 
 
 Author: lionel.jullien@hpe.com
