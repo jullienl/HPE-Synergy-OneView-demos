@@ -48,7 +48,7 @@ Requirements:
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 # iLO administrator account
 $ilousername = "Administrator"

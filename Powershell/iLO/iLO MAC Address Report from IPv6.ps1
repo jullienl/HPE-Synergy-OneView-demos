@@ -101,17 +101,14 @@ $servers = Get-OVServer # | select -first 3
 
 "iLO_IP,MAC_Address" | Out-File ("$file" + ".txt") 
 
-# $iloIPs = ($servers | where { $_.mpModel -eq "iLO4" -or "iLO5" }).mpHostInfo.mpIpAddresses | ? { $_.type -ne "LinkLocal" -and $_.type -ne "SLAAC" } | % address
-
 write-host "Generating report, please wait..."
 
 foreach ($server in $servers) {
     
     $iloIP = $server.mpHostInfo.mpIpAddresses | ? { $_.type -ne "LinkLocal" } | % address
+    $iloIPv6 = ([ipaddress]($server.mpHostInfo.mpIpAddresses | ? { $_.type -eq "LinkLocal" } | % address)).IPAddressToString
 
-    $ilosessionkey = ($Server  | Get-OVIloSso -IloRestSession)."X-Auth-Token"
-
-    $MAC = ((Invoke-webrequest -Method GET -Uri "https://$iloIP/redfish/v1/Managers/1/EthernetInterfaces/1/" -Headers @{"X-Auth-Token" = $ilosessionkey } ).content | Convertfrom-Json).PermanentMACAddress
+    $MAC = Invoke-WebRequest -Uri "https://ben.akrin.com/ipv6_link_local_to_mac_address_converter/?mode=api&ipv6=$iloIPv6" | % Content
 
     # $name = (Get-OVServer -name $server.name ).name
     
