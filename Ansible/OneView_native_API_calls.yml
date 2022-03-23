@@ -1,0 +1,78 @@
+---
+- hosts: localhost
+  gather_facts: no
+      
+  vars:
+    config: "{{ lookup('file', '{{ playbook_dir }}/oneview_config.json') | from_json }}"
+  tasks:    
+
+  - name: Get OneView X-API-version
+    uri:
+      url: "https://{{ config.ip }}/rest/version"
+      method: Get
+      validate_certs: false
+    register: output
+
+  - name: set variable
+    set_fact:
+      xapiversion: "{{ output.json.currentVersion }}"
+
+  - name: Create OneView session
+    uri:
+      url: "https://{{ config.ip }}/rest/login-sessions"
+      method: POST
+      validate_certs: false
+      body_format: json
+      headers:
+        X-API-Version: "{{ xapiversion }}"
+        Content-Type: "application/json"
+      body:
+        authLoginDomain: "{{ config.credentials.authLoginDomain }}"
+        userName: "{{ config.credentials.userName }}"
+        password: "{{ config.credentials.password }}"
+    register: login
+
+  # - debug: var=login
+
+  - name: Set variable for the session ID
+    set_fact:
+      sessionid: "{{ login.json.sessionID }}"
+
+  - name: Collect server profiles
+    uri:
+      url: "https://{{ config.ip }}/rest/server-profiles"
+      method: GET
+      validate_certs: false
+      headers:
+        X-API-Version: "{{ xapiversion }}"
+        Content-Type: "application/json"
+        Auth: "{{ sessionid }}"
+      return_content: yes
+    register: server_profiles
+
+  - name: Display Server Profiles
+    debug: var=server_profiles
+
+  - name: Enable appliance updates schedules and frequency
+    uri:
+      url: "https://{{ config.ip }}/rest/update-settings/schedule"
+      method: PATCH
+      validate_certs: false
+      headers:
+        X-API-Version: "{{ xapiversion }}"
+        Content-Type: "application/json"
+        Auth: "{{ sessionid }}"
+      body_format: json
+      body:
+        - op: replace
+          path: "/state"
+          value: Enabled
+        - op: replace
+          path: "/scheduleFrequency"
+          value: Weekly
+    register: result
+
+  - name: Display response of the request
+    debug: var=result
+
+ 
