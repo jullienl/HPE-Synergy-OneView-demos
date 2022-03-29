@@ -354,7 +354,7 @@ ForEach ($server in $Computes) {
             } until (($system.Content | ConvertFrom-Json).oem.hpe.PostState -match "InPostDiscoveryComplete")
 
             # Waiting for iLO to update the firmware information
-            sleep 40 # Sleep may not be long enough... can be adjusted.
+            sleep 60 # Sleep may not be long enough... can be adjusted.
 
             # Checking CPLD update version
             $serverFirmwareInventoryUri = ($compute).serverFirmwareInventoryUri
