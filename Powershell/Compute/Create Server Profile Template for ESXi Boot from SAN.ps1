@@ -1,7 +1,19 @@
 <#
 
-This PowerShell script creates a Server Profile Template for ESXi with SAN Boot OS Volume
+This PowerShell script creates a Server Profile Template for ESXi with SAN Boot OS Volume (no local storage)
 
+The Template includes:
+- 1 x Boot from SAN volume 
+- 2 x SAN Volumes (one for the datastore - one for the cluster Heartbeat)
+- 4 Network connections (2 x Management with 4% of the slot3 adapter bandwidth - 2 x NetworkSet with 32% of the slot3 adapter bandwidth)
+- 2 x Fabric connections configured to boot from the OS SAN volume with 64% of the slot3 adapter bandwidth
+- Set firmware only option with a Synergy Service Pack 
+- Set iLO settings:
+     - Set Administrator local account password
+     - Add a iLO local account
+     - Add a directory group for directory authentication
+- Set Bios settings:
+    - Set Workload Profile to Virtualization - Max Performance
 
 Requirements: 
 - Latest HPEOneView PowerShell library
@@ -78,9 +90,9 @@ $LocalIloUserPasswordSecureString = Read-Host "Local iLO account password for $L
 # Local iLO Administrator account password to set
 $LocalIloAdministratorPasswordSecureString = Read-Host "Local iLO account password for Administrator" -AsSecureString
 
-# iLO Directory settings
+# iLO Directory group settings
 $DirectoryServerAddress = "dc.lj.lab"  # network DNS name or IP address of the directory server
-$DistinguishedName = "OU=iLO_Administrators,OU=Developers,DC=lj,DC=lab"
+$DistinguishedName = "CN=ilo Admins,CN=Users,DC=lj,DC=lab"
 
 
 ###################################################################################################################################################################
@@ -124,14 +136,16 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 $SHT = Get-OVServerHardwareTypes -Name $ServerHardwareTypeName -ErrorAction Stop
 $EnclGroup = Get-OVEnclosureGroup -Name $EnclosureGroupName -ErrorAction Stop
-    
-$Eth1 = Get-OVNetwork -Name $ManagementNetwork | New-OVServerProfileConnection -ConnectionID 1 -Name 'Management-1'
-$Eth2 = Get-OVNetwork -Name $ManagementNetwork | New-OVServerProfileConnection -ConnectionID 2 -Name 'Management-2' 
-$Eth3 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 3 -Name 'Prod-NetworkSet-1' 
-$Eth4 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 4 -Name 'Prod-NetworkSet-2' 
+
+$maxSpeedMbps = ((Get-OVServerHardwareType -Name $ServerHardwareTypeName).adapters | ? slot -eq 3).ports[0].maxSpeedMbps
+
+$Eth1 = Get-OVNetwork -Name $ManagementNetwork | New-OVServerProfileConnection -ConnectionID 1 -Name 'Management-1' -RequestedBW ($maxSpeedMbps * 4 / 100)
+$Eth2 = Get-OVNetwork -Name $ManagementNetwork | New-OVServerProfileConnection -ConnectionID 2 -Name 'Management-2' -RequestedBW ($maxSpeedMbps * 4 / 100)
+$Eth3 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 3 -Name 'Prod-NetworkSet-1' -RequestedBW ($maxSpeedMbps * 32 / 100)
+$Eth4 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 4 -Name 'Prod-NetworkSet-2' -RequestedBW ($maxSpeedMbps * 32 / 100)
   
-$FC1 = Get-OVNetwork -Name $FabricNetworkA | New-OVServerProfileConnection -ConnectionID 5 -Bootable -Priority Primary -BootVolumeSource ManagedVolume -ConnectionType FibreChannel
-$FC2 = Get-OVNetwork -Name $FabricNetworkB | New-OVServerProfileConnection -ConnectionID 6 -Bootable -Priority Secondary -BootVolumeSource ManagedVolume -ConnectionType FibreChannel
+$FC1 = Get-OVNetwork -Name $FabricNetworkA | New-OVServerProfileConnection -ConnectionID 5 -Bootable -Priority Primary -BootVolumeSource ManagedVolume -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
+$FC2 = Get-OVNetwork -Name $FabricNetworkB | New-OVServerProfileConnection -ConnectionID 6 -Bootable -Priority Secondary -BootVolumeSource ManagedVolume -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
     
 $StoragePool = Get-OVStoragePool -Name $StoragePoolNameFCRAID5 -StorageSystem $StorageSystem -ErrorAction Stop
 
@@ -248,7 +262,6 @@ $serverProfileTemplateParams = @{
 
 # Creation of the Server Profile Template
 
-New-OVServerProfileTemplate @serverProfileTemplateParams -verbose | Wait-OVTaskComplete
-
+New-OVServerProfileTemplate @serverProfileTemplateParams | Wait-OVTaskComplete
 
 Disconnect-OVMgmt
