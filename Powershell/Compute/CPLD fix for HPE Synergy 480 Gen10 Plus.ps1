@@ -20,6 +20,39 @@ For reporting purposes, 3 lists are displayed at the end of the script execution
  - A list of servers (if any) that have not been updated because they are down
  - A list of servers (if any) that have not been updated because they faced either an iLO upgrade failure or a CPLD component update issue
 
+Output sample:
+-------------------------------------------------------------------------------------------------------
+Please enter the OneView password: ********
+2 x Synergy 480 Gen10 Plus found!
+Frame4, bay 5
+Frame4, bay 6
+Starting the CPLD update procedure...
+Transcript started, output file is Y:\_Scripts\GitHub_HPE-Synergy-OneView-demos\Powershell\Compute\CPLD_upgrade_report.txt
+
+Frame4, bay 5 (192.168.3.194 - ILOCZ214106HK.lj.lab – esx7-12) - CPLD update in progress...
+Frame4, bay 6 is running iLO version 2.31! - iLO upgrade is required before applying the CPLD component!
+Frame4, bay 6 - iLO upgrade in progress...
+Frame4, bay 5 (192.168.3.194 - ILOCZ214106HK.lj.lab - esx7-12) - Server is off - Do you want to power it on to update the CPLD component [y or n]?: n
+Frame4, bay 5 (192.168.3.194 - ILOCZ214106HK.lj.lab - esx7-12) - The update of the CPLD cannot be completed, you will need to restart the server to activate the new version of the CPLD...
+
+Frame4, bay 6 (192.168.3.195 - ILOCZ212406GH.lj.lab - Unnamed) - CPLD update in progress...
+Frame4, bay 6 (192.168.3.195 - ILOCZ212406GH.lj.lab - Unnamed) - Do you want to initiate the shutdown to activate the CPLD update [y or n]?: y
+Frame4, bay 6 - Wait for the server to be removed and re-added to OneView...
+Frame4, bay 6 - Wait for the Add task to complete...
+Frame4, bay 6 - Wait for the Server Profile apply task to complete...
+Frame4, bay 6 - The server is unable to power on, resetting iLO...
+Frame4, bay 6 - iLO reset in progress...
+Frame4, bay 6 - Powering on server...
+Frame4, bay 6 - Wait for POST to complete...
+Frame4, bay 6 - Server has been successfully updated with CPLD version 0x0C and is back online!
+
+The following servers have not been updated and should be rebooted to activate the new CPLD version:
+Frame4, bay 5
+
+Operation completed ! Hit return to close:
+--------------------------------------------------------------------------------------------------------------------
+
+
 
 Requirements: 
 - Latest HPEOneView PowerShell library
@@ -82,11 +115,21 @@ $report = "CPLD_upgrade_report.txt"
 # If (-not (get-module HPEiLOCmdlets -ListAvailable )) { Install-Module -Name HPEiLOCmdlets -scope Allusers -Force }
 
 ############################################################################################################################################
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
- 
-# Connection to the OneView / Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-Connect-OVMgmt -Hostname $OV_IP -Credential $credentials | Out-Null
+
+if (! $ConnectedSessions) {
+
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+    
+    $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+    try {
+        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
+}
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
@@ -119,7 +162,7 @@ if (! $Computes) {
     exit
 }
 else {
-    write-host "$($Computes.count) Synergy 480 Gen10 Plus found!"
+    write-host "$($Computes.count) x Synergy 480 Gen10 Plus found!"
     $Computes | Out-Host
     write-host "Starting the CPLD update procedure..."
 }
@@ -160,11 +203,11 @@ ForEach ($server in $Computes) {
     $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
        
     if ( $cpldversion -eq "0x0C") {
-        Write-Host "$server - server is already running CPLD version 0x0C! Skipping this server !" -ForegroundColor Yellow
+        Write-Host "`n$server - Server is already running CPLD version 0x0C! Skipping this server !" -ForegroundColor Yellow
         continue
     }
     else {
-
+        Write-Host "`n$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
         # A prerequisite of iLO 5 firmware version 2.33 (or later) is required before applying the firmware.
         # Check iLO version
         $iloversion = $compute.mpFirmwareVersion
@@ -179,13 +222,13 @@ ForEach ($server in $Computes) {
 
             try {
                 $task = Update-HPEiLOFirmware -Location $iLO5_location -Connection $connection -Confirm:$False -Force
-                Write-Host "`n$iloIP [$Ilohostname - $serverName]: $($task.statusinfo.message)"
+                Write-Host "$iloIP [$Ilohostname - $serverName]: $($task.statusinfo.message)"
                 # Wait 
                 write-host "$server - iLO upgrade in progress..."
                                
             }
             catch {
-                Write-Host -ForegroundColor Yellow "`n$iloModel $iloIP [$Ilohostname - $serverName]: upgrade failure ! CPLD update cannot be completed!" 
+                Write-Host -ForegroundColor Yellow "$iloModel $iloIP [$Ilohostname - $serverName]: Upgrade failure ! CPLD update cannot be completed!" 
                 $serversfailure += $server
                 continue
             }
@@ -205,7 +248,7 @@ ForEach ($server in $Computes) {
         # If the server is turned off, turn it on and wait POST to complete
         if ($serverpowerstatus -eq "off" ) {
             do {
-                $powerup = read-host "$server ($iloIP - $Ilohostname - $serverName) - server is off - Do you want to power it on to update the CPLD component [y or n]?"
+                $powerup = read-host "$server ($iloIP - $Ilohostname - $serverName) - Server is off - Do you want to power it on to update the CPLD component [y or n]?"
             } until ($powerup -match '^[yn]+$')
         
             if ($powerup -eq "y") {      
@@ -237,7 +280,6 @@ ForEach ($server in $Computes) {
 
         try {
             $task = Update-HPEiLOFirmware -Location $CPDL_Location -Connection $connection -Confirm:$False -Force 
-            Write-Host "$server ($iloIP - $Ilohostname - $serverName) - CPLD update in progress..."
             #$($task.statusinfo.message)"
         }
         catch {
@@ -318,7 +360,7 @@ ForEach ($server in $Computes) {
                 # Resetting iLO
                 # Triggers a power-cycle and removes the server from OneView. The server will return once the power-cycle is complete
                 $resetilo = Reset-HPEiLO -Connection $connection -Device iLO -Confirm:$False
-                write-host "$server - ilo reset in progress..."
+                write-host "$server - iLO reset in progress..."
                 
                 # Waiting iLO reset to complete
                 sleep 60 
@@ -361,7 +403,7 @@ ForEach ($server in $Computes) {
             $cpldversion = ((send-ovrequest -uri $serverFirmwareInventoryUri).components | ? componentName -match "System Programmable Logic Device").componentVersion
         
             if ( $cpldversion -eq "0x0C") {
-                Write-Host "$server - server has been successfully updated with CPLD version 0x0C and is back online!" -ForegroundColor Yellow
+                Write-Host "$server - Server has been successfully updated with CPLD version 0x0C and is back online!" -ForegroundColor Yellow
             }
             else {
                 Write-Host "$server - An error occurred ! Server is running CPLD version $($cpldversion) and not 0x0C! " -ForegroundColor Red
