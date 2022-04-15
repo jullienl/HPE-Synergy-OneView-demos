@@ -1,13 +1,13 @@
 <#
 
-This PowerShell script creates a Server Profile Template for ESXi with SAN Boot OS Volume (no local storage)
+This PowerShell script creates a Server Profile Template for ESXi with Boot from local storage logical drive
 
 The Template includes:
-- 1 x Boot from SAN volume 
+- 1 x Local storage (RAID 1 Logical drive using embedded storage controller)
 - 2 x SAN Volumes (one for the datastore - one for the cluster Heartbeat)
 - 4 Network connections (2 x Management with 4% of the slot3 adapter bandwidth - 2 x NetworkSet with 32% of the slot3 adapter bandwidth)
-- 2 x Fabric connections configured to boot from the OS SAN volume with 64% of the slot3 adapter bandwidth
-- Set firmware update using a Synergy Service Pack with Firmware only installation method 
+- 2 x Fabric connections with 64% of the slot3 adapter bandwidth
+- Set firmware update using a Synergy Service Pack with Firmware only installation method
 - Set iLO settings:
      - Set Administrator local account password
      - Add a iLO local account
@@ -53,7 +53,7 @@ Requirements:
 # VARIABLES
 
 # Server Profile Template Name
-$ServerProfileTemplateName = "ESXi_Boot-from-SAN - HPE Synergy 480 Gen10"
+$ServerProfileTemplateName = "ESXi_Boot-from-Local - HPE Synergy 480 Gen10"
 
 # Synergy Environment settings
 $ServerHardwareTypeName = "SY 480 Gen10 4"
@@ -68,20 +68,26 @@ $StoragePoolNameFCRAID5 = "FC_r5"
 $StoragePoolNameFCRAID1 = "FC_r1"
 $StoragePoolNameSSDRAID5 = "SSD_r5"
 
-# Boot from SAN Volume to create for the OS
-$SANBootVolume = "BootVol-ESXi"
-# Boot from SAN Volume Size in GB
-$SANBootVolumeSize = "50"
+# Local Storage 
+$LogicalDiskName = "ESXi_Boot"
+$LogicalDiskRaidLevel = "RAID1" # RAID0, RAID1, etc.
+$LogicalDiskNumberPhysDrives = 2
+$LogicalDiskDriveType = "Auto"  # Auto, SAS, SATA, etc.
+# Local Storage controller
+$LogicalDiskControllerSlot = "Embedded"  # Embedded or with D3940: Mezz 1, Mezz 2, Mezz 3
+$LogicalDiskControllerMode = "RAID" # HBA or RAID
+$LogicalDiskControllerInitializeLD = $True #  Re-initialize controller on next profile application. With $True, any existing data on this controller will be lost
 
-# Existing SAN Volumes to present to host 
+
+# Existing SAN Volumes to present to host
 # ESXi Datastore
-$SANDataVolume = "ESXi7 Frame4 VMFS1" # name can be found using Get-OVStorageVolume
+$SANDataVolume = "ESXi7 Frame4 VMFS1"  # name can be found using Get-OVStorageVolume
 # ESXi Cluster Heartbeat
 $SANHBVolume = "ESXi7 Datastore Heartbeat"
 
 
-# Synergy Service Pack version
-$SSPBaselineVersion = "SY-2022.02.01" # version can be found using Get-OVBaseline
+# Synergy Service Pack version 
+$SSPBaselineVersion = "SY-2022.02.01"  # version can be found using Get-OVBaseline
 
 # Local iLO account to create
 $LocalIloUsername = "Ansible"
@@ -90,7 +96,7 @@ $LocalIloUserPasswordSecureString = Read-Host "Local iLO account password for $L
 # Local iLO Administrator account password to set
 $LocalIloAdministratorPasswordSecureString = Read-Host "Local iLO account password for Administrator" -AsSecureString
 
-# iLO Directory group settings
+# iLO Directory settings
 $DirectoryServerAddress = "dc.lj.lab"  # network DNS name or IP address of the active directory server
 $DistinguishedName = "CN=ilo Admins,CN=Users,DC=lj,DC=lab"
 
@@ -110,15 +116,13 @@ $OV_IP = "composer.lj.lab"
 
 ##################################################################################################################################################################
 
-
-
  
 # Connection to the OneView / Synergy Composer
 
 if (! $ConnectedSessions) {
 
     $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
-
+    
     $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
     try {
@@ -138,6 +142,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 $SHT = Get-OVServerHardwareTypes -Name $ServerHardwareTypeName -ErrorAction Stop
 $EnclGroup = Get-OVEnclosureGroup -Name $EnclosureGroupName -ErrorAction Stop
+    
 
 $maxSpeedMbps = ((Get-OVServerHardwareType -Name $ServerHardwareTypeName).adapters | ? slot -eq 3).ports[0].maxSpeedMbps
 
@@ -146,17 +151,30 @@ $Eth2 = Get-OVNetwork -Name $ManagementNetwork | New-OVServerProfileConnection -
 $Eth3 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 3 -Name 'Prod-NetworkSet-1' -RequestedBW ($maxSpeedMbps * 32 / 100)
 $Eth4 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 4 -Name 'Prod-NetworkSet-2' -RequestedBW ($maxSpeedMbps * 32 / 100)
   
-$FC1 = Get-OVNetwork -Name $FabricNetworkA | New-OVServerProfileConnection -ConnectionID 5 -Bootable -Priority Primary -BootVolumeSource ManagedVolume -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
-$FC2 = Get-OVNetwork -Name $FabricNetworkB | New-OVServerProfileConnection -ConnectionID 6 -Bootable -Priority Secondary -BootVolumeSource ManagedVolume -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
-    
+$FC1 = Get-OVNetwork -Name $FabricNetworkA | New-OVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
+$FC2 = Get-OVNetwork -Name $FabricNetworkB | New-OVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
+
 $StoragePool = Get-OVStoragePool -Name $StoragePoolNameFCRAID5 -StorageSystem $StorageSystem -ErrorAction Stop
 
-# Non permanent boot volume
-$SANBootVol = New-OVServerProfileAttachVolume -Name $SANBootVolume -StoragePool $StoragePool -BootVolume -Capacity $SANBootVolumeSize -LunIdType Auto -volumeid 1
-# Permanent Shared volumes
-$SANVol1 = New-OVServerProfileAttachVolume -Name $SANDataVolume -StoragePool $StoragePool -LunIdType Auto -volumeid 2 -Permanent 
-$SANVol2 = New-OVServerProfileAttachVolume -Name $SANHBVolume -StoragePool $StoragePool -LunIdType Auto -volumeid 3 -Permanent
+# Local Storage 
+$LogicalDisk1 = New-OVServerProfileLogicalDisk -Name $LogicalDiskName -Raid $LogicalDiskRaidLevel -NumberofDrives $LogicalDiskNumberPhysDrives -DriveType $LogicalDiskDriveType -Bootable $True
+$LogicalDisks = $LogicalDisk1
+# Local Storage controller
+if ($LogicalDiskControllerInitializeLD) {
+    $Storagecontroller1 = New-OVServerProfileLogicalDiskController -ControllerID $LogicalDiskControllerSlot -Mode $LogicalDiskControllerMode -Initialize -LogicalDisk $LogicalDisks
+ 
+}
+else {
+    $Storagecontroller1 = New-OVServerProfileLogicalDiskController -ControllerID $LogicalDiskControllerSlot -Mode $LogicalDiskControllerMode -LogicalDisk $LogicalDisks
+    
+}
+$Storagecontrollers = $Storagecontroller1
 
+
+# SAN Storage
+# Permanent Shared SAN volumes
+$SANVol1 = New-OVServerProfileAttachVolume -Name $SANDataVolume -StoragePool $StoragePool -LunIdType Auto -volumeid 1 -Permanent 
+$SANVol2 = New-OVServerProfileAttachVolume -Name $SANHBVolume -StoragePool $StoragePool -LunIdType Auto -volumeid 2 -Permanent
 
 $baseline = Get-OVBaseline | ? Version -eq $SSPBaselineVersion -ErrorAction stop
 
@@ -246,11 +264,11 @@ $serverProfileTemplateParams = @{
     EnclosureGroup                 = $EnclGroup;
     Firmware                       = $True;
     FirmwareMode                   = "FirmwareOffline";
-    HideUnusedFlexNics             = $true
+    HideUnusedFlexNics             = $true;
     HostOStype                     = "VMware";
     IloSettings                    = $iloSettings;
     IloSettingsConsistencyChecking = "Exact";
-    LocalStorage                   = $False;
+    LocalStorage                   = $True;
     ManageBoot                     = $true;
     ManageConnections              = $True;
     ManageIloSettings              = $true;
@@ -259,11 +277,13 @@ $serverProfileTemplateParams = @{
     SecureBoot                     = "Disabled";
     ServerHardwareType             = $SHT;
     ServerProfileDescription       = "Server Profile for $($ServerHardwareTypeName) Compute Module with SAN Boot for ESX";
-    StorageVolume                  = $SANBootVol, $SANVol1, $SANVol2
+    StorageController              = $Storagecontrollers;
+    StorageVolume                  = $SANVol1, $SANVol2
 }
 
 # Creation of the Server Profile Template
 
 New-OVServerProfileTemplate @serverProfileTemplateParams | Wait-OVTaskComplete
+
 
 Disconnect-OVMgmt
