@@ -31,7 +31,7 @@
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 # MODULES TO INSTALL
 
@@ -41,20 +41,25 @@ $OV_IP = "composer2.lj.lab"
 
 #################################################################################
 
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
- 
+
 # Connection to the OneView / Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-}
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
+if (! $ConnectedSessions) {
+
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+    
+    $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+    try {
+        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
 }
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 #################################################################################
@@ -86,19 +91,21 @@ foreach ($LinkedFCuplinkport in $LinkedFCuplinkports) {
     $myobject.loginsCount = $LinkedFCuplinkport.fcPortProperties.loginsCount
     $myobject.Logins = $LinkedFCuplinkport.fcPortProperties.logins
 
-    $wwns = $myobject.Logins.Split(",")
+    if ($myobject.Logins) {
+        $wwns = $myobject.Logins.Split(",")   
     
-    $fclogins = @{ }
+    
+        $fclogins = @{ }
 
-    foreach ($wwpn in $wwns) {
-        $serverprofilename = (Get-OVServerProfile | Where-Object { $_.connectionSettings.connections.wwpn -eq $wwpn }).name
-        $fclogins.add($wwpn, $serverprofilename)
+        foreach ($wwpn in $wwns) {
+            $serverprofilename = (Get-OVServerProfile | Where-Object { $_.connectionSettings.connections.wwpn -eq $wwpn }).name
+            $fclogins.add($wwpn, $serverprofilename)
+        }
+    
+        $dis_fclogins = ($fclogins.GetEnumerator() | Sort-Object values | ForEach-Object { "`t  WWPN: $($_.name) - Server profile: $($_.value)" }) -join "`n"
+
+        "{1} in {0}:`n`tUplink = {2}`n`t({3}) FC Logins:`n{4}`n" -f $myobject._Name, $myobject.productName, $myobject.uplinkname, $myobject.loginsCount, $dis_fclogins | Write-Host -ForegroundColor Yellow 
     }
-    
-    $dis_fclogins = ($fclogins.GetEnumerator() | Sort-Object values | ForEach-Object { "`t  WWPN: $($_.name) - Server profile: $($_.value)" }) -join "`n"
-
-    "{1} in {0}:`n`tUplink = {2}`n`t({3}) FC Logins:`n{4}`n" -f $myobject._Name, $myobject.productName, $myobject.uplinkname, $myobject.loginsCount, $dis_fclogins | Write-Host -ForegroundColor Yellow 
-
 }
 
 Disconnect-OVMgmt
