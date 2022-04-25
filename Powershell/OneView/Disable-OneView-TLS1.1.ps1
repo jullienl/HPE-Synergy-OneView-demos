@@ -51,11 +51,25 @@ $IP = "composer.lj.lab"
 #################################################################################
 
 
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
- 
-# Connection to the Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+
+# Connection to the OneView / Synergy Composer
+
+if (! $ConnectedSessions) {
+
+  $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+  
+  $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+  try {
+    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+  }
+  catch {
+    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+    return
+  }
+}
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 Clear-Host
