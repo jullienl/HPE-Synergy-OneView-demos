@@ -9,7 +9,7 @@
 
 # OneView Credentials and IP
 $OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
@@ -20,22 +20,43 @@ $OV_IP = "composer2.lj.lab"
 
 #################################################################################
 
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
- 
-# Connection to the OneView / Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-}
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
+# Connection to the OneView / Synergy Composer
+
+if (! $ConnectedSessions) {
+
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+    
+    $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+    try {
+        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
 }
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
+Clear-Host
+
+
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
  
 function Failure {
     $global:helpme = $bodyLines
@@ -56,6 +77,10 @@ function Failure {
 $headers = @{ } 
 $headers["content-type"] = "application/json" 
 $headers["X-API-Version"] = "2200"
+
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
+$password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
+
 
 #Creation of the body
 $Body = @{userName = $username; password = $password; authLoginDomain = "Local"; loginMsgAck = "true" } | ConvertTo-Json 
