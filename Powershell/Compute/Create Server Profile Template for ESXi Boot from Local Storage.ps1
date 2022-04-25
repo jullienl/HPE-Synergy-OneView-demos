@@ -134,7 +134,7 @@ if (! $ConnectedSessions) {
     }
 }
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 ##################################################################################################################################################################
@@ -151,8 +151,8 @@ $Eth2 = Get-OVNetwork -Name $ManagementNetwork | New-OVServerProfileConnection -
 $Eth3 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 3 -Name 'Prod-NetworkSet-1' -RequestedBW ($maxSpeedMbps * 32 / 100)
 $Eth4 = Get-OVNetworkSet -Name $NetworkSet | New-OVServerProfileConnection -ConnectionID 4 -Name 'Prod-NetworkSet-2' -RequestedBW ($maxSpeedMbps * 32 / 100)
   
-$FC1 = Get-OVNetwork -Name $FabricNetworkA | New-OVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
-$FC2 = Get-OVNetwork -Name $FabricNetworkB | New-OVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100)
+$FC1 = Get-OVNetwork -Name $FabricNetworkA | New-OVServerProfileConnection -ConnectionID 5 -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100) -Name "SAN-Fabric-A"
+$FC2 = Get-OVNetwork -Name $FabricNetworkB | New-OVServerProfileConnection -ConnectionID 6 -ConnectionType FibreChannel -RequestedBW ($maxSpeedMbps * 64 / 100) -Name "SAN-Fabric-B"
 
 $StoragePool = Get-OVStoragePool -Name $StoragePoolNameFCRAID5 -StorageSystem $StorageSystem -ErrorAction Stop
 
