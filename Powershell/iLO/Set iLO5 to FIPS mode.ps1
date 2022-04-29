@@ -13,6 +13,8 @@
 
 # Only Gen10 servers are supported. 
 
+# To get a description of the different security modes in iLO5, see https://support.hpe.com/hpesc/public/docDisplay?docId=a00030074en_us&docLocale=en_US
+
 # Requirements: 
 # - Latest HPEOneView library
 # - HPE iLO PowerShell Cmdlets (install-module HPEiLOCmdlets)
@@ -48,12 +50,12 @@
 
 # VARIABLES
 
-# iLO Security mode (possible values: FIPS, CNSA)
+# iLO Security mode - Supported values: HighSecurity, FIPS, Production (default)
 $mode = "FIPS"
 
 # HPE OneView 
 $OV_username = "Administrator"
-$OV_IP = "composer2.lj.lab"
+$OV_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
