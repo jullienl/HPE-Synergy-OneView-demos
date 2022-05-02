@@ -110,7 +110,7 @@ else {
 }
 
 
-# Request content to enable iLO High Security state
+# Request content to disable iLO SNMPv1
 $body = @{}
 $body["SNMPv1Enabled"] = $false
 $body = $body | ConvertTo-Json  
