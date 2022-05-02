@@ -89,7 +89,7 @@ add-type -TypeDefinition  @"
 #################################################################################
 
 
-$SH = Search-OVIndex -Category server-hardware | select -First 5
+$SH = Search-OVIndex -Category server-hardware 
 
 
 foreach ($item in $SH) {
