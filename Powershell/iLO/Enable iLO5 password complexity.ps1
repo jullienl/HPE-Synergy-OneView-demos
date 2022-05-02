@@ -1,18 +1,16 @@
-<# 
+# -------------------------------------------------------------------------------------------------------
+# by lionel.jullien@hpe.com
+# July 2019
+#
+# PowerShell script to set the iLO password complexity option to enable on all iLO5 managed by HPE OneView. 
+#
+# iLO modification is done through OneView and iLO SSO session key using REST PATCH method
+#
+# Requirements:
+#    - HPE OneView Powershell Library
+#    - HPE OneView administrator account 
+# --------------------------------------------------------------------------------------------------------
 
-PowerShell script to set the high security mode on all iLO5 managed by HPE OneView. 
-
-Once the state is set, the iLO automatically resets to activate the high security mode.
-
-Gen10/Gen10+ servers are supported. Gen9 servers are skipped by the script.
-
- Requirements:
-   - HPE OneView Powershell Library
-   - HPE OneView administrator account 
-
- Author: lionel.jullien@hpe.com
- Date:   May 2022
-    
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
 #################################################################################
@@ -36,7 +34,6 @@ Gen10/Gen10+ servers are supported. Gen9 servers are skipped by the script.
 # THE SOFTWARE.                                                                 #
 #                                                                               #
 #################################################################################
-#>
 
 
 # OneView Credentials and IP
@@ -83,26 +80,25 @@ add-type -TypeDefinition  @"
             }
         }
 "@
-   
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
 #################################################################################
 
+
 # Capture iLO5 server hardware managed by HPE OneView
-$SH = Search-OVIndex -Category server-hardware | ? { $_.Attributes.mpModel -eq "iLO5" } #| select -first 1
+$computes = Get-OVServer | where mpModel -eq iLO5 #| select -First 1
 
 clear
 
-if ($SH) {
+if ($computes) {
     write-host ""
-    if (! $SH.count) { 
-        Write-host "1 x iLO5 is going to be configured with iLO High Security state to enable:" 
+    if (! $computes.count) { 
+        Write-host "1 x iLO5 is going to be configured with iLO Password complexity to enable:" 
     }
     else {
-        Write-host $SH.Count "x iLO5 are going to be configured with iLO High Security state to enable:" 
+        Write-host $SH.Count "x iLO5 are going to be configured with iLO Password complexity to enable:" 
     } 
-    $SH.name | Format-Table -autosize | Out-Host
+    $computes.name | Format-Table -autosize | Out-Host
 
 }
 else {
@@ -112,31 +108,28 @@ else {
 }
 
 
-# Request content to enable iLO High Security state
-$body = @{}
-$body["SecurityState"] = "HighSecurity"
-$body = $body | ConvertTo-Json  
-# $body = ConvertTo-Json @{ SecurityState = "HighSecurity" } -Depth 99
+# Request content to enable iLO password complexity
+$body = ConvertTo-Json   @{ Oem = @{ Hpe = @{ EnforcePasswordComplexity = $True } } } -Depth 99
 
 # Creation of the headers  
 $headers = @{} 
 $headers["OData-Version"] = "4.0"
 
 # iLO5 Redfish URI
-$uri = "/redfish/v1/Managers/1/SecurityService"
+$uri = "/redfish/v1/accountservice"
 
 # Method
 $method = "patch"
 
 #####################################################################################################################
 
-foreach ($item in $SH) {
+Foreach ($compute in $computes) {
 
-    $iLOIP = $item.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
+    $iloIP = $compute.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
 
     # Capture of the SSO Session Key
     try {
-        $ilosessionkey = ($item | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+        $ilosessionkey = ($compute | Get-OVIloSso -IloRestSession)."X-Auth-Token"
         $headers["X-Auth-Token"] = $ilosessionkey 
     }
     catch {
@@ -144,19 +137,19 @@ foreach ($item in $SH) {
         continue
     }
 
-    
-    # Enabling iLO High Security state
+
+    # Enabling password complexity
     try {
-        $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
+        $response = Invoke-WebRequest -Uri "https://$iloIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -UseBasicParsing -ErrorAction Stop
         $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
-        write-host "`niLO $($iloip) High Security state is now enabled... API response: [$($msg)]"
+        Write-Host "iLO password complexity option has been enabled in iLo $iloIP. Message returned: [$($msg)]"
+
     }
     catch {
         $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
         $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) high security state configuration error ! Message returned: [$($msg)]"
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO: $($iloIP): The iLO password complexity option has not been changed ! ! Message returned: [$($msg)]"
         continue
-      
     }
 
 }

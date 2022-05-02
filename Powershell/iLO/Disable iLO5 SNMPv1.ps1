@@ -1,8 +1,6 @@
 <# 
 
-PowerShell script to set the high security mode on all iLO5 managed by HPE OneView. 
-
-Once the state is set, the iLO automatically resets to activate the high security mode.
+PowerShell script to disable SNMPv1 on all iLO managed by HPE OneView. 
 
 Gen10/Gen10+ servers are supported. Gen9 servers are skipped by the script.
 
@@ -97,10 +95,10 @@ clear
 if ($SH) {
     write-host ""
     if (! $SH.count) { 
-        Write-host "1 x iLO5 is going to be configured with iLO High Security state to enable:" 
+        Write-host "1 x iLO5 is going to be configured with iLO SNMPv1 to disable:" 
     }
     else {
-        Write-host $SH.Count "x iLO5 are going to be configured with iLO High Security state to enable:" 
+        Write-host $SH.Count "x iLO5 are going to be configured with iLO SNMPv1 to disable:" 
     } 
     $SH.name | Format-Table -autosize | Out-Host
 
@@ -114,16 +112,16 @@ else {
 
 # Request content to enable iLO High Security state
 $body = @{}
-$body["SecurityState"] = "HighSecurity"
+$body["SNMPv1Enabled"] = $false
 $body = $body | ConvertTo-Json  
-# $body = ConvertTo-Json @{ SecurityState = "HighSecurity" } -Depth 99
+# $body = ConvertTo-Json @{ SNMPv1Enabled =  $false } -Depth 99
 
 # Creation of the headers  
 $headers = @{} 
 $headers["OData-Version"] = "4.0"
 
 # iLO5 Redfish URI
-$uri = "/redfish/v1/Managers/1/SecurityService"
+$uri = "/redfish/v1/Managers/1/SnmpService/"
 
 # Method
 $method = "patch"
@@ -144,23 +142,22 @@ foreach ($item in $SH) {
         continue
     }
 
-    
-    # Enabling iLO High Security state
+      
+    # Setting SNMPv1 to disable
     try {
         $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
         $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
-        write-host "`niLO $($iloip) High Security state is now enabled... API response: [$($msg)]"
+        write-host "`niLO $($iloip) SNMPv1 configuration is now disabled... API response: [$($msg)]"
     }
     catch {
         $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
         $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) high security state configuration error ! Message returned: [$($msg)]"
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) SNMPv1 configuration error ! Message returned: [$($msg)]"
         continue
       
     }
 
 }
 
-write-host ""
-Read-Host -Prompt "Operation done ! Hit return to close" 
+
 Disconnect-OVMgmt
