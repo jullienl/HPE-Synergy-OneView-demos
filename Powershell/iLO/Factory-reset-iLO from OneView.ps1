@@ -53,21 +53,26 @@ $OV_IP = "composer.lj.lab"
 
 #################################################################################
 
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+if (! $ConnectedSessions) {
+    
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# Connection to the OneView / Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+    # Connection to the OneView / Synergy Composer
+    $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    try {
+        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
+
+    # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 }
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
-}
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
+# Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
+# due to an invalid Remote Certificate
 add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
@@ -217,7 +222,7 @@ else {
     }
     else {
         # If refresh (2) is failing, we need to wait a bit and re-add certificate and re-launch a server hardware refresh (3)
-        write-host "Refresh (2) could not be completed successfully, let's wait a bit and do another refresh..."
+        write-host "Refresh (2) could not be completed successfully, let's wait a bit and perform another refresh..."
         
         sleep 60
            
