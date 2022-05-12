@@ -240,7 +240,7 @@ ForEach ($server in $Computes) {
                                
                 }
                 catch {
-                    Write-Host -ForegroundColor Yellow "$server - Upgrade failure ! CPLD update cannot be completed!" 
+                    Write-Host -ForegroundColor Yellow "$server - Upgrade failure ! iLO update cannot be completed!" 
                     $serversfailure += $server
                     continue
                 }
@@ -294,7 +294,7 @@ ForEach ($server in $Computes) {
                 }
                 
                 catch {
-                    Write-Host -ForegroundColor Yellow "$server - Upgrade failure ! CPLD update cannot be completed!" 
+                    Write-Host -ForegroundColor Yellow "$server - Upgrade failure ! iLO update cannot be completed!" 
                     $serversfailure += $server
                     continue
                 }
