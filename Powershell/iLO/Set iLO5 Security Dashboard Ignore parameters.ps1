@@ -210,6 +210,8 @@ if ($IgnoreRequireHostAuthentication) {
 
 #####################################################################################################################
 
+$SH = Get-OVServer | ? name -eq "Frame4, bay 9"
+
 Foreach ($compute in $SH) {
 
     # Capture of the SSO Session Key
@@ -227,27 +229,32 @@ Foreach ($compute in $SH) {
     
     # Modification of the security dashboard snmpv1 parameter using native API call
     # Enable-HPEiLOSecurityDashboardSetting does not support ignoresnmpv1, so we need to create a native iLO API request 
-    if ($snmpv1) {
+    if ($Ignoresnmpv1) {
+
+        # Creation of the headers  
+        $headers = @{} 
+        $headers["OData-Version"] = "4.0"
+        $headers["X-Auth-Token"] = $ilosessionkey 
+   
+        # Collecting the snmpv1 uri security parameter
+        $body = @{}
+        $body['$expand'] = "."
+
+        # iLO5 Redfish URI
+        $SecurityParams = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard/SecurityParams?$expand=." -Method Get -Headers $headers -Body $body
+        $snmp_uri = ($SecurityParams.Content | ConvertFrom-Json).Members | ? name -eq "SNMPv1" | % '@odata.id'
 
         # Request content to ignore iLO SNMPv1 security dashboard warning
         $body = @{}
         $body["Ignore"] = $True
         $body = $body | ConvertTo-Json  
         # $body = ConvertTo-Json @{ Ignore =  $true } -Depth 99
-
-        # Creation of the headers  
-        $headers = @{} 
-        $headers["OData-Version"] = "4.0"
-        $headers["X-Auth-Token"] = $ilosessionkey 
-
-        # iLO5 Redfish URI
-        $uri = "/redfish/v1/Managers/1/SecurityService/SecurityDashboard/SecurityParams/9"
-
+                
         # Method
         $method = "patch"
 
         try {
-            $response = Invoke-WebRequest -Uri "https://$iloIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
+            $response = Invoke-WebRequest -Uri "https://$iloIP$snmp_uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
         }
         catch {
             $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
