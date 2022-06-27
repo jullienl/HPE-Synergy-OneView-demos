@@ -210,8 +210,6 @@ if ($IgnoreRequireHostAuthentication) {
 
 #####################################################################################################################
 
-$SH = Get-OVServer | ? name -eq "Frame4, bay 9"
-
 Foreach ($compute in $SH) {
 
     # Capture of the SSO Session Key
@@ -241,7 +239,7 @@ Foreach ($compute in $SH) {
         $body['$expand'] = "."
 
         # iLO5 Redfish URI
-        $SecurityParams = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard/SecurityParams?$expand=." -Method Get -Headers $headers -Body $body
+        $SecurityParams = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard/SecurityParams" -Method Get -Headers $headers -Body $body
         $snmp_uri = ($SecurityParams.Content | ConvertFrom-Json).Members | ? name -eq "SNMPv1" | % '@odata.id'
 
         # Request content to ignore iLO SNMPv1 security dashboard warning
