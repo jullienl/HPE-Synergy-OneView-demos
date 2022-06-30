@@ -99,7 +99,7 @@ $city = "Mougins"
 $Country = "FR"
 $OrgName = "HPE"
 $OrgUnit = "Synergy"
-$State = "Paca"
+$State = "PACA"
 
 # CA assigned Certificate template to be used for iLO certificates. Can be retrieved using: (get-catemplate <CertificateAuthority>).templates.name
 $CertificateTemplate = "iLOWebServer"
