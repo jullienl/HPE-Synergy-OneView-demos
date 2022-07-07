@@ -6,6 +6,7 @@ Information and requirements are listed in the comment section of each scripts/p
 
 HPE-API-Postman-Collections contains various Postman collections of executable API requests for:
 
+- [HPE Greenlake for Compute Ops Management API](https://developer.greenlake.hpe.com/docs/greenlake/services/compute-ops/public/openapi/compute-ops-latest/overview/)
 - [HPE OneView REST API](http://h17007.www1.hpe.com/docs/enterprise/servers/oneview4.2/cicf-api/en/index.html)
 - [HPE iLO5 RESTful/RedFish API](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/)
 - [HPE iLO4 RESTful/RedFish API](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/)
