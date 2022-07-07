@@ -4,6 +4,7 @@
 My Postman public workspace is available at https://www.postman.com/jullienl/workspace/lionel-jullien-s-public-workspace 
 
 This workspace contains various Postman collections demonstrating use cases:
+- [HPE Greenlake for Compute Ops Management API](https://developer.greenlake.hpe.com/docs/greenlake/services/compute-ops/public/openapi/compute-ops-latest/overview/)
 - [HPE OneView REST API](http://h17007.www1.hpe.com/docs/enterprise/servers/oneview4.2/cicf-api/en/index.html)
 - [HPE iLO5 RESTful/RedFish API](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo5/)
 - [HPE iLO4 RESTful/RedFish API](https://hewlettpackard.github.io/ilo-rest-api-docs/ilo4/)
