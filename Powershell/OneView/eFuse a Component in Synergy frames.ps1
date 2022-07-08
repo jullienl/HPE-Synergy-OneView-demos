@@ -55,30 +55,34 @@ $OV_IP = "composer.lj.lab"
 
 #################################################################################
 
-$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
- 
-# Connection to the OneView / Synergy Composer
-$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+if (-not $ConnectedSessions) {
 
-try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-}
-catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
+    try {
+    
+        $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+
+        # Connection to the OneView / Synergy Composer
+        $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
 }
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
 
 #################################################################################
 
 $LEs = Get-OVLogicalEnclosure
 
 $NumberofLEs = $LEs.length
-$LE_array = @{}
-for ($i = 0; $i -le $LEs.length - 1; $i++) { 
+
+for ($i = 0; $i -lt $NumberofLEs; $i++) { 
     $nb = $i + 1
-    $LE_array[$i]
     New-Variable -name whosLE$nb -Value $LEs[$i].name -Force
 }   
 
@@ -87,7 +91,7 @@ do {
 
     do {
         
-        clear
+        Clear-Host
         write-host "On which Logical Enclosure do you want to eFuse a component?"
         write-host ""
         write-host "1 - $whosLE1"
@@ -446,6 +450,6 @@ do {
  
 } until ( $componenttoefuse -eq "X" )
 
-Disconnect-OVMgmt
+try { Disconnect-OVMgmt -ErrorAction stop }catch {}
 
 
