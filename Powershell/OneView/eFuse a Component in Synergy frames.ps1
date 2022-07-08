@@ -450,6 +450,6 @@ do {
  
 } until ( $componenttoefuse -eq "X" )
 
-try { Disconnect-OVMgmt -ErrorAction stop }catch {}
+Disconnect-OVMgmt
 
 
