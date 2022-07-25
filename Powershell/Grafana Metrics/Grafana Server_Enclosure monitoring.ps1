@@ -261,7 +261,8 @@ While ($true) {
 
     }
 
-    Start-Sleep -Seconds 150
+    # Utilization statistics are gathered and reported every five minutes by the API.
+    Start-Sleep -Seconds 300
 
 }
 
