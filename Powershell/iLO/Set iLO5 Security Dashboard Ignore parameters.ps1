@@ -15,20 +15,22 @@
 # Output sample:
 # -------------------------------------------------------------------------------------------------------
 #
-# 2 x computes have been found with the 'security status is at risk' alert:
+#   Searching for servers with a security status of the system at risk. Please wait...
 # 
-# Name          ServerName      Status  Power Serial Number Model        ROM                    iLO       Server Profile License   
-# ----          ----------      ------  ----- ------------- -----        ---                    ---       -------------- -------            
-# Frame1, bay 8 WIN-DOQJO87FKIK Warning On    MXQ828049J    SY 480 Gen10 I42 v2.58 (11/24/2021) iLO5 2.60 Win-1          NotApplicable                                  
-# Frame1, bay 6 ESX-1.lj.lab    Warning On    MXQ828048J    SY 480 Gen10 I42 v2.58 (11/24/2021) iLO5 2.60 ESX-1          NotApplicable
+#   2 x computes have been found with the 'security status is at risk' alert:
+# 
+#   name           status Model             Serial Number
+#   ----           ------ -----             -------------
+#   Frame3, bay 11 OK     Synergy 480 Gen10 CZ221705V1
+#   Frame3, bay 10 OK     Synergy 480 Gen10 CZ221705V7
 #
-# [Frame1, bay 6 - iLO:192.168.0.10]: iLO security dashboard parameters changed successfully!
-# [Frame1, bay 8 - iLO:192.168.0.2]: iLO security dashboard parameters changed successfully!
+#   [Frame3, bay 10 - iLO:192.168.0.10]: iLO security dashboard parameters changed successfully!
+#   [Frame3, bay 11 - iLO:192.168.0.2]: iLO security dashboard parameters changed successfully!
 #
 # -------------------------------------------------------------------------------------------------------
 #
 #  Author: lionel.jullien@hpe.com
-#  Date:   MAy 2022
+#  Date:   May 2022
 #
 #
 #################################################################################
@@ -128,23 +130,38 @@ add-type -TypeDefinition  @"
 
 #################################################################################
 
+Clear-Host
+
+Write-host "Searching for servers with a security status of the system at risk. Please wait... "
 
 # Capture iLO5 server hardware managed by HPE OneView with the "Overall security status of the system is at risk" alert 
-$SHiLO5 = Search-OVIndex -Category server-hardware | ? { $_.Attributes.mpModel -eq "iLO5" } #| select -first 1
-
-$SHiLO5WithAlerts = ( $SHiLO5  | Get-OVAlert -AlertState Active | Where-Object { 
-        $_.description -Match "Overall security status of the system is at risk"     
-    }).associatedResource.resourceName
+$SHiLO5s = Search-OVIndex -Category server-hardware | ? { $_.Attributes.mpModel -eq "iLO5" } #| select -first 1
 
 $SH = @()
 
-foreach ($item in $SHiLO5WithAlerts) {
-    $SH += get-ovserver -name $item
+foreach ($SHiLO5 in $SHiLO5s) {
+    
+    $iLOIP = $SHiLO5.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
 
+    try {
+        $ilosessionkey = ($SHiLO5 | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+        $headers = @{} 
+        $headers["OData-Version"] = "4.0"
+        $headers["X-Auth-Token"] = $ilosessionkey 
+
+        $response = (Invoke-WebRequest -Uri "https://$iLOIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard" -Headers $headers -Method GET).content | Convertfrom-Json
+        
+        if ($response.OverallSecurityStatus -eq "Risk") {
+            $SH += $SHiLO5
+        }
+
+    }
+    catch {
+        Write-Warning "[$($SHiLO5.name)]: iLO cannot be contacted to check the security status ! Fix any communication problem you have in OneView with this iLO/server hardware !"
+        read-host
+        continue
+    }  
 }
-
-
-Clear-Host
 
 if ($SH) {
     write-host ""
@@ -154,7 +171,7 @@ if ($SH) {
     else {
         Write-host $SH.Count "x computes have been found with the 'security status is at risk' alert:" 
     } 
-    $SH | Out-Host
+    $SH | Select-Object name, status, @{N = "Model"; E = { $_.attributes.model } }, @{N = "Serial Number"; E = { $_.attributes.serial_number } }  | Out-Host
 
 }
 else {
@@ -216,8 +233,7 @@ Foreach ($compute in $SH) {
     $iloSession = $compute  | Get-OVIloSso -IloRestSession
     $ilosessionkey = $iloSession."X-Auth-Token"
 
-    $iloIP = $compute.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
-
+    $iloIP = $compute.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
 
     # Connection to iLO using HPEiLOCmdlets
     $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
@@ -253,6 +269,7 @@ Foreach ($compute in $SH) {
 
         try {
             $response = Invoke-WebRequest -Uri "https://$iloIP$snmp_uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
+            Write-Host "[$($compute.name) - iLO:$iloIP]: iLO security dashboard parameters changed successfully!"
         }
         catch {
             $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
@@ -264,7 +281,7 @@ Foreach ($compute in $SH) {
         # Clearing the "Overall security status of the system is at risk" alert
         $compute  | Get-OVAlert -AlertState Active | Where-Object { $_.description -Match "Overall security status of the system is at risk" } | Set-OVAlert -Cleared | out-null
 
-        Write-Host "[$($compute.name) - iLO:$iloIP]: iLO security dashboard parameters changed successfully!"
+        
 
     }
 }
