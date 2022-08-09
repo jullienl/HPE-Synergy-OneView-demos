@@ -77,7 +77,7 @@ $Resources = @{
 $InfluxDBserver = "http://grafana.lab:8086"
 $influxdb_admin = "admin"
 $influxdb_admin_password = "password"
-$Database = "ov_db"
+$Database = "ov_server_db"
 
 # OneView 
 $OneView = "composer.lab"     
