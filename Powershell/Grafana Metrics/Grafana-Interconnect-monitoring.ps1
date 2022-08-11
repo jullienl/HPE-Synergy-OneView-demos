@@ -1,5 +1,4 @@
-﻿
-<#
+﻿<#
 
 This PowerShell can be used to generate data for a Grafana metrics dashboard for HPE Virtual Connect via an Influx database.
 
@@ -23,7 +22,7 @@ Requirements:
          - A user with an authentication password with ALL priviledges (required to create the database if it does not exist) 
     - A Windows server to run this script. It can be executed automatically at startup using the Task Scheduler with:
         $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30
-        Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana Interconnect monitoring.ps1" -Name GrafanaInterconnectMonitoring
+        Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana-Interconnect-monitoring.ps1" -Name GrafanaInterconnectMonitoring
 
   Author: lionel.jullien@hpe.com
   Date:   July 2022
