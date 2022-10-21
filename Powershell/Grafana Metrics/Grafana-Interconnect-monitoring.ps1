@@ -5,7 +5,7 @@ This PowerShell can be used to generate data for a Grafana metrics dashboard for
 The script collects the utilization statistics of the given interconnect port IDs from HPE OneView and writes data to an Influx database 
 by providing a hashtable of tags and values via the REST API.  
 
-This script is written to run indefinitely so that metrics are collected for an indefinite period of time and can be run in the background
+This script is written to run continuously so that metrics are collected for an indefinite period of time and can be run in the background
 from a Windows machine by using the Task Scheduler and setting a "At system startup after a 30 second delay" trigger. 
 
 The interconnect port IDs utilization statistics supported are: Rx Kb/s, Rx KB/s, Rx Packets/s and Rx Non-Unicast Packets/s.

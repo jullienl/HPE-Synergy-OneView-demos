@@ -7,7 +7,7 @@ Important: This script can only be used with PowerShell Core for Linux.
 The script collects the utilization statistics of the given resource from HPE OneView and writes data to an Influx database 
 by providing a hashtable of tags and values via the REST API. Supported ressource are enclosure, server hardware and server profile.
 
-This script is written to run indefinitely so that metrics are collected for an indefinite period of time and can be run in the background
+This script is written to run continuously so that metrics are collected for an indefinite period of time and can be run in the background
 from a Linux machine using a crontab configuration. 
 
 The resource utilization metrics supported for server are CPU, power and temperature. For enclosure, it is only power and temperature.
