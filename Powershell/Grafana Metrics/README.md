@@ -1,8 +1,10 @@
 # Grafana Dashboard for HPE OneView
 
+> To learn more on how to monitor HPE OneView infrastructure with Grafana Metrics Dashboards and InfluxDB, see this [blog](https://developer.hpe.com/blog/how-to-monitor-hpe-oneview-infrastructure-with-grafana-metrics-dashboards-and-influxdb/) on the HPE Developer website.
+
 ![2022-10-21 15_18_30-HPE OneView using InfluxDB and PowerShell - Grafana — Mozilla Firefox](https://user-images.githubusercontent.com/13134334/197205198-643b505a-a67b-4ef4-8bec-c8be80515c32.png)
 
-To learn more about how to monitor HPE OneView infrastructure with Grafana Metrics Dashboards and InfluxDB, see this [blog post](https://developer.hpe.com/blog/how-to-monitor-hpe-oneview-infrastructure-with-grafana-metrics-dashboards-and-influxdb/) on the HPE Developer Blog website.
+
 
 These PowerShell scripts can be used to generate data for a Grafana metrics dashboard for any HPE Compute infrastructure managed by HPE OneView via an Influx database.
 
