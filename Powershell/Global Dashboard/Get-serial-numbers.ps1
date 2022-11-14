@@ -1,6 +1,6 @@
 <# 
 
-This script generates an Excel file with multiple worksheets of all servers, frames and Virtual Connect modules serial number managed by HPE OneView Global Dashboard
+This script generates an Excel file with multiple spreadsheets of server, frame and Virtual Connect module serial numbers managed by HPE OneView Global Dashboard
 
 Requirements:
    - HPE Global Dashboard administrator account 
