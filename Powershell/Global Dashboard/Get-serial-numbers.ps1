@@ -119,7 +119,7 @@ foreach ($OVappliance in $OVappliances) {
     # Retrieve Server hardware information
     $SH_DB = @{}
 
-    $SHs = (invoke-webrequest -Uri "https://$OVIP/rest/server-hardware" -Headers $OVheaders -Method Get | ConvertFrom-Json).members 
+    $SHs = ((invoke-webrequest -Uri "https://$OVIP/rest/server-hardware" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? model -match "Gen10"
      
     foreach ($SH in $SHs) {
           
