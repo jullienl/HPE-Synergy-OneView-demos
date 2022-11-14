@@ -1,11 +1,11 @@
 <# 
 
-This script generates an Excel file with multiple spreadsheets of server, frame and Virtual Connect module serial numbers managed by HPE OneView Global Dashboard
+This script generates an Excel file with multiple spreadsheets of server, frame and Virtual Connect module serial numbers managed by the list of HPE OneView appliances. 
 
 Requirements:
-   - HPE Global Dashboard administrator account 
+   - HPE OneView administrator account 
+   - HPE OneView Powershell Library
    - Microsoft Excel installed and licensed (required to generate the Excel file with multiple spreadsheets)
-   
 
 
   Author: lionel.jullien@hpe.com
@@ -39,18 +39,22 @@ Requirements:
 #>
 
 
-# Global Dashboard information
-$username = "Administrator"
-$globaldashboard = "oneview-global-dashboard.lj.lab"
- 
+$appliances = @("192.168.1.110", "192.168.1.10")
+
 # Location of the folder to temporarily generate CSV files
-$path = '.\Powershell\Global Dashboard'
+$path = '.\Powershell\Compute'
 
 #################################################################################
 
-$secpasswd = read-host  "Please enter the OneView Global Dashboard password" -AsSecureString
+
+# OneView Credentials
+$OV_username = "Administrator" 
+$secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-# To avoid with self-signed certificate: could not establish trust relationship for the SSL/TLS Secure Channel – Invoke-WebRequest
+# Connection to the OneView / Synergy Composer
+$credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
+
+
 add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
@@ -65,63 +69,22 @@ add-type -TypeDefinition  @"
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-################################################################################# 
+#################################################################################
 
-#Creation of the header
-$headers = @{ } 
-$headers["content-type"] = "application/json" 
-
-# Capturing X-API Version
-$xapiversion = ((invoke-webrequest -Uri "https://$globaldashboard/rest/version" -Headers $headers -Method GET ).Content | Convertfrom-Json).currentVersion
-
-$headers["X-API-Version"] = $xapiversion
-
-
-$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secpasswd)
-$password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr) 
-
-#Creation of the body
-#$Body = @{userName = $username; password = $password; authLoginDomain = "lj.lab" } | ConvertTo-Json 
-$Body = @{userName = $username; password = $password; domain = "local" } | ConvertTo-Json 
-
-
-#Opening a login session with Global DashBoard
-$session = invoke-webrequest -Uri "https://$globaldashboard/rest/login-sessions" -Headers $headers -Body $Body -Method Post 
-
-#Capturing the OneView Global DashBoard Session ID and adding it to the header
-$key = ($session.content | ConvertFrom-Json).sessionID
-$headers["auth"] = $key
-
-# Capturing managed appliances
-$ManagedAppliances = (invoke-webrequest -Uri "https://$globaldashboard/rest/appliances" -Headers $headers -Method GET) | ConvertFrom-Json
-
-$OVappliances = $ManagedAppliances.members | ? model -match "Composer"
-
-foreach ($OVappliance in $OVappliances) {
-
-    $OVssoid = $false
-    Write-host "`nAppliance name: "-nonewline ; Write-Host $OVappliance.applianceName -f Green  
-    Write-host "Appliance IP: "-nonewline ; Write-Host $OVappliance.applianceLocation -f Green  
-
-    $OVIP = $OVappliance.applianceLocation
-    $ID = $OVappliance.id
-    $apiversion = $OVappliance.currentApiVersion
-
-    #Creation of the header
-    $OVheaders = @{ } 
-    $OVheaders["content-type"] = "application/json" 
-    $OVheaders["X-API-Version"] = $apiversion
+foreach ($appliance in $appliances) {
+   
+    try {
+        Connect-OVMgmt -Hostname $appliance -Credential $credentials -ErrorAction stop | Out-Null    
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        return
+    }
     
-    do {
-        $OVssoid = ((invoke-webrequest -Uri "https://$globaldashboard/rest/appliances/$ID/sso" -Headers $headers -Method GET) | ConvertFrom-Json).sessionID
-    } until ($OVssoid )
-       
-    $OVheaders["auth"] = $OVssoid
-
     # Retrieve Server hardware information
     $SH_DB = @{}
 
-    $SHs = ((invoke-webrequest -Uri "https://$OVIP/rest/server-hardware" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? model -match "Gen10"
+    $SHs = Get-OVServer | ? model -match "Gen10"
      
     foreach ($SH in $SHs) {
           
@@ -134,7 +97,7 @@ foreach ($OVappliance in $OVappliances) {
     # Retrieve Frame information
     $Frame_DB = @{}
 
-    $Frames = (invoke-webrequest -Uri "https://$OVIP/rest/enclosures" -Headers $OVheaders -Method Get | ConvertFrom-Json).members 
+    $Frames = Get-OVEnclosure 
         
     foreach ($frame in $Frames) {
              
@@ -147,7 +110,7 @@ foreach ($OVappliance in $OVappliances) {
     # Retrieve Virtual Connect information
     $VC_DB = @{}
 
-    $VCs = ((invoke-webrequest -Uri "https://$OVIP/rest/interconnects" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? productname -match "Virtual Connect"
+    $VCs = Get-OVInterconnect | ? productname -match "Virtual Connect"
     
     foreach ($VC in $VCs) {
          
@@ -159,7 +122,6 @@ foreach ($OVappliance in $OVappliances) {
    
 
 }
-
 
 $SH_DB.GetEnumerator() | Select-Object -Property @{N = 'Compute Names'; E = { $_.Key } }, @{N = 'Serial Numbers'; E = { $_.Value } } |   Export-Csv -NoTypeInformation "$path\Computes_Report.csv"
 $Frame_DB.GetEnumerator() | Select-Object -Property @{N = 'Frame Names'; E = { $_.Key } }, @{N = 'Serial Numbers'; E = { $_.Value } } |   Export-Csv -NoTypeInformation  "$path\Frames_Report.csv"
