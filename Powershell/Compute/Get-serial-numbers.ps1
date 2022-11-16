@@ -1,6 +1,6 @@
 <# 
 
-This script generates an Excel file with multiple spreadsheets of server, frame and Virtual Connect module serial numbers managed by the list of HPE OneView appliances. 
+This script generates an Excel file with multiple spreadsheets of Gen10 server, frame and Virtual Connect module serial numbers managed by the list of HPE OneView appliances. 
 
 Requirements:
    - HPE OneView administrator account 
@@ -71,6 +71,10 @@ add-type -TypeDefinition  @"
 
 #################################################################################
 
+$SH_DB = @{}
+$Frame_DB = @{}
+$VC_DB = @{}
+
 foreach ($appliance in $appliances) {
    
     try {
@@ -82,7 +86,7 @@ foreach ($appliance in $appliances) {
     }
     
     # Retrieve Server hardware information
-    $SH_DB = @{}
+ 
 
     $SHs = Get-OVServer | ? model -match "Gen10"
      
@@ -91,11 +95,11 @@ foreach ($appliance in $appliances) {
         $SH_name = $SH.name
         $SH_serialNumber = $SH.serialNumber
 
-        $SH_DB["$($SH_name)"] = $SH_serialNumber
+        $SH_DB["$($SH_name)"] += $SH_serialNumber
     }
 
     # Retrieve Frame information
-    $Frame_DB = @{}
+
 
     $Frames = Get-OVEnclosure 
         
@@ -104,11 +108,11 @@ foreach ($appliance in $appliances) {
         $frame_name = $frame.name
         $frame_serialNumber = $frame.serialNumber
    
-        $Frame_DB["$($frame_name)"] = $frame_serialNumber
+        $Frame_DB["$($frame_name)"] += $frame_serialNumber
     }
        
     # Retrieve Virtual Connect information
-    $VC_DB = @{}
+
 
     $VCs = Get-OVInterconnect | ? productname -match "Virtual Connect"
     
@@ -117,10 +121,10 @@ foreach ($appliance in $appliances) {
         $VC_name = $VC.name
         $VC_serialNumber = $VC.serialNumber
 
-        $VC_DB["$($VC_name)"] = $VC_serialNumber
+        $VC_DB["$($VC_name)"] += $VC_serialNumber
     }
    
-
+    $ConnectedSessions | Disconnect-OVMgmt
 }
 
 $SH_DB.GetEnumerator() | Select-Object -Property @{N = 'Compute Names'; E = { $_.Key } }, @{N = 'Serial Numbers'; E = { $_.Value } } |   Export-Csv -NoTypeInformation "$path\Computes_Report.csv"

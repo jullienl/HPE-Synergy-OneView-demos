@@ -1,6 +1,6 @@
 <# 
 
-This script generates an Excel file with multiple spreadsheets of server, frame and Virtual Connect module serial numbers managed by HPE OneView Global Dashboard
+This script generates an Excel file with multiple spreadsheets of Gen10 server, frame and Virtual Connect module serial numbers managed by HPE OneView Global Dashboard
 
 Requirements:
    - HPE Global Dashboard administrator account 
@@ -97,6 +97,10 @@ $ManagedAppliances = (invoke-webrequest -Uri "https://$globaldashboard/rest/appl
 
 $OVappliances = $ManagedAppliances.members | ? model -match "Composer"
 
+$SH_DB = @{}
+$VC_DB = @{}
+$Frame_DB = @{}
+
 foreach ($OVappliance in $OVappliances) {
 
     $OVssoid = $false
@@ -119,7 +123,6 @@ foreach ($OVappliance in $OVappliances) {
     $OVheaders["auth"] = $OVssoid
 
     # Retrieve Server hardware information
-    $SH_DB = @{}
 
     $SHs = ((invoke-webrequest -Uri "https://$OVIP/rest/server-hardware" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? model -match "Gen10"
      
@@ -128,11 +131,10 @@ foreach ($OVappliance in $OVappliances) {
         $SH_name = $SH.name
         $SH_serialNumber = $SH.serialNumber
 
-        $SH_DB["$($SH_name)"] = $SH_serialNumber
+        $SH_DB["$($SH_name)"] += $SH_serialNumber
     }
 
     # Retrieve Frame information
-    $Frame_DB = @{}
 
     $Frames = (invoke-webrequest -Uri "https://$OVIP/rest/enclosures" -Headers $OVheaders -Method Get | ConvertFrom-Json).members 
         
@@ -141,11 +143,10 @@ foreach ($OVappliance in $OVappliances) {
         $frame_name = $frame.name
         $frame_serialNumber = $frame.serialNumber
    
-        $Frame_DB["$($frame_name)"] = $frame_serialNumber
+        $Frame_DB["$($frame_name)"] += $frame_serialNumber
     }
        
     # Retrieve Virtual Connect information
-    $VC_DB = @{}
 
     $VCs = ((invoke-webrequest -Uri "https://$OVIP/rest/interconnects" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? productname -match "Virtual Connect"
     
@@ -154,7 +155,7 @@ foreach ($OVappliance in $OVappliances) {
         $VC_name = $VC.name
         $VC_serialNumber = $VC.serialNumber
 
-        $VC_DB["$($VC_name)"] = $VC_serialNumber
+        $VC_DB["$($VC_name)"] += $VC_serialNumber
     }
    
 
