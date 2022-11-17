@@ -1,6 +1,9 @@
 <# 
 
-This script generates an Excel file with multiple spreadsheets of Gen10 server, frame and Virtual Connect module serial numbers managed by HPE OneView Global Dashboard
+This script generates an Excel file with the resource names and serial numbers of Synergy Gen10/Gen10 Plus servers, 
+Synergy frames and Synergy Virtual Connect modules managed by HPE OneView Global Dashboard. 
+
+A spreadsheet is generated for each resource type.
 
 Requirements:
    - HPE Global Dashboard administrator account 
