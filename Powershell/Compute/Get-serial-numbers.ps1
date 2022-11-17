@@ -1,6 +1,9 @@
 <# 
 
-This script generates an Excel file with multiple spreadsheets of Gen10 server, frame and Virtual Connect module serial numbers managed by the list of HPE OneView appliances. 
+This script generates an Excel file with the resource names and serial numbers of Synergy Gen10/Gen10 Plus servers, 
+Synergy frames and Synergy Virtual Connect modules managed by HPE OneView. 
+
+A spreadsheet is generated for each resource type.
 
 Requirements:
    - HPE OneView administrator account 
@@ -88,7 +91,7 @@ foreach ($appliance in $appliances) {
     # Retrieve Server hardware information
  
 
-    $SHs = Get-OVServer | ? model -match "Gen10"
+    $SHs = Get-OVServer | ? model -match "Synergy" | ? model -match "Gen10"
      
     foreach ($SH in $SHs) {
           
@@ -101,7 +104,7 @@ foreach ($appliance in $appliances) {
     # Retrieve Frame information
 
 
-    $Frames = Get-OVEnclosure 
+    $Frames = Get-OVEnclosure | ? enclosureModel -match "Synergy"
         
     foreach ($frame in $Frames) {
              
@@ -114,7 +117,7 @@ foreach ($appliance in $appliances) {
     # Retrieve Virtual Connect information
 
 
-    $VCs = Get-OVInterconnect | ? productname -match "Virtual Connect"
+    $VCs = Get-OVInterconnect | ? productname -match "Virtual Connect"  | ? productname -match "Synergy"
     
     foreach ($VC in $VCs) {
          
