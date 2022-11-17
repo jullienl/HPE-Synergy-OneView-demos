@@ -124,7 +124,7 @@ foreach ($OVappliance in $OVappliances) {
 
     # Retrieve Server hardware information
 
-    $SHs = ((invoke-webrequest -Uri "https://$OVIP/rest/server-hardware" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? model -match "Gen10"
+    $SHs = ((invoke-webrequest -Uri "https://$OVIP/rest/server-hardware?start=0&count=10000" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? model -match "Synergy" | ? model -match "Gen10"
      
     foreach ($SH in $SHs) {
           
@@ -136,7 +136,7 @@ foreach ($OVappliance in $OVappliances) {
 
     # Retrieve Frame information
 
-    $Frames = (invoke-webrequest -Uri "https://$OVIP/rest/enclosures" -Headers $OVheaders -Method Get | ConvertFrom-Json).members 
+    $Frames = (invoke-webrequest -Uri "https://$OVIP/rest/enclosures?start=0&count=1000" -Headers $OVheaders -Method Get | ConvertFrom-Json).members | ? enclosureModel -match "Synergy"
         
     foreach ($frame in $Frames) {
              
@@ -148,7 +148,7 @@ foreach ($OVappliance in $OVappliances) {
        
     # Retrieve Virtual Connect information
 
-    $VCs = ((invoke-webrequest -Uri "https://$OVIP/rest/interconnects" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? productname -match "Virtual Connect"
+    $VCs = ((invoke-webrequest -Uri "https://$OVIP/rest/interconnects?start=0&count=2000" -Headers $OVheaders -Method Get | ConvertFrom-Json).members ) | ? productname -match "Virtual Connect"  | ? productname -match "Synergy"
     
     foreach ($VC in $VCs) {
          
