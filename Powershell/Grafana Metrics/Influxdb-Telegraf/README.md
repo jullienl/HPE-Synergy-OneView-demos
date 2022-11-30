@@ -6,6 +6,9 @@ The Telegraf exec input plugin is used to run the PowerShell scripts.
 
 > Note that Python scripts can also be used, provided that the server is running Python.
 
+![image](https://user-images.githubusercontent.com/13134334/204871401-9c350cac-d42d-4704-a02c-22e98e63eff9.png)
+
+
 More information about the Exec input plugin can be found at https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec 
 
 ## Telegraf configuration 
