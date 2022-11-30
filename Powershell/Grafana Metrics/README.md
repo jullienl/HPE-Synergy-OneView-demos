@@ -16,3 +16,10 @@ from a Windows machine by using the Task Scheduler and setting a "At system star
 
 The Influx database is created during execution if it does not exist on the InfluxDB server. For each resource, a database measure is generated.
 
+## Alternative option: Telegraf + exec plugin
+
+Telegraf is an InfluxData server agent that can be used to collect and send metrics to an influxdb database. To collect the metrics, the exec plugin can be used to run commands or scripts in parallel at each interval and can parse the metrics from their output into an influx input data format.
+
+The advantage of Telegraf over the Windows task scheduler or the Linux crontab configuration is the ease of managing the execution of scripts via a configuration file in which you can define an execution interval for each script, which greatly facilitates automatic task management.
+
+See [Influxdb/Telegraf/Grafana for HPE OneView](https://github.com/jullienl/HPE-Synergy-OneView-demos/tree/master/Powershell/Grafana%20Metrics/Influxdb-Telegraf)
