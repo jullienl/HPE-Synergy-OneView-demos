@@ -1,6 +1,9 @@
 ﻿<# 
 
-This PowerShell script disables the TLS1.0 and 1.1 protocols on the Synergy Composer appliance. 
+Typical example of a PowerShell script that does not use the HPE OneView PowerShell library but uses native OneView API requests. 
+Very useful to understand the mechanics of session creation, headers and payloads needed to interact with the HPE OneView RestFul API.  
+
+This PowerShell script shows an example of how to disable TLS1.0 and 1.1 protocols on an HPE Synergy Composer or HPE OneView appliance. 
 
 Important note: Enabling/Disabling TLS protocols reboots the appliance automatically for the changes to take effect. 
 This reboot does not affect Compute modules and Interconnect Modules, only the management plane is impacted.
@@ -38,42 +41,42 @@ Requirements:
 #>
 
 # OneView information
-$username = "Administrator"
-$IP = "composer.lj.lab"
+$OVusername = "Administrator"
+$OVpassword = "password"
+$OVIP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
-
-# HPEOneView
-# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
-
+# NONE
 
 #################################################################################
 
+# Get-X-API-Version
+$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET 
+$currentVersion = $response.currentVersion
 
+# Headers creation
+$headers = @{} 
+$headers["X-API-Version"] = "$currentVersion"
+$headers["Content-Type"] = "application/json"
 
-# Connection to the OneView / Synergy Composer
-
-if (! $ConnectedSessions) {
-
-  $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
-  
-  $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-
-  try {
-    Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
-  }
-  catch {
-    Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
-    return
-  }
+# Payload creation
+$body = @"
+{
+  "authLoginDomain": "Local",
+  "password": "$OVpassword",
+  "userName": "$OVusername"
 }
+"@
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# Connection to OneView / Synergy Composer
+$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body
 
+# Capturing the OneView Session ID
+$sessionID = $response.sessionID
 
-Clear-Host
-
+# Policy settings and self-signed certificate policy validation
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 add-type -TypeDefinition  @"
         using System.Net;
@@ -89,37 +92,35 @@ add-type -TypeDefinition  @"
    
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
-
 #########################################################################################################
 
+# Modification of the TLS settings
 
+# Add AUTH to Headers
+$headers["auth"] = $sessionID
 
-# Capturing the OneView Session ID
-$key = $ConnectedSessions[0].SessionID 
+# Payload creation
+$body = @"
+[
+  {
+    "protocolName":"TLSv1",
+    "enabled":false
+  },
+  {
+    "protocolName":"TLSv1.1",
+    "enabled":false
+  },
+  {
+    "protocolName":"TLSv1.2",
+    "enabled":true
+  }
+]
+"@
 
-# Headers creation
-$headers = @{} 
-$headers["auth"] = $key
-$headers["X-API-Version"] = "1200"
-$headers["Content-Type"] = "application/json"
-
-$body = "    [  
-`n        {
-`n        `"protocolName`":`"TLSv1`",
-`n        `"enabled`":false
-`n        },
-`n        {
-`n        `"protocolName`":`"TLSv1.1`",
-`n        `"enabled`":false
-`n        },
-`n        {
-`n        `"protocolName`":`"TLSv1.2`",
-`n        `"enabled`":true
-`n        }
-`n  ]"
-
+# Protocols PUT request 
 try {
-  $response = Invoke-RestMethod "https://$($OV_IP)/rest/security-standards/protocols" -Method 'PUT' -Headers $headers -Body $body
+  $response = Invoke-RestMethod "https://$OVIP/rest/security-standards/protocols" -Method PUT -Headers $headers -Body $body
+  $response
 }
 catch {
   $response | ConvertTo-Json 
@@ -127,4 +128,4 @@ catch {
 
 
 write-host "OneView is now rebooting..."
-Disconnect-OVMgmt
+
