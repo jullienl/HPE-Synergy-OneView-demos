@@ -12,10 +12,10 @@ The interconnect port IDs utilization statistics supported are: Rx Kb/s, Rx KB/s
             
 The Influx database is created during execution if it does not exist on the InfluxDB server. For each interconnect, a database measure is generated.
 
-Note: HPE OneView and Influx Powershell Libraries will be installed if they are not installed.
 
 Requirements: 
     - Grafana configured with an InfluxDB data source
+    - Influx Powershell Library (will be installed if it is not present)
     - InfluxDB 
          - With http Authentication enabled (auth-enabled = true in /etc/influxdb/influxdb.conf)
          - With port 8086 opened on the firewall (8086 is used for client-server communication over InfluxDB’s HTTP API) 
@@ -67,64 +67,53 @@ $influxdb_admin = "admin"
 $influxdb_admin_password = "password"
 $Database = "ov_icm_db"
 
-# OneView 
-$OneView = "composer.lab"     
-$OV_username = "Administrator"
-$OV_passwd = "password"
+
+# OneView information
+$OVusername = "Administrator"
+$OVpassword = "password"
+$OVIP = "composer.lab"
+
 
 # MODULES TO INSTALL
-
-# HPEOneView
-If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope CurrentUser -Force -Confirm:$False }
 
 # Influx  
 If (-not (get-module Influx -ListAvailable )) { Install-Module -Name Influx -scope CurrentUser -Force -Confirm:$False }
 
 #################################################################################
 
-# Connection to HPE OneView
-
-if (-not $ConnectedSessions) {
-
-    try {
-
-        #read-host  "Please enter the OneView password" -AsSecureString
-        $secpasswd = ConvertTo-SecureString -String $OV_passwd -AsPlainText -Force
-
-        # Connection to the OneView / Synergy Composer
-        $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-        Connect-OVMgmt -Hostname $OneView -Credential $credentials -ErrorAction stop | Out-Null    
-    }
-    catch {
-    
-        Disconnect-OVMgmt
-        Connect-OVMgmt -Hostname $OneView -Credential $credentials -ErrorAction stop | Out-Null    
-
-        #Write-Warning "Cannot connect to '$OneView'! Exiting... "
-        #return
-    }
-}
-
-#Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-add-type -TypeDefinition  @"
-    using System.Net;
-    using System.Security.Cryptography.X509Certificates;
-    public class TrustAllCertsPolicy : ICertificatePolicy {
-        public bool CheckValidationResult(
-            ServicePoint srvPoint, X509Certificate certificate,
-            WebRequest request, int certificateProblem) {
-            return true;
-        }
-    }
-"@
-
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-
-   
+# Policy settings and self-signed certificate policy validation
+# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 #################################################################################
+
+# Get-X-API-Version
+$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET #-SkipCertificateCheck
+$currentVersion = $response.currentVersion
+
+# Headers creation
+$headers = @{} 
+$headers["X-API-Version"] = "$currentVersion"
+$headers["Content-Type"] = "application/json"
+
+# Payload creation
+$body = @"
+{
+  "authLoginDomain": "Local",
+  "password": "$OVpassword",
+  "userName": "$OVusername"
+}
+"@
+
+# Connection to OneView / Synergy Composer
+$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body #-SkipCertificateCheck
+
+# Capturing the OneView Session ID
+$sessionID = $response.sessionID
+
+# Add AUTH to Headers
+$headers["auth"] = $sessionID
+
+#########################################################################################################
 
 # InfluxDB database creation if not exist
 
@@ -141,21 +130,37 @@ if ( -not ($databases | ? { $_ -match $Database }) ) {
 
 }
 
-# Running Show-OVPortStatistics as it throws an error the first time it runs
-Show-OVPortStatistics -Interconnect $Ports.GetEnumerator().name[0]  | out-null
 
 While ($true) {
 
     foreach ($Interconnect in $Ports.GetEnumerator()) {
+
+        $filter = "'name'='{0}'" -f $interconnect.Name
+
+        $url = 'https://{0}/rest/interconnects/?filter="{1}"' -f $OVIP, $filter
+    
+        $response = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+        $VCuri = $response.members[0].uri
+
         # Write-Host $Interconnect.Name
         # Write-host $Interconnect.Value    
 
         foreach ($port in $Interconnect.Value) {
-            $PortStatistics = Show-OVPortStatistics -Interconnect $Interconnect.Name -Port $port 
+
+            $url = 'https://{0}{1}/statistics/{2}' -f $OVIP, $VCuri, $port
+
+            do {
+                $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+                
+            } until (
+                $PortStatistics
+            )
+        
             $Interconnectname = $interconnect.name.Replace(" ", "").Replace(",", "-")
             $portname = $port.Replace(":", "-")
             $measure = $Interconnectname + "-" + $portname
-       
+            
+            "`nMeasure: {0} " -f $measure
     
             # Advanced statistics
             $receiveKilobitsPerSec = $PortStatistics.advancedStatistics.receiveKilobitsPerSec.Split(":")[0] -as [int]
@@ -170,7 +175,9 @@ While ($true) {
                 receivePacketsPerSec           = $receivePacketsPerSec
     
             }
-    
+            
+            $Metrics | Out-Host
+            
             Write-Influx -Measure $measure -Tags @{Interconnect = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
 
         }

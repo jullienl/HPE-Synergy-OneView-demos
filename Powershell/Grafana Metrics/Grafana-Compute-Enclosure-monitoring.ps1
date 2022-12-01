@@ -13,10 +13,10 @@ The resource utilization metrics supported for server are CPU, power and tempera
             
 The Influx database is created during execution if it does not exist on the InfluxDB server. For each resource, a database measure is generated.
 
-Note: HPE OneView and Influx Powershell Libraries will be installed if they are not installed.
 
 Requirements: 
     - Grafana configured with an InfluxDB data source
+    - Influx Powershell Library (will be installed if it is not present)    
     - InfluxDB 
          - With http Authentication enabled (auth-enabled = true in /etc/influxdb/influxdb.conf)
          - With port 8086 opened on the firewall (8086 is used for client-server communication over InfluxDB’s HTTP API) 
@@ -61,15 +61,13 @@ Requirements:
 #      - Enclosure: Power and Temperature
 
 $Resources = @{ 
-
-    "Frame3, bay 7"  = @("CPU", "Power", "Temperature" )
-    "Frame3, bay 12" = @("CPU", "Power", "Temperature" )
-    "Frame1"         = @("Power", "Temperature")
-    "Frame2"         = @("Power", "Temperature")
-    "Frame3"         = @("Power", "Temperature")
-    "Frame4"         = @("Power", "Temperature")
-    "Esx-1"          = @("CPU", "Power", "Temperature" )
-
+    "ESX-1"         = @("CPU", "Power", "Temperature" )
+    "RHEL83-1"      = @("CPU", "Power", "Temperature" )
+    "Frame3, bay 1" = @("CPU", "Power", "Temperature" )
+    "Frame1"        = @("Power", "Temperature")
+    "Frame2"        = @("Power", "Temperature")
+    "Frame3"        = @("Power", "Temperature")
+    "Frame4"        = @("Power", "Temperature")
 }
       
    
@@ -79,64 +77,52 @@ $influxdb_admin = "admin"
 $influxdb_admin_password = "password"
 $Database = "ov_server_db"
 
-# OneView 
-$OneView = "composer.lab"     
-$OV_username = "Administrator"
-$OV_passwd = "password"
+# OneView information
+$OVusername = "Administrator"
+$OVpassword = "password"
+$OVIP = "composer.lab"
+
 
 # MODULES TO INSTALL
-
-# HPEOneView
-If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope CurrentUser -Force -Confirm:$False }
 
 # Influx  
 If (-not (get-module Influx -ListAvailable )) { Install-Module -Name Influx -scope CurrentUser -Force -Confirm:$False }
 
 #################################################################################
 
-# Connection to HPE OneView
-
-if (-not $ConnectedSessions) {
-
-    try {
-
-        #read-host  "Please enter the OneView password" -AsSecureString
-        $secpasswd = ConvertTo-SecureString -String $OV_passwd -AsPlainText -Force
-
-        # Connection to the OneView / Synergy Composer
-        $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-        Connect-OVMgmt -Hostname $OneView -Credential $credentials -ErrorAction stop | Out-Null    
-    }
-    catch {
-    
-        Disconnect-OVMgmt
-        Connect-OVMgmt -Hostname $OneView -Credential $credentials -ErrorAction stop | Out-Null    
-
-        #Write-Warning "Cannot connect to '$OneView'! Exiting... "
-        #return
-    }
-}
-
-#Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-add-type -TypeDefinition  @"
-    using System.Net;
-    using System.Security.Cryptography.X509Certificates;
-    public class TrustAllCertsPolicy : ICertificatePolicy {
-        public bool CheckValidationResult(
-            ServicePoint srvPoint, X509Certificate certificate,
-            WebRequest request, int certificateProblem) {
-            return true;
-        }
-    }
-"@
-
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-
-   
+# Policy settings and self-signed certificate policy validation
+# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 #################################################################################
+
+# Get-X-API-Version
+$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET #-SkipCertificateCheck
+$currentVersion = $response.currentVersion
+
+# Headers creation
+$headers = @{} 
+$headers["X-API-Version"] = "$currentVersion"
+$headers["Content-Type"] = "application/json"
+
+# Payload creation
+$body = @"
+{
+  "authLoginDomain": "Local",
+  "password": "$OVpassword",
+  "userName": "$OVusername"
+}
+"@
+
+# Connection to OneView / Synergy Composer
+$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body #-SkipCertificateCheck
+
+# Capturing the OneView Session ID
+$sessionID = $response.sessionID
+
+# Add AUTH to Headers
+$headers["auth"] = $sessionID
+
+#########################################################################################################
 
 # InfluxDB database creation if not exist
 
@@ -166,16 +152,26 @@ While ($true) {
 
         $Metrics = @{}
 
+        $filter = "'name'='{0}'" -f $Resource.Name
+
+        $url = 'https://{0}/rest/enclosures/?filter="{1}"' -f $OVIP, $filter
+        $frameFound = Invoke-RestMethod $url -Method GET -Headers $headers  #-SkipCertificateCheck
+        $url = 'https://{0}/rest/server-hardware/?filter="{1}"' -f $OVIP, $filter
+        $ServerFound = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+        $url = 'https://{0}/rest/server-profiles/?filter="{1}"' -f $OVIP, $filter
+        $ServerProfileFound = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+
+        
         # If ressource is a frame
-        if (Get-OVenclosure -name $Resource.Key -ErrorAction Ignore) {
+        if ($frameFound.count) {
             $type = "enclosure"
         }
         # If ressource is a server hardware
-        elseif (Get-OVServer -name $Resource.Key -ErrorAction Ignore ) {
+        elseif ($ServerFound.count) {
             $type = "server"
         }
         # If ressource is a server profile
-        elseif (Get-OVProfile -name $Resource.Key -ErrorAction Ignore ) {
+        elseif ($ServerProfileFound.count) {
             $type = "serverprofile" 
         }
 
@@ -185,6 +181,9 @@ While ($true) {
        
             if ( $type -eq "enclosure") {
 
+                $url = 'https://{0}/rest/enclosures/?filter="{1}"' -f $OVIP, $filter
+                $frameUri = (Invoke-RestMethod $url -Method GET -Headers $headers).members[0].uri 
+
                 if ($metric -eq "CPU") {
 
                     Write-Warning "CPU metric is not supported for enclosures ! Exiting..."
@@ -193,15 +192,19 @@ While ($true) {
                 }
                 elseif ($metric -eq "Power") {
 
-                    $utilization = [int](Get-OVEnclosure -name $Resource.Key | Show-OVUtilization | % powercurrent | % watts)
-                    $Metrics += @{Power = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $frameUri
+                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1]
+
+                    $Metrics += @{Power = $AveragePower }
 
     
                 }
                 elseif ($metric -eq "Temperature") {
 
-                    $utilization = [int](Get-OVEnclosure -name $Resource.Key | Show-OVUtilization | % AmbientTemperature | % Celsius)
-                    $Metrics += @{Temperature = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $frameUri
+                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+    
+                    $Metrics += @{Temperature = $AmbientTemperature }
 
                 }
 
@@ -209,51 +212,70 @@ While ($true) {
             }
             elseif ($type -eq "server") {
 
+                $url = 'https://{0}/rest/server-hardware/?filter="{1}"' -f $OVIP, $filter
+                $SHUri = (Invoke-RestMethod $url -Method GET -Headers $headers).members[0].uri 
+
                 if ($metric -eq "CPU") {
 
-                    $utilization = [int](Get-OVServer -name $Resource.Key | Show-OVUtilization | % CPUCurrent)
-                    $Metrics += @{CPU = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=CpuUtilization' -f $OVIP, $SHUri
+                    $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+    
+                    $Metrics += @{CPU = $CpuUtilization }
 
                 }
                 elseif ($metric -eq "Power") {
 
-                    $utilization = [int](Get-OVServer -name $Resource.Key | Show-OVUtilization | % powercurrent | % watts)
-                    $Metrics += @{Power = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $SHUri
+                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+    
+                    $Metrics += @{Power = $AveragePower }
     
                 }
                 elseif ($metric -eq "Temperature") {
 
-                    $utilization = [int](Get-OVServer -name $Resource.Key | Show-OVUtilization | % AmbientTemperature | % Celsius)
-                    $Metrics += @{Temperature = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $SHUri
+                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+    
+                    $Metrics += @{Temperature = $AmbientTemperature }
                 }
             }
             elseif ($type -eq "serverprofile") {
+
+                $filter = "'name'='{0}'" -f $Resource.Name
+                $url = 'https://{0}/rest/server-profiles/?filter="{1}"' -f $OVIP, $filter
+                $SPuri = (Invoke-RestMethod $url -Method GET -Headers $headers).members[0].uri 
+                
+                $url = 'https://{0}/rest/index/associations?parentUri={1}&name=server_profiles_to_server_hardware' -f $OVIP, $SPuri
+                $SHUri = (Invoke-RestMethod $url -Method GET -Headers $headers).members.childUri
                 
                 if ($metric -eq "CPU") {
 
-                    $utilization = [int](Get-OVServerProfile -name $Resource.Key | Show-OVUtilization | % CPUCurrent)
-                    $Metrics += @{CPU = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=CpuUtilization' -f $OVIP, $SHUri
+                    $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+
+                    $Metrics += @{CPU = $CpuUtilization }
 
                 }
                 elseif ($metric -eq "Power") {
 
-                    $utilization = [int](Get-OVServerProfile -name $Resource.Key | Show-OVUtilization | % powercurrent | % watts)
-                    $Metrics += @{Power = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $SHUri
+                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $Metrics += @{Power = $AveragePower }
     
                 }
                 elseif ($metric -eq "Temperature") {
 
-                    $utilization = [int](Get-OVServerProfile -name $Resource.Key | Show-OVUtilization | % AmbientTemperature | % Celsius)
-                    $Metrics += @{Temperature = $utilization }
+                    $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $SHUri
+                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+    
+                    $Metrics += @{Temperature = $AmbientTemperature }
 
                 }
 
             }
-
-            # write-host " - $($metric)"
-                 
-            
+                  
         }
+
         $Metrics | Out-Host
 
         Write-Influx -Measure $measure -Tags @{$type = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
