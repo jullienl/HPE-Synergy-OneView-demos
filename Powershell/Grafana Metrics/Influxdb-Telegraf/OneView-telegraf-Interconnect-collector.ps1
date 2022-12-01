@@ -131,7 +131,10 @@ foreach ($Interconnect in $Ports.GetEnumerator()) {
         
         $url = 'https://{0}{1}/statistics/{2}' -f $OVIP, $VCuri, $port
 
-        $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
+        do {
+            $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
+           
+        } until ($PortStatistics)
 
         $Interconnectname = $interconnect.name.Replace(" ", "").Replace(",", "-")
         $portname = $port.Replace(":", "-")
