@@ -14,6 +14,7 @@ The Influx database is created during execution if it does not exist on the Infl
 
 
 Requirements: 
+    - PowerShell 7 or higher
     - Grafana configured with an InfluxDB data source
     - Influx Powershell Library (will be installed if it is not present)
     - InfluxDB 
@@ -55,8 +56,9 @@ Requirements:
 
 # Ports to monitor (Q1, Q2,..Q6 or d1, d2,..d12 or Q1:1, Q1:2, etc.)
 $Ports = @{ 
-    "Frame3, Interconnect 3" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3" )
-    "Frame3, Interconnect 6" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "Q5:4" )
+    "Frame3, Interconnect 3" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "d1", "d2", "d3", "d4")
+    "Frame3, Interconnect 6" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "Q5:4", "d1", "d2", "d3", "d4")
+    "Frame1, Interconnect 3" = @("Q1", "Q2", "Q4:1", "Q5")
 
 }
       
@@ -81,13 +83,21 @@ If (-not (get-module Influx -ListAvailable )) { Install-Module -Name Influx -sco
 
 #################################################################################
 
+# Checking the PowerShell version
+if ( $psversiontable.PSVersion.major -eq 5) {
+    write-warning "PowerShell 5.x is not supported !"
+    exit
+}
+
 # Policy settings and self-signed certificate policy validation
-# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+if ( $psversiontable.PSedition -ne "Core") {
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+}
 
 #################################################################################
 
 # Get-X-API-Version
-$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET #-SkipCertificateCheck
+$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET -SkipCertificateCheck
 $currentVersion = $response.currentVersion
 
 # Headers creation
@@ -105,7 +115,7 @@ $body = @"
 "@
 
 # Connection to OneView / Synergy Composer
-$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body #-SkipCertificateCheck
+$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body -SkipCertificateCheck
 
 # Capturing the OneView Session ID
 $sessionID = $response.sessionID
@@ -121,12 +131,12 @@ $secpasswd = ConvertTo-SecureString -String $influxdb_admin_password -AsPlainTex
 $credentials = New-Object System.Management.Automation.PSCredential ($influxdb_admin, $secpasswd)
         
 # Query InfluxDB existing databases
-$databases = ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials ).content | Convertfrom-Json).results.series.values
+$databases = ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials -AllowUnencryptedAuthentication ).content | Convertfrom-Json).results.series.values
 
 # If database does not exist, then let's create a new database
 if ( -not ($databases | ? { $_ -match $Database }) ) {
     Write-Debug "Database not found! Let's create one !"
-    Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials
+    Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials -AllowUnencryptedAuthentication
 
 }
 
@@ -139,7 +149,7 @@ While ($true) {
 
         $url = 'https://{0}/rest/interconnects/?filter="{1}"' -f $OVIP, $filter
     
-        $response = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+        $response = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
         $VCuri = $response.members[0].uri
 
         # Write-Host $Interconnect.Name
@@ -150,7 +160,7 @@ While ($true) {
             $url = 'https://{0}{1}/statistics/{2}' -f $OVIP, $VCuri, $port
 
             do {
-                $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+                $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
                 
             } until (
                 $PortStatistics
@@ -178,7 +188,7 @@ While ($true) {
             
             $Metrics | Out-Host
             
-            Write-Influx -Measure $measure -Tags @{Interconnect = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+            # Write-Influx -Measure $measure -Tags @{Interconnect = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
 
         }
 

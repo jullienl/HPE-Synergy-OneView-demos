@@ -15,6 +15,7 @@ The Influx database is created during execution if it does not exist on the Infl
 
 
 Requirements: 
+    - PowerShell 7 or higher
     - Grafana configured with an InfluxDB data source
     - Influx Powershell Library (will be installed if it is not present)    
     - InfluxDB 
@@ -53,8 +54,6 @@ Requirements:
 #################################################################################
 #>
 
-
-
 # Resources to monitor
 #    Resources utilization available: 
 #      - Server or Server Profile : CPU, Power and Temperature
@@ -90,13 +89,21 @@ If (-not (get-module Influx -ListAvailable )) { Install-Module -Name Influx -sco
 
 #################################################################################
 
+# Checking the PowerShell version
+if ( $psversiontable.PSVersion.major -eq 5) {
+    write-warning "PowerShell 5.x is not supported !"
+    exit
+}
+
 # Policy settings and self-signed certificate policy validation
-# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+if ( $psversiontable.PSedition -ne "Core") {
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+}
 
 #################################################################################
 
 # Get-X-API-Version
-$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET #-SkipCertificateCheck
+$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET -SkipCertificateCheck
 $currentVersion = $response.currentVersion
 
 # Headers creation
@@ -114,7 +121,7 @@ $body = @"
 "@
 
 # Connection to OneView / Synergy Composer
-$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body #-SkipCertificateCheck
+$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body -SkipCertificateCheck
 
 # Capturing the OneView Session ID
 $sessionID = $response.sessionID
@@ -130,12 +137,12 @@ $secpasswd = ConvertTo-SecureString -String $influxdb_admin_password -AsPlainTex
 $credentials = New-Object System.Management.Automation.PSCredential ($influxdb_admin, $secpasswd)
         
 # Query InfluxDB existing databases
-$databases = ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials ).content | Convertfrom-Json).results.series.values
+$databases = ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials -AllowUnencryptedAuthentication ).content | Convertfrom-Json).results.series.values
 
 # If database does not exist, then let's create a new database
 if ( -not ($databases | ? { $_ -match $Database }) ) {
     Write-Debug "Database not found! Let's create one !"
-    Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials
+    Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials -AllowUnencryptedAuthentication
 
 }
 
@@ -155,11 +162,11 @@ While ($true) {
         $filter = "'name'='{0}'" -f $Resource.Name
 
         $url = 'https://{0}/rest/enclosures/?filter="{1}"' -f $OVIP, $filter
-        $frameFound = Invoke-RestMethod $url -Method GET -Headers $headers  #-SkipCertificateCheck
+        $frameFound = Invoke-RestMethod $url -Method GET -Headers $headers  -SkipCertificateCheck
         $url = 'https://{0}/rest/server-hardware/?filter="{1}"' -f $OVIP, $filter
-        $ServerFound = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+        $ServerFound = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
         $url = 'https://{0}/rest/server-profiles/?filter="{1}"' -f $OVIP, $filter
-        $ServerProfileFound = Invoke-RestMethod $url -Method GET -Headers $headers #-SkipCertificateCheck
+        $ServerProfileFound = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
 
         
         # If ressource is a frame
@@ -182,7 +189,7 @@ While ($true) {
             if ( $type -eq "enclosure") {
 
                 $url = 'https://{0}/rest/enclosures/?filter="{1}"' -f $OVIP, $filter
-                $frameUri = (Invoke-RestMethod $url -Method GET -Headers $headers).members[0].uri 
+                $frameUri = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).members[0].uri 
 
                 if ($metric -eq "CPU") {
 
@@ -193,7 +200,7 @@ While ($true) {
                 elseif ($metric -eq "Power") {
 
                     $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $frameUri
-                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1]
+                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1]
 
                     $Metrics += @{Power = $AveragePower }
 
@@ -202,7 +209,7 @@ While ($true) {
                 elseif ($metric -eq "Temperature") {
 
                     $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $frameUri
-                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
                     $Metrics += @{Temperature = $AmbientTemperature }
 
@@ -213,12 +220,12 @@ While ($true) {
             elseif ($type -eq "server") {
 
                 $url = 'https://{0}/rest/server-hardware/?filter="{1}"' -f $OVIP, $filter
-                $SHUri = (Invoke-RestMethod $url -Method GET -Headers $headers).members[0].uri 
+                $SHUri = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).members[0].uri 
 
                 if ($metric -eq "CPU") {
 
                     $url = 'https://{0}{1}/utilization?fields=CpuUtilization' -f $OVIP, $SHUri
-                    $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
                     $Metrics += @{CPU = $CpuUtilization }
 
@@ -226,7 +233,7 @@ While ($true) {
                 elseif ($metric -eq "Power") {
 
                     $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $SHUri
-                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
                     $Metrics += @{Power = $AveragePower }
     
@@ -234,7 +241,7 @@ While ($true) {
                 elseif ($metric -eq "Temperature") {
 
                     $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $SHUri
-                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
                     $Metrics += @{Temperature = $AmbientTemperature }
                 }
@@ -243,15 +250,15 @@ While ($true) {
 
                 $filter = "'name'='{0}'" -f $Resource.Name
                 $url = 'https://{0}/rest/server-profiles/?filter="{1}"' -f $OVIP, $filter
-                $SPuri = (Invoke-RestMethod $url -Method GET -Headers $headers).members[0].uri 
+                $SPuri = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).members[0].uri 
                 
                 $url = 'https://{0}/rest/index/associations?parentUri={1}&name=server_profiles_to_server_hardware' -f $OVIP, $SPuri
-                $SHUri = (Invoke-RestMethod $url -Method GET -Headers $headers).members.childUri
+                $SHUri = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).members.childUri
                 
                 if ($metric -eq "CPU") {
 
                     $url = 'https://{0}{1}/utilization?fields=CpuUtilization' -f $OVIP, $SHUri
-                    $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
 
                     $Metrics += @{CPU = $CpuUtilization }
 
@@ -259,14 +266,14 @@ While ($true) {
                 elseif ($metric -eq "Power") {
 
                     $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $SHUri
-                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
                     $Metrics += @{Power = $AveragePower }
     
                 }
                 elseif ($metric -eq "Temperature") {
 
                     $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $SHUri
-                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers).metricList.metricSamples[0][1] 
+                    $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
                     $Metrics += @{Temperature = $AmbientTemperature }
 
@@ -278,7 +285,7 @@ While ($true) {
 
         $Metrics | Out-Host
 
-        Write-Influx -Measure $measure -Tags @{$type = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+        # Write-Influx -Measure $measure -Tags @{$type = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
 
 
     }
