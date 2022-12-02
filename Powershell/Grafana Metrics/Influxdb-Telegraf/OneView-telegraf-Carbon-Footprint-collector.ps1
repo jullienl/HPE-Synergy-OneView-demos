@@ -1,12 +1,13 @@
 ﻿<#
-PowerShell script to generate a carbon footprint report of all resources managed by HPE Oneview appliances for a Grafana metrics dashboard via Telegraf/influxdb with Exec input plugin.
+PowerShell script to generate a carbon footprint report of all resources managed by HPE Oneview appliances (Oneview Composers 
+ and OneView VMs) for a Grafana metrics dashboard via Telegraf/influxdb with Exec input plugin.
 
 More information about the Exec input plugin can be found at https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec 
 
 The script collects the energy consumed by all resources during 24 hours via the HPE OneView REST API and the carbon footprint is then calculated using the formula: 
 Watt/hour * global carbon factor (non-geo-specific emissions factor, OECD average of 344.6 gCO2/kWh). 
 
-The script also provides the total 24-hour carbon emissions from all OneView appliances.
+The script provides the total and per server 24-hour carbon emissions from all OneView appliances.
 
 Requirements: 
     - Powershell on Linux 7 and later, see https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.3
