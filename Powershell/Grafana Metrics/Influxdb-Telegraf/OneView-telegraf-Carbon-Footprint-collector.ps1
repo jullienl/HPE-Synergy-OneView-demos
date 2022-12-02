@@ -183,16 +183,11 @@ foreach ($OVIP in $OVIPs) {
 
     # If OneView appliance, we have standalone Computes as well to add to the carbon footprint report
     if ($appliance.family -match "OneView VM") {
-    
-        try {
-            $response = Invoke-RestMethod "https://$OVIP/rest/server-hardware" -Method GET -Headers $headers -SkipCertificateCheck
 
-        }
-        catch {
-            $response = $Null
-        }
+        $response = Invoke-RestMethod "https://$OVIP/rest/server-hardware" -Method GET -Headers $headers -SkipCertificateCheck -SkipHttpErrorCheck
+
         # If compute(s), run a report for each compute
-        if ($response) {
+        if ($response.errorCode -notmatch "404") {
 
             $serverHardware = $response.members
 
