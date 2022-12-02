@@ -32,6 +32,23 @@ Requirements:
             timeout = "120s" 
             data_format = "influx"  
 
+Output example of the script:
+    Esx-1 CpuUtilization=30
+    Esx-1 AveragePower=37
+    Esx-1 AmbientTemperature=18
+    Frame3-bay7 CpuUtilization=40
+    Frame3-bay7 AveragePower=37
+    Frame3-bay7 AmbientTemperature=18
+    Frame3 AveragePower=1217
+    Frame3 AmbientTemperature=21Frame2 AveragePower=819
+    Frame2 AmbientTemperature=22
+    Frame1 AveragePower=758
+    Frame1 AmbientTemperature=23
+    Frame3-bay12 CpuUtilization=13
+    Frame3-bay12 AveragePower=52
+    Frame3-bay12 AmbientTemperature=17
+    Frame4 AveragePower=334
+    Frame4 AmbientTemperature=20
 
 Author: lionel.jullien@hpe.com
 Date:   November 2022
@@ -83,7 +100,7 @@ $Resources = @{
 
 # OneView information
 $OVusername = "Administrator"
-$OVpassword = "P@ssw0rd"
+$OVpassword = "password"
 $OVIP = "composer.lj.lab"
 
 
