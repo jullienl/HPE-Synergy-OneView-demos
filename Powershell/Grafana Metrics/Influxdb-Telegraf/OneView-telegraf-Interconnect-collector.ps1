@@ -32,6 +32,28 @@ Requirements:
             timeout = "120s" 
             data_format = "influx"  
 
+Output example of the script:
+    Frame3-Interconnect3-Q1 receiveKilobitsPerSec=237
+    Frame3-Interconnect3-Q1 receiveKilobytesPerSec=120
+    Frame3-Interconnect3-Q1 receiveNonunicastPacketsPerSec=314
+    Frame3-Interconnect3-Q1 receivePacketsPerSec=546
+    Frame3-Interconnect3-Q2 receiveKilobitsPerSec=75
+    Frame3-Interconnect3-Q2 receiveKilobytesPerSec=0
+    Frame3-Interconnect3-Q2 receiveNonunicastPacketsPerSec=33
+    Frame3-Interconnect3-Q2 receivePacketsPerSec=245
+    Frame3-Interconnect3-Q5-1 receiveKilobitsPerSec=269
+    Frame3-Interconnect3-Q5-1 receiveKilobytesPerSec=33
+    Frame3-Interconnect3-Q5-1 receiveNonunicastPacketsPerSec=20
+    Frame3-Interconnect3-Q5-1 receivePacketsPerSec=224
+    Frame3-Interconnect3-Q5-2 receiveKilobitsPerSec=794
+    Frame3-Interconnect3-Q5-2 receiveKilobytesPerSec=230
+    Frame3-Interconnect3-Q5-2 receiveNonunicastPacketsPerSec=30
+    Frame3-Interconnect3-Q5-2 receivePacketsPerSec=364
+    Frame3-Interconnect3-Q5-3 receiveKilobitsPerSec=230
+    Frame3-Interconnect3-Q5-3 receiveKilobytesPerSec=620
+    Frame3-Interconnect3-Q5-3 receiveNonunicastPacketsPerSec=570
+    Frame3-Interconnect3-Q5-3 receivePacketsPerSec=320
+
 
 Author: lionel.jullien@hpe.com
 Date:   November 2022
@@ -72,7 +94,7 @@ $Ports = @{
 
 # OneView information
 $OVusername = "Administrator"
-$OVpassword = "P@ssw0rd"
+$OVpassword = "password"
 $OVIP = "composer.lj.lab"
 
 
