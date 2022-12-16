@@ -173,6 +173,10 @@ foreach ($Resource in $Resources.GetEnumerator()) {
     elseif ($ServerProfileFound.count) {
         $type = "serverprofile" 
     }
+    else {
+        Write-Warning "Resource $($Resource.Name) defined not found ! Exiting..."
+        return
+    }
 
     # write-host "Type is $($type)"
 
