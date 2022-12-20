@@ -3,16 +3,17 @@
 This PowerShell script can be used to move an HPE OneView Server Profile from one appliance to another. 
 All server profile settings are captured on a source OneView appliance and exported to a destination appliance
 
-The captured settings consist of all server profile parameters, including WWNs, MAC addresses and virtual serial numbers.
+The captured settings consist of all server profile parameters. 
+
 The target data (network names, enclosure name, SPT, etc.) must be provided in the variable section for the settings to be portable.
 
-Important note: 
+Note: Dependent resources like networks, private SAN volumes, licenses, etc. are not moved during the process and must available on the target appliance.
 
-- Dependent resources like networks, private SAN volumes, licenses , etc. are not moved during the process and must available on the target appliance.
+The script ensures that the source server is shut down before the migration and once the server profile creation is successfully completed 
+on the destination appliance, the source server profile is deleted on demand or renamed '<ProfileName> [migrated]'. 
 
-- To avoid network address conflicts, the script ensures that the source server is shut down before the migration and once the server profile 
-  creation is successfully completed on the destination appliance, the source server profile is deleted on demand or renamed '<ProfileName> [migrated]'. 
-
+If necessary, the WWNN, WWPN, MAC addresses and Serial Numbers of the source server profile can be preserved, in which case you should comment/uncomment some lines 
+in the CONNECTION SETTINGS and SERIAL NUMBER sections.
 
 Requirements: 
 - OneView administrator account.
@@ -49,11 +50,11 @@ Requirements:
 # Variables
 
 # Name of the server profile to move
-$SP = "ESX-0"
+$SP = "ESX01"
 
 # TARGET APPLIANCE INFORMATION
 # Name of the target Server Profile Template
-$SPT = "SPT ESX8.0"
+$SPT = "SPT ESX1"
 # Name of the target server hardware type
 $SHT = "SY 480 Gen10 2"
 # Name of the target Enclosure Group
@@ -70,8 +71,11 @@ $fabb = "FCoE Fabric B"
 
 # OneView information
 $OV_username = "Administrator"
-$source_appliance = "composer.lj.lab"
-$destination_appliance = "oneview.lj.lab"
+# $source_appliance = "composer.lj.lab"
+$source_appliance = "10.163.193.170"
+
+# $destination_appliance = "oneview.lj.lab"
+$destination_appliance = "10.163.193.173"
 
 
 # MODULES TO INSTALL
@@ -138,21 +142,42 @@ $sh = $enclosure + ", bay " + $bay
 $MyProfile.associatedServer = (Get-OVServer -ApplianceConnection $Global:ConnectedSessions[1] | ? name -eq $sh).uri
 $MyProfile.templateCompliance = "Unknown"
 $MyProfile.connectionSettings.connections[0].networkUri = Get-OVNetwork -name $net1 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
-$MyProfile.connectionSettings.connections[0].macType = "UserDefined"
-$MyProfile.connectionSettings.connections[1].networkUri = Get-OVNetwork -name $net1 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
-$MyProfile.connectionSettings.connections[1].macType = "UserDefined"
-$MyProfile.connectionSettings.connections[2].networkUri = Get-OVNetwork -name $net2 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
-$MyProfile.connectionSettings.connections[2].macType = "UserDefined"
-$MyProfile.connectionSettings.connections[3].networkUri = Get-OVNetwork -name $net2 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
-$MyProfile.connectionSettings.connections[3].macType = "UserDefined"
-$MyProfile.connectionSettings.connections[4].networkUri = Get-OVNetwork -name $faba -ApplianceConnection $Global:ConnectedSessions[1] | % uri
-$MyProfile.connectionSettings.connections[4].macType = "UserDefined"
-$MyProfile.connectionSettings.connections[4].wwpnType = "UserDefined"
-$MyProfile.connectionSettings.connections[5].networkUri = Get-OVNetwork -name $fabb -ApplianceConnection $Global:ConnectedSessions[1] | % uri
-$MyProfile.connectionSettings.connections[5].macType = "UserDefined"
-$MyProfile.connectionSettings.connections[5].wwpnType = "UserDefined"
-$MyProfile.serialNumberType = "UserDefined"
 
+################################################## CONNECTION SETTINGS #########################################################################
+# To keep the same MAC and WWNs addresses as the source server profile, 
+# uncomment all below lines with UserDefined type and comment all lines with $Null for the MAC and WWPN/WWNN
+
+$MyProfile.connectionSettings.connections[0].mac = $Null
+# $MyProfile.connectionSettings.connections[0].macType = "UserDefined"
+$MyProfile.connectionSettings.connections[1].networkUri = Get-OVNetwork -name $net1 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
+$MyProfile.connectionSettings.connections[1].mac = $Null
+# $MyProfile.connectionSettings.connections[1].macType = "UserDefined"
+$MyProfile.connectionSettings.connections[2].networkUri = Get-OVNetwork -name $net2 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
+$MyProfile.connectionSettings.connections[2].mac = $Null
+# $MyProfile.connectionSettings.connections[2].macType = "UserDefined"
+$MyProfile.connectionSettings.connections[3].networkUri = Get-OVNetwork -name $net2 -ApplianceConnection $Global:ConnectedSessions[1] | % uri
+$MyProfile.connectionSettings.connections[3].mac = $Null
+# $MyProfile.connectionSettings.connections[3].macType = "UserDefined"
+$MyProfile.connectionSettings.connections[4].networkUri = Get-OVNetwork -name $faba -ApplianceConnection $Global:ConnectedSessions[1] | % uri
+$MyProfile.connectionSettings.connections[4].mac = $Null
+$MyProfile.connectionSettings.connections[4].wwnn = $Null
+$MyProfile.connectionSettings.connections[4].wwpn = $Null
+# $MyProfile.connectionSettings.connections[4].macType = "UserDefined"
+# $MyProfile.connectionSettings.connections[4].wwpnType = "UserDefined"
+$MyProfile.connectionSettings.connections[5].networkUri = Get-OVNetwork -name $fabb -ApplianceConnection $Global:ConnectedSessions[1] | % uri
+$MyProfile.connectionSettings.connections[5].mac = $Null
+$MyProfile.connectionSettings.connections[5].wwnn = $Null
+$MyProfile.connectionSettings.connections[5].wwpn = $Null
+# $MyProfile.connectionSettings.connections[5].macType = "UserDefined"
+# $MyProfile.connectionSettings.connections[5].wwpnType = "UserDefined"
+
+####################################################### SERIAL NUMBER ###########################################################################
+# To keep the same Serial Number as the source server profile, uncomment the line below with the UserDefined type and comment the line with $Null 
+
+# $MyProfile.serialNumberType = "UserDefined"
+$MyProfile.serialNumber = $Null
+$Myprofile.uuid = $Null
+################################################################################################################################################
 
 $MyProfile.scopesUri = $null
 $MyProfile.ApplianceConnection = $null
@@ -169,7 +194,7 @@ try {
         Write-Host "`nServer Profile '$SP' has been created successfully on '$destination_appliance'!"
       
         # Ask to remove initial Server Profile
-        $removeSP = read-host  "`nDo you want to delete the source server profile '$SP' on appliance '$source_appliance' (strongly recommended to avoid duplicate addresses) [Y or N]?" 
+        $removeSP = read-host  "`nDo you want to delete the source server profile '$SP' on appliance '$source_appliance' [Y or N]?" 
 
         if ($removeSP -eq "Y") {
             Remove-OVServerProfile $MyProfile -ErrorAction stop -confirm:$false -Force -ApplianceConnection $Global:ConnectedSessions[0] | Wait-OVTaskComplete | Out-Null
@@ -184,14 +209,20 @@ try {
             
         }
 
-
-        $ConnectedSessions | Disconnect-OVMgmt
-
     }
+    else {
+        Write-warning "Server Profile '$SP' creation error on '$destination_appliance'!"
+        $task.taskErrors
+        
+    }
+    
     
 }
 catch {
     Write-warning "Server Profile '$SP' creation error on '$destination_appliance'!"
     $task.taskErrors
 }
+
+
+$ConnectedSessions | Disconnect-OVMgmt
 
