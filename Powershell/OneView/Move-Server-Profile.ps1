@@ -71,11 +71,9 @@ $fabb = "FCoE Fabric B"
 
 # OneView information
 $OV_username = "Administrator"
-# $source_appliance = "composer.lj.lab"
-$source_appliance = "10.163.193.170"
+$source_appliance = "composer.lj.lab"
+$destination_appliance = "oneview.lj.lab"
 
-# $destination_appliance = "oneview.lj.lab"
-$destination_appliance = "10.163.193.173"
 
 
 # MODULES TO INSTALL
