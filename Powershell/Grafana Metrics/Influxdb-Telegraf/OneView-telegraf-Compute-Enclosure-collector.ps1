@@ -141,6 +141,11 @@ $sessionID = $response.sessionID
 # Add AUTH to Headers
 $headers["auth"] = $sessionID
 
+
+# Get appliance information
+$appliance = Invoke-RestMethod "https://$OVIP/rest/appliance/nodeinfo/version" -Method GET -Headers $headers -SkipCertificateCheck 
+$appliancetype = $appliance.platformtype
+
 #########################################################################################################
 
 foreach ($Resource in $Resources.GetEnumerator()) {
@@ -151,11 +156,13 @@ foreach ($Resource in $Resources.GetEnumerator()) {
 
     # write-host "`nMeasure: $($Measure)"
 
-    $Metrics = @{}
     $filter = "'name'='{0}'" -f $Resource.Name
 
-    $url = 'https://{0}/rest/enclosures/?filter="{1}"' -f $OVIP, $filter
-    $frameFound = Invoke-RestMethod $url -Method GET -Headers $headers  -SkipCertificateCheck
+    if ($appliancetype -ne "vm") {
+        $url = 'https://{0}/rest/enclosures/?filter="{1}"' -f $OVIP, $filter
+        $frameFound = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck 
+    }
+    
     $url = 'https://{0}/rest/server-hardware/?filter="{1}"' -f $OVIP, $filter
     $ServerFound = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
     $url = 'https://{0}/rest/server-profiles/?filter="{1}"' -f $OVIP, $filter
