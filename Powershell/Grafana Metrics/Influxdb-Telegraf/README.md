@@ -40,6 +40,11 @@ File: `/etc/telegraf/telegraf.conf`
   data_format = "influx"  
 ```
 
+## Grafana Dashboard
+
+To get a Grafana dashboard already configured for HPE Compute Ops Management, simply import the JSON file `HPE COM using Infinity (UQL + native API calls) and Telegraf (CO2e reports).json` into Grafana and make sure you set the dashboard variables with your Compute Ops Management API credentials information.
+
+
 ## Requirements
 - Powershell on Linux, version 7 and later, see https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.3
 - Grafana configured with an InfluxDB data source
