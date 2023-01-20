@@ -42,7 +42,7 @@ File: `/etc/telegraf/telegraf.conf`
 
 ## Grafana Dashboard
 
-To get a Grafana dashboard already configured for HPE Compute Ops Management, simply import the JSON file `HPE COM using Infinity (UQL + native API calls) and Telegraf (CO2e reports).json` into Grafana and make sure you set the dashboard variables with your Compute Ops Management API credentials information.
+To get a Grafana dashboard already configured for HPE OneView, simply import the JSON file `Grafana Dashboard for HPE OneView.json` into Grafana.
 
 
 ## Requirements
