@@ -14,7 +14,7 @@ Steps of this script:
 Gen9 and Gen10 servers are supported 
 
 Requirements:
-   - HPE BIOS Cmdlets PowerShell Library (HPEBIOSCmdlets)
+   - HPE iLO PowerShell Cmdlets (install-module HPEiLOCmdlets)
    - iLO Administrator account
    - PSPKI Powershell Library 
 
