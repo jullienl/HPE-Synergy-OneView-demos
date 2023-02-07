@@ -80,6 +80,11 @@ Date:   December 2022
 #################################################################################
 #>
 
+# Non-geo-specific emissions factor (gCO2/kWh)
+$CarbonEmissionsFactor = 344.6
+# The non-geospecific carbon emission factor due to electricity generation according to the OECD average is 344.6 gCO2/kWh
+
+
 # OneView information
 $OVusername = "Administrator"
 $OVpassword = "password"
@@ -166,10 +171,8 @@ foreach ($OVIP in $OVIPs) {
             # kWh per day (energy for 24 hours):
             # kWh = Average power (in Watt) /1000 * 24 
             $kWh = $avergePowerOver24h / 1000 * 24
-
-            # The non-geospecific carbon emission factor due to electricity generation according to the OECD average is 344.6 gCO2/kWh.)
-    
-            $carbonEmissionsFor24h = [math]::Round(($kWh * 344.6 / 1000), 2)
+   
+            $carbonEmissionsFor24h = [math]::Round(($kWh * $CarbonEmissionsFactor / 1000), 2)
 
             $metric = "$($OVIP)_Carbon_Report $($enclosureName)_TotalEmissionsPerDay=$carbonEmissionsFor24h"
             Write-Host $metric
