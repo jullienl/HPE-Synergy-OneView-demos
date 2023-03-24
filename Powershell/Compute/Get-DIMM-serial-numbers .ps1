@@ -4,19 +4,23 @@ This script generates a CSV file to retrieve all memory DIMM serial numbers for 
 
 Output example:
 
-DIMM_SerialNumber Server_Name    Server_SerialNumber
------------------ -----------    -------------------
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-94E6D055          Frame3, bay 1  CZ212406GL
-474D5B52          Frame3, bay 10 CZ221705V7
-474D182B          Frame3, bay 11 CZ221705V1
-474D25E9          Frame3, bay 12 CZ221705V6
+
+DIMM Serial Number	DIMM Part Number	Compute Name	Compute Serial Number
+------------------  ----------------    ------------    ---------------------
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+94E6D055	HMA81GR7CJR8N-WM	Frame3, bay 1	CZ212406GL
+474D5B52	M393A2K40DB3-CWE	Frame3, bay 10	CZ221705V7
+474D182B	M393A2K40DB3-CWE	Frame3, bay 11	CZ221705V1
+474D25E9	M393A2K40DB3-CWE	Frame3, bay 12	CZ221705V6
+94E6D09E	HMA81GR7CJR8N-WM	Frame3, bay 2	CZ212406GM
+94E6D09E	HMA81GR7CJR8N-WM	Frame3, bay 2	CZ212406GM
+
 
 Requirements:
    - HPE OneView administrator account 
@@ -54,7 +58,7 @@ Requirements:
 #>
 
 # OneView appliance list
-$appliances = @("192.168.1.110")#, "192.168.1.10")
+$appliances = @("192.168.1.110", "192.168.1.10")
 
 
 # Location of the folder to generate the CSV file
