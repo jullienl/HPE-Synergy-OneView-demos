@@ -54,7 +54,7 @@ Requirements:
 #>
 
 # OneView appliance list
-$appliances = @("192.168.1.110", "192.168.1.10")
+$appliances = @("192.168.1.110")#, "192.168.1.10")
 
 
 # Location of the folder to generate the CSV file
@@ -124,11 +124,11 @@ foreach ($appliance in $appliances) {
         $Object = [pscustomobject]@{
 
             DIMM_SerialNumber   = $Null
+            DIMM_PartNumber     = $Null
             Server_Name         = $SH_name
             Server_SerialNumber = $SH_serialNumber
                   
         }
-
 
         $iLOIP = ($SH.mpHostInfo.mpIpAddresses |  ? { $_ -NotMatch "fe80" }).address
 
@@ -148,11 +148,12 @@ foreach ($appliance in $appliances) {
         try {
             $response = Invoke-RestMethod -Uri "https://$iLOIP$uri" -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
 
-            $SerialNumbers = $response.Members |  where-object { $_.SerialNumber -notmatch "NOT AVAILABLE" } | % SerialNumber
+            $DIMMs = $response.Members |  where-object { $_.SerialNumber -notmatch "NOT AVAILABLE" } 
             
-            foreach ($DIMM_SN in $SerialNumbers) {
+            foreach ($DIMM in $DIMMs) {
 
-                $Object.DIMM_SerialNumber = $DIMM_SN
+                $Object.DIMM_SerialNumber = $DIMM.SerialNumber
+                $Object.DIMM_PartNumber = $DIMM.PartNumber.TrimEnd()
                 
                 $DIMM_DB += $Object
 
@@ -172,6 +173,6 @@ foreach ($appliance in $appliances) {
     $ConnectedSessions | Disconnect-OVMgmt
 }
 
-$DIMM_DB.GetEnumerator() | Select-Object -Property  @{N = 'DIMM Serial Number'; E = { $_.DIMM_SerialNumber } }, @{N = 'Compute Name'; E = { $_.Server_Name } }, @{N = 'Compute Serial Number'; E = { $_.Server_SerialNumber } } |   Export-Csv -NoTypeInformation "$path\$Filename"
+$DIMM_DB.GetEnumerator() | Select-Object -Property  @{N = 'DIMM Serial Number'; E = { $_.DIMM_SerialNumber } }, @{N = 'DIMM Part Number'; E = { $_.DIMM_PartNumber } }, @{N = 'Compute Name'; E = { $_.Server_Name } }, @{N = 'Compute Serial Number'; E = { $_.Server_SerialNumber } } |   Export-Csv -NoTypeInformation "$path\$Filename"
 
 "CSV file successfully generated in: {0}\{1}" -f $path, $Filename
