@@ -77,4 +77,5 @@ To get a Grafana dashboard already configured for HPE OneView, simply import the
   ![image](https://user-images.githubusercontent.com/13134334/230055820-862d631a-f0d1-44dc-b114-b630df0fcf5d.png)
 
 - HPE Synergy Frames Power Consumption:
+  
   ![image](https://user-images.githubusercontent.com/13134334/230056053-ee9dee86-a0d3-4a67-a5a9-1a0db70fe510.png)
