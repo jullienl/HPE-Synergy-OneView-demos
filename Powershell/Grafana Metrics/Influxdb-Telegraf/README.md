@@ -1,6 +1,8 @@
 # Influxdb/Telegraf/Grafana for HPE OneView 
 
-This project uses Telegraf, InfluxData's data collection agent to collect and store the HPE OneView metric data in an Influxdb database. Metrics include carbon footprint emissions, Synergy Virtual Connect module throughputs, computer utilization (CPU, power and temperature) and enclosure (power and temperature). 
+This project uses Telegraf, InfluxData's data collection agent to collect and store the HPE OneView metric data in an Influxdb database. 
+
+Metrics include carbon footprint emissions, Synergy Virtual Connect module throughputs, computer utilization (CPU, power and temperature), enclosure (power and temperature) and iLO Overall Security dashboard status. 
 
 The Telegraf exec input plugin is used to execute PowerShell scripts with configurable intervals. 
 
@@ -54,20 +56,25 @@ To get a Grafana dashboard already configured for HPE OneView, simply import the
 
 ## Samples of Grafana Panels
 
-Total Carbon Emissions in my datacenter:
-![image](https://user-images.githubusercontent.com/13134334/230053661-da213aa3-0a78-4221-9573-34e8375aa106.png)
+- Total Carbon Emissions in my datacenter:
+ 
+  ![image](https://user-images.githubusercontent.com/13134334/230053661-da213aa3-0a78-4221-9573-34e8375aa106.png)
 
-Carbon emissions per system:
-![image](https://user-images.githubusercontent.com/13134334/230054009-37294fa4-06e3-41cd-9b50-b54d0ba423b8.png)
+- Carbon emissions per system:
 
-HPE iLO Overall Security Dashboard:
-![image](https://user-images.githubusercontent.com/13134334/230054560-39f50864-2fa5-41ae-9e0c-4a0a6a77375a.png)
+  ![image](https://user-images.githubusercontent.com/13134334/230054009-37294fa4-06e3-41cd-9b50-b54d0ba423b8.png)
 
-HPE Virtual Connect Throughputs Statistics:
-![image](https://user-images.githubusercontent.com/13134334/230056818-ad635d85-32eb-437a-90fa-4a3328c0a8c0.png)
+- HPE iLO Overall Security Dashboard:
+ 
+  ![image](https://user-images.githubusercontent.com/13134334/230054560-39f50864-2fa5-41ae-9e0c-4a0a6a77375a.png)
 
-HPE Synergy Frames Ambiant Temperature:
-![image](https://user-images.githubusercontent.com/13134334/230055820-862d631a-f0d1-44dc-b114-b630df0fcf5d.png)
+- HPE Virtual Connect Throughputs Statistics:
+ 
+  ![image](https://user-images.githubusercontent.com/13134334/230056818-ad635d85-32eb-437a-90fa-4a3328c0a8c0.png)
 
-HPE Synergy Frames Power Consumption:
-![image](https://user-images.githubusercontent.com/13134334/230056053-ee9dee86-a0d3-4a67-a5a9-1a0db70fe510.png)
+- HPE Synergy Frames Ambiant Temperature:
+ 
+  ![image](https://user-images.githubusercontent.com/13134334/230055820-862d631a-f0d1-44dc-b114-b630df0fcf5d.png)
+
+- HPE Synergy Frames Power Consumption:
+  ![image](https://user-images.githubusercontent.com/13134334/230056053-ee9dee86-a0d3-4a67-a5a9-1a0db70fe510.png)
