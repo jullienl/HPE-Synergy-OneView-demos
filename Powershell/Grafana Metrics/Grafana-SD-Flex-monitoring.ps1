@@ -1,22 +1,20 @@
 ﻿<#
 
-This PowerShell can be used to generate data for a Grafana metrics dashboard for HPE Virtual Connect via an Influx database.
+This PowerShell can be used to generate data for a Grafana metrics dashboard for HPE Superdome Flex servers via an Influx database.
 
-The script collects the utilization statistics of the given interconnect port IDs from HPE OneView and writes data to an Influx database 
-by providing a hashtable of tags and values via the REST API.  
+The script collects the power usage data of all chassis and writes the total power usage to an Influx database by providing a hashtable of 
+tags and values via the REST API. 
 
 This script is written to run continuously so that metrics are collected for an indefinite period of time and can be run in the background
 from a Windows machine by using the Task Scheduler and setting a "At system startup after a 30 second delay" trigger. 
-
-The interconnect port IDs utilization statistics supported are: Rx Kb/s, Rx KB/s, Rx Packets/s and Rx Non-Unicast Packets/s.
             
-The Influx database is created during execution if it does not exist on the InfluxDB server. For each interconnect, a database measure is generated.
+The Influx database is created during execution if it does not exist on the InfluxDB server. For each resource, a database measure is generated.
 
 
 Requirements: 
     - PowerShell 7 or higher
     - Grafana configured with an InfluxDB data source
-    - Influx Powershell Library (will be installed if it is not present)
+    - Influx Powershell Library (will be installed if it is not present)    
     - InfluxDB 
          - With http Authentication enabled (auth-enabled = true in /etc/influxdb/influxdb.conf)
          - With port 8086 opened on the firewall (8086 is used for client-server communication over InfluxDB’s HTTP API) 
@@ -26,7 +24,7 @@ Requirements:
         Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana-Interconnect-monitoring.ps1" -Name GrafanaInterconnectMonitoring
 
   Author: lionel.jullien@hpe.com
-  Date:   July 2022
+  Date:   August 2023
     
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -53,28 +51,17 @@ Requirements:
 #################################################################################
 #>
 
-
-# Ports to monitor (Q1, Q2,..Q6 or d1, d2,..d12 or Q1:1, Q1:2, etc.)
-$Ports = @{ 
-    "Frame3, Interconnect 3" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "d1", "d2", "d3", "d4")
-    "Frame3, Interconnect 6" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "Q5:4", "d1", "d2", "d3", "d4")
-    "Frame1, Interconnect 3" = @("Q1", "Q2", "Q4:1", "Q5")
-
-}
-      
    
 # InfluxDB 
 $InfluxDBserver = "http://grafana.lab:8086"
 $influxdb_admin = "admin"
 $influxdb_admin_password = "password"
-$Database = "ov_icm_db"
-
+$Database = "ov_sdflex_db"
 
 # OneView information
 $OVusername = "Administrator"
 $OVpassword = "password"
 $OVIP = "composer.lab"
-
 
 # MODULES TO INSTALL
 
@@ -143,62 +130,51 @@ if ( -not ($databases | ? { $_ -eq $Database }) ) {
 #########################################################################################################
 
 While ($true) {
+     
+    $url = 'https://{0}/rest/rack-managers' -f $OVIP
 
-    foreach ($Interconnect in $Ports.GetEnumerator()) {
-
-        $filter = "'name'='{0}'" -f $interconnect.Name
-
-        $url = 'https://{0}/rest/interconnects/?filter="{1}"' -f $OVIP, $filter
-    
-        $response = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
-        $VCuri = $response.members[0].uri
-
-        # Write-Host $Interconnect.Name
-        # Write-host $Interconnect.Value    
-
-        foreach ($port in $Interconnect.Value) {
-
-            $url = 'https://{0}{1}/statistics/{2}' -f $OVIP, $VCuri, $port
-
-            do {
-                $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
-                
-            } until (
-                $PortStatistics
-            )
+    $SDFlexFound = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
         
-            $Interconnectname = $interconnect.name.Replace(" ", "").Replace(",", "-")
-            $portname = $port.Replace(":", "-")
-            $measure = $Interconnectname + "-" + $portname
-            
-            "`nMeasure: {0} " -f $measure
-    
-            # Advanced statistics
-            $receiveKilobitsPerSec = $PortStatistics.advancedStatistics.receiveKilobitsPerSec.Split(":")[0] -as [int]
-            $receiveKilobytesPerSec = $PortStatistics.advancedStatistics.receiveKilobytesPerSec.Split(":")[0] -as [int]
-            $receiveNonunicastPacketsPerSec = $PortStatistics.advancedStatistics.receiveNonunicastPacketsPerSec.Split(":")[0] -as [int]
-            $receivePacketsPerSec = $PortStatistics.advancedStatistics.receivePacketsPerSec.Split(":")[0] -as [int]
+    foreach ($rackmanager in $SDFlexFound.members) {
 
-            $Metrics = @{
-                receiveKilobitsPerSec          = $receiveKilobitsPerSec
-                receiveKilobytesPerSec         = $receiveKilobytesPerSec
-                receiveNonunicastPacketsPerSec = $receiveNonunicastPacketsPerSec
-                receivePacketsPerSec           = $receivePacketsPerSec
-    
-            }
-            
-            $Metrics | Out-Host
-            
-            Write-Influx -Measure $measure -Tags @{Interconnect = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+        $Metrics = @{}
+       
+        $rackmanageruri = $rackmanager.uri
+        [string]$Measure = $rackmanager.name
+
+        $url = 'https://{0}{1}/chassis/utilization' -f $OVIP, $rackmanageruri
+
+        $rackmanagerUtilization = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
+
+        $chassisMetricList = $rackmanagerUtilization.chassisMetricData.metricList | ? metricname -eq ChassisPower
+
+        if ($TotalChassisPower) {
+            Clear-Variable  TotalChassisPower
+        } 
+
+        foreach ($chassisMetric in $chassisMetricList) {
+                
+            $ChassisPower = $chassisMetric.metricSamples[0][1]
+            $TotalChassisPower = $TotalChassisPower + $ChassisPower 
+            # "Chassis power: {0}" -f $ChassisPower 
+            # "Total power: {0}" -f $TotalChassisPower
 
         }
 
+        $Metrics += @{"Power" = $TotalChassisPower }
+        # $Metrics | Out-Host
+       
+        Write-Influx -Measure $measure -Tags @{"SDFlex" = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+
+            
     }
-
-    # Utilization statistics are gathered and reported every five minutes by the API.
-    Start-Sleep -Seconds 300
-
+         
 }
+
+# Utilization statistics are gathered and reported every five minutes by the API.
+Start-Sleep -Seconds 300
+
+
 
 
 # Manage your InfluxDB database

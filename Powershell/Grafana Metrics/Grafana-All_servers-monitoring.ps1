@@ -1,22 +1,22 @@
 ﻿<#
 
-This PowerShell can be used to generate data for a Grafana metrics dashboard for HPE Virtual Connect via an Influx database.
+This PowerShell can be used to generate data for a Grafana metrics dashboard for server power consumption via an Influx database but using the 
+iLO REST API to get the server metrics.
 
-The script collects the utilization statistics of the given interconnect port IDs from HPE OneView and writes data to an Influx database 
-by providing a hashtable of tags and values via the REST API.  
+The script collects the power peak and power average of all servers managed by HPE OneView (excluding HPE Superdome Flex) from the iLO REST API
+and writes data to an Influx database by providing a hashtable of tags and values via the REST API. 
 
 This script is written to run continuously so that metrics are collected for an indefinite period of time and can be run in the background
 from a Windows machine by using the Task Scheduler and setting a "At system startup after a 30 second delay" trigger. 
-
-The interconnect port IDs utilization statistics supported are: Rx Kb/s, Rx KB/s, Rx Packets/s and Rx Non-Unicast Packets/s.
-            
-The Influx database is created during execution if it does not exist on the InfluxDB server. For each interconnect, a database measure is generated.
+          
+The Influx database is created during execution if it does not exist on the InfluxDB server. For each resource, a database measure is generated.
 
 
 Requirements: 
+    - iLO advanced license
     - PowerShell 7 or higher
     - Grafana configured with an InfluxDB data source
-    - Influx Powershell Library (will be installed if it is not present)
+    - Influx Powershell Library (will be installed if it is not present)    
     - InfluxDB 
          - With http Authentication enabled (auth-enabled = true in /etc/influxdb/influxdb.conf)
          - With port 8086 opened on the firewall (8086 is used for client-server communication over InfluxDB’s HTTP API) 
@@ -26,7 +26,7 @@ Requirements:
         Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana-Interconnect-monitoring.ps1" -Name GrafanaInterconnectMonitoring
 
   Author: lionel.jullien@hpe.com
-  Date:   July 2022
+  Date:   August 2023
     
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -53,22 +53,12 @@ Requirements:
 #################################################################################
 #>
 
-
-# Ports to monitor (Q1, Q2,..Q6 or d1, d2,..d12 or Q1:1, Q1:2, etc.)
-$Ports = @{ 
-    "Frame3, Interconnect 3" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "d1", "d2", "d3", "d4")
-    "Frame3, Interconnect 6" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "Q5:4", "d1", "d2", "d3", "d4")
-    "Frame1, Interconnect 3" = @("Q1", "Q2", "Q4:1", "Q5")
-
-}
-      
    
 # InfluxDB 
 $InfluxDBserver = "http://grafana.lab:8086"
 $influxdb_admin = "admin"
 $influxdb_admin_password = "password"
-$Database = "ov_icm_db"
-
+$Database = "ov_sdflex_db"
 
 # OneView information
 $OVusername = "Administrator"
@@ -85,13 +75,13 @@ If (-not (get-module Influx -ListAvailable )) { Install-Module -Name Influx -sco
 
 # Checking the PowerShell version
 if ( $psversiontable.PSVersion.major -eq 5) {
-    write-warning "PowerShell 5.x is not supported !"
-    exit
+	write-warning "PowerShell 5.x is not supported !"
+	exit
 }
 
 # Policy settings and self-signed certificate policy validation
 if ( $psversiontable.PSedition -ne "Core") {
-    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+	Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 }
 
 #################################################################################
@@ -135,68 +125,62 @@ $databases = ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -
 
 # If database does not exist, then let's create a new database
 if ( -not ($databases | ? { $_ -eq $Database }) ) {
-    Write-Debug "Database not found! Let's create one !"
-    Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials -AllowUnencryptedAuthentication
+	Write-Debug "Database not found! Let's create one !"
+	Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials -AllowUnencryptedAuthentication
 
 }
 
 #########################################################################################################
 
 While ($true) {
-
-    foreach ($Interconnect in $Ports.GetEnumerator()) {
-
-        $filter = "'name'='{0}'" -f $interconnect.Name
-
-        $url = 'https://{0}/rest/interconnects/?filter="{1}"' -f $OVIP, $filter
+		
+	$url = "https://{0}/rest/index/resources/?category=server-hardware&count=10000" -f $OVIP
     
-        $response = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
-        $VCuri = $response.members[0].uri
+	$SHs = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).members | ? { $_.attributes.platform -NotMatch "Superdome" }
 
-        # Write-Host $Interconnect.Name
-        # Write-host $Interconnect.Value    
+	foreach ($SH in $SHs) {
 
-        foreach ($port in $Interconnect.Value) {
+		$Metrics = @{}			
+				
+		$Measure = $SH.name
 
-            $url = 'https://{0}{1}/statistics/{2}' -f $OVIP, $VCuri, $port
+		write-host "`nMeasure: $($Measure)"
 
-            do {
-                $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
-                
-            } until (
-                $PortStatistics
-            )
-        
-            $Interconnectname = $interconnect.name.Replace(" ", "").Replace(",", "-")
-            $portname = $port.Replace(":", "-")
-            $measure = $Interconnectname + "-" + $portname
-            
-            "`nMeasure: {0} " -f $measure
-    
-            # Advanced statistics
-            $receiveKilobitsPerSec = $PortStatistics.advancedStatistics.receiveKilobitsPerSec.Split(":")[0] -as [int]
-            $receiveKilobytesPerSec = $PortStatistics.advancedStatistics.receiveKilobytesPerSec.Split(":")[0] -as [int]
-            $receiveNonunicastPacketsPerSec = $PortStatistics.advancedStatistics.receiveNonunicastPacketsPerSec.Split(":")[0] -as [int]
-            $receivePacketsPerSec = $PortStatistics.advancedStatistics.receivePacketsPerSec.Split(":")[0] -as [int]
+		$iLOIP = $SH.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
+		$SHUri = $SH.uri
 
-            $Metrics = @{
-                receiveKilobitsPerSec          = $receiveKilobitsPerSec
-                receiveKilobytesPerSec         = $receiveKilobytesPerSec
-                receiveNonunicastPacketsPerSec = $receiveNonunicastPacketsPerSec
-                receivePacketsPerSec           = $receivePacketsPerSec
-    
-            }
-            
-            $Metrics | Out-Host
-            
-            Write-Influx -Measure $measure -Tags @{Interconnect = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+		$url = "https://{0}{1}/remoteConsoleUrl" -f $OVIP, $SHUri
+		
+		$ilosessionkey = ((Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).remoteConsoleUrl).Split("=")[-1]
 
-        }
+		if ($ilosessionkey) {
 
-    }
+			# Creation of the iLO headers  
+			$iLOheaders = @{} 
+			$iLOheaders["OData-Version"] = "4.0"
+			$iLOheaders["X-Auth-Token"] = $ilosessionkey 
 
-    # Utilization statistics are gathered and reported every five minutes by the API.
-    Start-Sleep -Seconds 300
+			$uri = "/redfish/v1/Chassis/1/Power/PowerMeter/"
+			$method = "Get"
+			
+			$iLOPowerMeter = Invoke-RestMethod -Uri "https://$iLOIP$uri"  -Headers $iLOheaders -Method $method -ErrorAction Stop -SkipCertificateCheck
+
+			$PeakPower = $iLOPowerMeter.PowerDetail[-1].Peak
+			$AveragePower = $iLOPowerMeter.PowerDetail[-1].Average
+					
+			$Metrics += @{AveragePower = $AveragePower }					
+			$Metrics += @{PeakPower = $PeakPower }
+			$Metrics | Out-Host
+
+			Write-Influx -Measure $measure -Tags @{"server" = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+
+					
+		}
+
+	}                  
+
+	# Utilization statistics are gathered and reported every five minutes by the API.
+	Start-Sleep -Seconds 300
 
 }
 
@@ -220,7 +204,4 @@ While ($true) {
 # Delete a database with DROP DATABASE. This deletes all of the data, measurements, series, continuous queries, and retention policies from the specified database
 # https://docs.influxdata.com/influxdb/v1.8/query_language/manage-database/#delete-a-database-with-drop-database
 # Invoke-WebRequest -Uri "$InfluxDBserver/query?db=$database&q=DROP DATABASE $database" -Method POST -Credential $credentials
-
-
-
 

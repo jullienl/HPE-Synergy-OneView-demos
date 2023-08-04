@@ -4,7 +4,7 @@
 This PowerShell can be used to generate data for a Grafana metrics dashboard for servers and enclosures via an Influx database.
 
 The script collects the utilization statistics of the given resource from HPE OneView and writes data to an Influx database 
-by providing a hashtable of tags and values via the REST API. Supported ressource are enclosure, server hardware and server profile.
+by providing a hashtable of tags and values via the REST API. Supported resource are enclosure, server hardware and server profile.
 
 This script is written to run continuously so that metrics are collected for an indefinite period of time and can be run in the background
 from a Windows machine by using the Task Scheduler and setting a "At system startup after a 30 second delay" trigger. 
@@ -21,7 +21,7 @@ Requirements:
     - InfluxDB 
          - With http Authentication enabled (auth-enabled = true in /etc/influxdb/influxdb.conf)
          - With port 8086 opened on the firewall (8086 is used for client-server communication over InfluxDB’s HTTP API) 
-         - A user with an authentication password with ALL priviledges (required to create the database if it does not exist) 
+         - A user with an authentication password with ALL privileges (required to create the database if it does not exist) 
     - A Windows server to run this script. It can be executed automatically at startup using the Task Scheduler with:
         $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30
         Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana-Interconnect-monitoring.ps1" -Name GrafanaInterconnectMonitoring
@@ -140,12 +140,13 @@ $credentials = New-Object System.Management.Automation.PSCredential ($influxdb_a
 $databases = ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials -AllowUnencryptedAuthentication ).content | Convertfrom-Json).results.series.values
 
 # If database does not exist, then let's create a new database
-if ( -not ($databases | ? { $_ -match $Database }) ) {
+if ( -not ($databases | ? { $_ -eq $Database }) ) {
     Write-Debug "Database not found! Let's create one !"
     Invoke-WebRequest -Uri "$InfluxDBserver/query?q=CREATE DATABASE $Database" -Method POST -Credential $credentials -AllowUnencryptedAuthentication
 
 }
 
+#########################################################################################################
 
 While ($true) {
 
@@ -302,7 +303,7 @@ While ($true) {
 # Get Databases
 # ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials ).content | Convertfrom-Json).results.series.values
 
-# Get a DB measurments
+# Get a DB measurements
 # $measurements = (((Invoke-WebRequest -Uri "$InfluxDBserver/query?db=$database&q=SHOW MEASUREMENTS" -Method GET -Credential $credentials).content | ConvertFrom-Json).results.series.values)
 
 # Get all fields and tags

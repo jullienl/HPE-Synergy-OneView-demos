@@ -1,32 +1,35 @@
-﻿<#
+﻿
+<#
 
-This PowerShell can be used to generate data for a Grafana metrics dashboard for HPE Virtual Connect via an Influx database.
+This PowerShell can be used to generate power usage data for a Grafana metrics dashboard for Brocade switches via an Influx database.
 
-The script collects the utilization statistics of the given interconnect port IDs from HPE OneView and writes data to an Influx database 
-by providing a hashtable of tags and values via the REST API.  
+The script collects the power usage data of all power supplies and writes the total power usage to an Influx database by providing a hashtable of 
+tags and values via the REST API. 
 
 This script is written to run continuously so that metrics are collected for an indefinite period of time and can be run in the background
 from a Windows machine by using the Task Scheduler and setting a "At system startup after a 30 second delay" trigger. 
-
-The interconnect port IDs utilization statistics supported are: Rx Kb/s, Rx KB/s, Rx Packets/s and Rx Non-Unicast Packets/s.
-            
-The Influx database is created during execution if it does not exist on the InfluxDB server. For each interconnect, a database measure is generated.
+          
+The Influx database is created during execution if it does not exist on the InfluxDB server. For each resource, a database measure is generated.
 
 
 Requirements: 
+
+    - FOS REST api is enabled by default. If it has been disabled, it must be enabled using: mgmtapp --enable REST      
+      To set a max number of sessions, such as 4, you can enter:  mgmtapp --config -maxrestsession 4
+      To enable the API connection via https , you must generate a HTTPS certificate using: seccertmgmt generate -cert https
     - PowerShell 7 or higher
     - Grafana configured with an InfluxDB data source
-    - Influx Powershell Library (will be installed if it is not present)
+    - Influx Powershell Library (will be installed if it is not present)    
     - InfluxDB 
          - With http Authentication enabled (auth-enabled = true in /etc/influxdb/influxdb.conf)
          - With port 8086 opened on the firewall (8086 is used for client-server communication over InfluxDB’s HTTP API) 
          - A user with an authentication password with ALL privileges (required to create the database if it does not exist) 
     - A Windows server to run this script. It can be executed automatically at startup using the Task Scheduler with:
         $trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30
-        Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana-Interconnect-monitoring.ps1" -Name GrafanaInterconnectMonitoring
+        Register-ScheduledJob -Trigger $trigger -FilePath "C:\<path>\Grafana-Brocade-monitoring.ps1" -Name GrafanaBrocadeMonitoring
 
   Author: lionel.jullien@hpe.com
-  Date:   July 2022
+  Date:   August 2023
     
 #################################################################################
 #        (C) Copyright 2017 Hewlett Packard Enterprise Development LP           #
@@ -51,29 +54,20 @@ Requirements:
 # THE SOFTWARE.                                                                 #
 #                                                                               #
 #################################################################################
+
 #>
 
+# Brocade switches information
+$Brocade_Username = "admin"
+$Brocade_Password = "password"
+$Brocade_IPs = @("Brocade-32G.lj.lab", "Brocade-16G.lj.lab")
 
-# Ports to monitor (Q1, Q2,..Q6 or d1, d2,..d12 or Q1:1, Q1:2, etc.)
-$Ports = @{ 
-    "Frame3, Interconnect 3" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "d1", "d2", "d3", "d4")
-    "Frame3, Interconnect 6" = @("Q1", "Q2", "Q5:1", "Q5:2", "Q5:3", "Q5:4", "d1", "d2", "d3", "d4")
-    "Frame1, Interconnect 3" = @("Q1", "Q2", "Q4:1", "Q5")
 
-}
-      
-   
 # InfluxDB 
 $InfluxDBserver = "http://grafana.lab:8086"
 $influxdb_admin = "admin"
 $influxdb_admin_password = "password"
-$Database = "ov_icm_db"
-
-
-# OneView information
-$OVusername = "Administrator"
-$OVpassword = "password"
-$OVIP = "composer.lab"
+$Database = "brocade_db"
 
 
 # MODULES TO INSTALL
@@ -93,35 +87,6 @@ if ( $psversiontable.PSVersion.major -eq 5) {
 if ( $psversiontable.PSedition -ne "Core") {
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 }
-
-#################################################################################
-
-# Get-X-API-Version
-$response = Invoke-RestMethod "https://$OVIP/rest/version" -Method GET -SkipCertificateCheck
-$currentVersion = $response.currentVersion
-
-# Headers creation
-$headers = @{} 
-$headers["X-API-Version"] = "$currentVersion"
-$headers["Content-Type"] = "application/json"
-
-# Payload creation
-$body = @"
-{
-  "authLoginDomain": "Local",
-  "password": "$OVpassword",
-  "userName": "$OVusername"
-}
-"@
-
-# Connection to OneView / Synergy Composer
-$response = Invoke-RestMethod "https://$OVIP/rest/login-sessions" -Method POST -Headers $headers -Body $body -SkipCertificateCheck
-
-# Capturing the OneView Session ID
-$sessionID = $response.sessionID
-
-# Add AUTH to Headers
-$headers["auth"] = $sessionID
 
 #########################################################################################################
 
@@ -144,54 +109,103 @@ if ( -not ($databases | ? { $_ -eq $Database }) ) {
 
 While ($true) {
 
-    foreach ($Interconnect in $Ports.GetEnumerator()) {
+    foreach ($Brocade_IP in $Brocade_IPs) {
 
-        $filter = "'name'='{0}'" -f $interconnect.Name
+        # Encode the username and password as a base64 string
+        $auth = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($Brocade_Username + ":" + $Brocade_Password))
 
-        $url = 'https://{0}/rest/interconnects/?filter="{1}"' -f $OVIP, $filter
-    
-        $response = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
-        $VCuri = $response.members[0].uri
+        # Headers creation
+        $headers = @{} 
+        $headers["Authorization"] = "Basic $auth"
+        $headers["Accept"] = "application/yang-data+json"
+        $headers["Content-Type"] = "application/yang-data+json"
+        $headers["Cookie"] = "Version=1.0"
 
-        # Write-Host $Interconnect.Name
-        # Write-host $Interconnect.Value    
+        $Measure = $Brocade_IP
+        write-host "`nBrocade measure: $($Measure)"
 
-        foreach ($port in $Interconnect.Value) {
+        $Metrics = @{}
 
-            $url = 'https://{0}{1}/statistics/{2}' -f $OVIP, $VCuri, $port
+        # Connection to FOS API
+        $Response = Invoke-WebRequest "https://$Brocade_IP/rest/login" -Method POST -Headers $headers -SkipCertificateCheck 
 
-            do {
-                $PortStatistics = Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck
-                
-            } until (
-                $PortStatistics
-            )
+        # Capturing the Authorization Session 
+
+        [string]$Authorization = $Response.Headers.Authorization
+
+        # Add Authorization to Headers
+        $headers["Authorization"] = $Authorization
+
+        $url = 'https://{0}/rest/running/brocade-fru/blade' -f $Brocade_IP
+
+        $Response = (Invoke-RestMethod $url -Method GET -Headers $headers  -SkipCertificateCheck).response
         
-            $Interconnectname = $interconnect.name.Replace(" ", "").Replace(",", "-")
-            $portname = $port.Replace(":", "-")
-            $measure = $Interconnectname + "-" + $portname
+        if ($Response.blade."power-usage") {      
             
-            "`nMeasure: {0} " -f $measure
-    
-            # Advanced statistics
-            $receiveKilobitsPerSec = $PortStatistics.advancedStatistics.receiveKilobitsPerSec.Split(":")[0] -as [int]
-            $receiveKilobytesPerSec = $PortStatistics.advancedStatistics.receiveKilobytesPerSec.Split(":")[0] -as [int]
-            $receiveNonunicastPacketsPerSec = $PortStatistics.advancedStatistics.receiveNonunicastPacketsPerSec.Split(":")[0] -as [int]
-            $receivePacketsPerSec = $PortStatistics.advancedStatistics.receivePacketsPerSec.Split(":")[0] -as [int]
-
-            $Metrics = @{
-                receiveKilobitsPerSec          = $receiveKilobitsPerSec
-                receiveKilobytesPerSec         = $receiveKilobytesPerSec
-                receiveNonunicastPacketsPerSec = $receiveNonunicastPacketsPerSec
-                receivePacketsPerSec           = $receivePacketsPerSec
-    
+            if ($TotalPowerUsage) {
+                clear-variable TotalPowerUsage
             }
-            
-            $Metrics | Out-Host
-            
-            Write-Influx -Measure $measure -Tags @{Interconnect = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+
+            foreach ($PowerSupply in $Response.blade) {
+
+                if ($PowerSupply.'power-usage') {
+  
+                    [int]$PowerUsage = [Math]::Abs($PowerSupply.'power-usage')
+                    [int]$TotalPowerUsage = $TotalPowerUsage + $PowerUsage
+                    "Blade Power-Usage found: {0}" -f $PowerUsage 
+
+                }
+                elseif ($PowerSupply.'power-consumption') {
+                    [int]$PowerUsage = [Math]::Abs($PowerSupply.'power-consumption')
+                    [int]$TotalPowerUsage = $TotalPowerUsage + $PowerUsage
+
+                    "Blade Power-Consumption found: {0}" -f $PowerUsage 
+
+                }
+              
+            }
+
+            # Collecting Fan power consumption
+            $url = 'https://{0}/rest/running/brocade-fru/fan' -f $Brocade_IP
+            $Fans = (Invoke-RestMethod $url -Method GET -Headers $headers  -SkipCertificateCheck).response.fan
+           
+            foreach ($Fan in $Fans) {
+               
+                [int]$PowerUsage = [Math]::Abs($Fan.'power-consumption')
+                [int]$TotalPowerUsage = $TotalPowerUsage + $PowerUsage
+                "FAN Power-Consumption found: {0}" -f $PowerUsage 
+            }
+    
+            "Total Power usage of Brocade {0}: {1}W" -f $Brocade_IP, $TotalPowerUsage 
 
         }
+        else {
+
+            $url = 'https://{0}/rest/running/brocade-fru/power-supply' -f $Brocade_IP
+            $PowerSupplyFound = Invoke-RestMethod $url -Method GET -Headers $headers  -SkipCertificateCheck
+
+            if ($TotalPowerUsage) {
+                clear-variable TotalPowerUsage
+            }
+
+            foreach ($PowerSupply in $PowerSupplyFound.Response.'power-supply') {
+
+                [int]$PowerUsage = [Math]::Abs($PowerSupply.'power-usage')
+                [int]$TotalPowerUsage = $TotalPowerUsage + $PowerUsage
+            }
+    
+            "Total Power usage of Brocade {0}: {1}W" -f $Brocade_IP, $TotalPowerUsage 
+        }   
+
+        # Logout from FOS API
+        $Response = Invoke-WebRequest "https://$Brocade_IP/rest/logout" -Method POST -Headers $headers -SkipCertificateCheck 
+
+        $Metrics += @{PowerUsage = $TotalPowerUsage }
+
+        # $Metrics | Out-Host
+
+        Write-Influx -Measure $measure -Tags @{"Brocade" = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials
+
 
     }
 
