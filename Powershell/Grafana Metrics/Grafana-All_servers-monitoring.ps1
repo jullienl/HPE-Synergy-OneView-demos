@@ -168,8 +168,8 @@ While ($true) {
 			$PeakPower = $iLOPowerMeter.PowerDetail[-1].Peak
 			$AveragePower = $iLOPowerMeter.PowerDetail[-1].Average
 					
-			$Metrics += @{AveragePower = $AveragePower }					
-			$Metrics += @{PeakPower = $PeakPower }
+			$Metrics += @{AveragePower = [int]$AveragePower }					
+			$Metrics += @{PeakPower = [int]$PeakPower }
 			$Metrics | Out-Host
 
 			Write-Influx -Measure $measure -Tags @{"server" = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials

@@ -161,7 +161,7 @@ While ($true) {
 
         }
 
-        $Metrics += @{"Power" = $TotalChassisPower }
+        $Metrics += @{"Power" = [int]$TotalChassisPower}
         # $Metrics | Out-Host
        
         Write-Influx -Measure $measure -Tags @{"SDFlex" = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials

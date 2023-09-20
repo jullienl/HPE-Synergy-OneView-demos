@@ -203,7 +203,7 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $frameUri
                     $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1]
 
-                    $Metrics += @{Power = $AveragePower }
+                    $Metrics += @{Power = [int]$AveragePower }
 
     
                 }
@@ -212,7 +212,7 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $frameUri
                     $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
-                    $Metrics += @{Temperature = $AmbientTemperature }
+                    $Metrics += @{Temperature = [int]$AmbientTemperature }
 
                 }
 
@@ -228,7 +228,7 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=CpuUtilization' -f $OVIP, $SHUri
                     $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
-                    $Metrics += @{CPU = $CpuUtilization }
+                    $Metrics += @{CPU = [int]$CpuUtilization }
 
                 }
                 elseif ($metric -eq "Power") {
@@ -236,7 +236,7 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $SHUri
                     $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
-                    $Metrics += @{Power = $AveragePower }
+                    $Metrics += @{Power = [int]$AveragePower }
     
                 }
                 elseif ($metric -eq "Temperature") {
@@ -244,7 +244,7 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $SHUri
                     $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
-                    $Metrics += @{Temperature = $AmbientTemperature }
+                    $Metrics += @{Temperature = [int]$AmbientTemperature }
                 }
             }
             elseif ($type -eq "serverprofile") {
@@ -261,14 +261,14 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=CpuUtilization' -f $OVIP, $SHUri
                     $CpuUtilization = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
 
-                    $Metrics += @{CPU = $CpuUtilization }
+                    $Metrics += @{CPU = [int]$CpuUtilization }
 
                 }
                 elseif ($metric -eq "Power") {
 
                     $url = 'https://{0}{1}/utilization?fields=AveragePower' -f $OVIP, $SHUri
                     $AveragePower = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
-                    $Metrics += @{Power = $AveragePower }
+                    $Metrics += @{Power = [int]$AveragePower }
     
                 }
                 elseif ($metric -eq "Temperature") {
@@ -276,7 +276,7 @@ While ($true) {
                     $url = 'https://{0}{1}/utilization?fields=AmbientTemperature' -f $OVIP, $SHUri
                     $AmbientTemperature = (Invoke-RestMethod $url -Method GET -Headers $headers -SkipCertificateCheck).metricList.metricSamples[0][1] 
     
-                    $Metrics += @{Temperature = $AmbientTemperature }
+                    $Metrics += @{Temperature = [int]$AmbientTemperature }
 
                 }
 
