@@ -140,7 +140,7 @@ foreach ($item in $SH) {
 
     # Capture of the SSO Session Key
     try {
-        $ilosessionkey = ($item | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+        $ilosessionkey = ($item | Get-OVIloSso -IloRestSession -SkipCertificateCheck)."X-Auth-Token"
         $headers["X-Auth-Token"] = $ilosessionkey 
     }
     catch {
