@@ -11,7 +11,7 @@ My Postman public workspace is available at https://www.postman.com/jullienl/wor
 This workspace contains several Postman collections showing numerous examples of native API requests for various APIs such as:
 - [HPE Greenlake for Compute Ops Management API](https://developer.greenlake.hpe.com/docs/greenlake/services/compute-ops/public/openapi/compute-ops-latest/overview/)
 - [HPE OneView REST API](https://support.hpe.com/hpesc/public/docDisplay?docId=a00118111en_us&page=GUID-4B5123A2-A300-44BF-A0CC-41E8DC66EA4B.html)
-- [HPE iLO RedFish portal](https://redfish.redoc.ly/docs/redfishservices/)
+- [HPE iLO RedFish portal](https://servermanagementportal.ext.hpe.com/docs/redfishservices/)
 - [HPE OneView Global Dashboard REST API](https://app.swaggerhub.com/apis/hpe-global-dashboard/hpe-one_view_global_dashboard_rest_api/2.1)
 - [HPE iLO Amplifier Pack REST API](https://hewlettpackard.github.io/iLOAmpPack-Redfish-API-Docs/)
 
