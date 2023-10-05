@@ -137,7 +137,13 @@ $headers["Content-Type"] = "application/json"
 
 $body = "{`"UserName`": `"$iLO_username`",`n`"Password`": `"$ilo_password`"}`n"
 
-$session = Invoke-RestMethod "https://$iLO_IP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body # for PowerShell 7: -SkipCertificateCheck 
+if ($PSEdition -eq "Desktop" ) {
+    $session = Invoke-webrequest "https://$iLO_IP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body 
+}
+if ($PSEdition -eq "Core" ) {
+    $session = Invoke-webrequest "https://$iLO_IP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body -SkipCertificateCheck 
+}
+
 $token = $session.headers | % X-Auth-Token
 
 $headers["X-Auth-Token"] = $token
@@ -153,7 +159,12 @@ $uri = "/redfish/v1/Managers/1/SecurityService"
 $method = "Get"
 
 # Request
-$response = Invoke-RestMethod -Uri "https://$iLO_IP$uri" -Headers $headers -Method $method -ErrorAction Stop # for PowerShell 7: -SkipCertificateCheck 
+if ($PSEdition -eq "Desktop" ) {
+    $response = Invoke-RestMethod -Uri "https://$iLO_IP$uri" -Headers $headers -Method $method -ErrorAction Stop 
+}
+if ($PSEdition -eq "Core" ) {
+    $response = Invoke-RestMethod -Uri "https://$iLO_IP$uri" -Headers $headers -Method $method -ErrorAction Stop -SkipCertificateCheck 
+}
 
 # Response
 $response
