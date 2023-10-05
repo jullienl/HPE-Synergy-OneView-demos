@@ -111,8 +111,10 @@ $ret.error
 ######################################## Using full Redfish operations ################################################
 # Requirements: NONE
 
-# if using untrusted iLO certificate, you must use with PowerShell 5.x:
-add-type -TypeDefinition  @"
+# if using untrusted iLO certificates, you must use with PowerShell 5.x:
+if ($PSEdition -eq "Desktop" ) {
+
+    add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
         public class TrustAllCertsPolicy : ICertificatePolicy {
@@ -124,9 +126,9 @@ add-type -TypeDefinition  @"
         }
 "@
    
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+}
 
-# With PowerShell 7.x: just add -SkipCertificateCheck parameter to all your web requests
 
 
 ######################## Connection ############################
