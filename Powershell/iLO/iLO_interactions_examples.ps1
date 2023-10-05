@@ -32,7 +32,6 @@ Examples of iLO interaction using different methods and HPE PowerShell libraries
 # THE SOFTWARE.                                                                 #
 #                                                                               #
 #################################################################################
-
 #>
 
 
@@ -47,7 +46,7 @@ $ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username,
 
 
 ######################################## Using HPEiLOCmdlets ################################################
-# Requirements: HPEiLOCmdlets (currently not supported SY Gen11)
+# Requirements: HPEiLOCmdlets (currently not supported with Synergy Gen11 servers!)
 # install-module HPEiLOCmdlets -Scope CurrentUser
 
 
@@ -60,6 +59,7 @@ $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds  -DisableCer
 # Examples
 (Get-HPEiLOUser -Connection  $connection).userinformation.count
 Get-HPEiLOServerInfo -Connection $connection
+
 
 
 
@@ -107,6 +107,7 @@ $ret.error
 
 
 
+
 ######################################## Using full Redfish operations ################################################
 # Requirements: NONE
 
@@ -127,9 +128,8 @@ add-type -TypeDefinition  @"
 
 # With PowerShell 7.x: just add -SkipCertificateCheck parameter to all your web requests
 
-########################################################################################################################
 
-#### Connection ####
+######################## Connection ############################
 
 $headers = @{} 
 $headers["OData-Version"] = "4.0"
@@ -143,7 +143,7 @@ $token = $session.headers | % X-Auth-Token
 $headers["X-Auth-Token"] = $token
 
 
-############ GET Example ################
+######################## GET Example ############################
 
 
 # iLO5 Redfish URI
@@ -161,7 +161,7 @@ $response.SecurityState
 $response.TLSVersion
 
 
-############ PATCH Example ################
+######################## PATCH Example ###########################
 
 
 # iLO5 Redfish URI
