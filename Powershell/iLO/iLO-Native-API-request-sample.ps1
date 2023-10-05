@@ -70,9 +70,11 @@ if (! $ConnectedSessions) {
     # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 }
 
-# Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
-# due to an invalid Remote Certificate
-add-type -TypeDefinition  @"
+if ($PSEdition -eq "Desktop" ) {
+
+    # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
+    # due to an invalid Remote Certificate
+    add-type -TypeDefinition  @"
         using System.Net;
         using System.Security.Cryptography.X509Certificates;
         public class TrustAllCertsPolicy : ICertificatePolicy {
@@ -84,8 +86,10 @@ add-type -TypeDefinition  @"
         }
 "@
    
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+}
 
+    
 
 #################################################################################
 
@@ -147,7 +151,13 @@ foreach ($item in $SH) {
     
     # Enabling iLO High Security state
     try {
-        $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
+        if ($PSEdition -eq "Desktop" ) {
+            $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
+        }
+        if ($PSEdition -eq "Core" ) {
+            $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop -SkipCertificateCheck
+        }
+
         $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
         write-host "`niLO $($iloip) High Security state is now enabled... API response: [$($msg)]"
     }
