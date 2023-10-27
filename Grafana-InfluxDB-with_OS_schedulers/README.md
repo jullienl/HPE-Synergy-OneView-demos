@@ -1,10 +1,15 @@
 # Grafana Dashboards for various HPE products and equipments 
 
 This project uses PowerShell scripts to collect and store various metrics data in an Influxdb database to build Grafana metrics dashboards for:
-- Any HPE Compute infrastructure managed by HPE OneView (HPE Rack and blade servers, frames, SD Flex - excluding HPE Superdome Flex) `[capture power peak - power average - CPU - temperature]`
-- HPE Virtual Connect managed by HPE OneView `[capture port utilization statistics]`
-- Brocade switches (using the FOS REST API) `[capture total power usage]`
-- HPE BladeSystem via HPE Onboard Administrators `[capture total power usage]`
+- Any HPE Compute infrastructure managed by HPE OneView
+  - Supported models: HPE Rack and Synergy Computes, Synergy frames and HPE Superdome Flex 
+  - Supported metrics: Power peak / average - CPU - Temperature.
+- HPE Virtual Connect managed by HPE OneView: 
+  - Supported metrics: Port utilization statistics.
+- Brocade switches (using the FOS REST API):
+  - Supported metrics: Total power usage.
+- HPE BladeSystem via HPE Onboard Administrators: 
+  - Supported metrics: Total power usage.
 
 These scripts collect different usage statistics depending on the type of resource. See the comments section of each script for more details.
 
