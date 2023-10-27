@@ -1,6 +1,6 @@
 ﻿<#
-PowerShell script to generate a carbon footprint report of all resources managed by HPE Oneview appliances (Oneview Composers 
-and OneView VMs) for a Grafana metrics dashboard via Telegraf/influxdb with Exec input plugin.
+PowerShell script to generate a carbon footprint report of all resources managed by HPE OneView appliances (OneView Composers 
+and OneView VMs) for a Grafana metrics dashboard via Telegraf/InfluxDB with Exec input plugin.
 
 More information about the Exec input plugin can be found at https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec 
 
@@ -16,6 +16,7 @@ Requirements:
     - Telegraf 
         - Configuration (/etc/telegraf/telegraf.conf):
             [[outputs.influxdb]]
+            database = "telegraf"
             ## HTTP Basic Auth
             username = "telegraf"
             password = "xxxxxxxxxxxxxxx"
@@ -248,7 +249,7 @@ Write-Host $metric
 # Get Databases
 # ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials ).content | Convertfrom-Json).results.series.values
 
-# Get a DB measurments
+# Get a DB measurements
 # $measurements = (((Invoke-WebRequest -Uri "$InfluxDBserver/query?db=$database&q=SHOW MEASUREMENTS" -Method GET -Credential $credentials).content | ConvertFrom-Json).results.series.values)
 
 # Get all fields and tags

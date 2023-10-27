@@ -1,5 +1,5 @@
 <#
-PowerShell script to produce data that can be used to create a Grafana dashboard for an iLO Security Dashboard through the use of Telegraf and influxdb. 
+PowerShell script to produce data that can be used to create a Grafana dashboard for an iLO Security Dashboard through the use of Telegraf and InfluxDB. 
 The script utilizes the Exec input plugin.
 
 More information about the Exec input plugin can be found at https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec 
@@ -17,8 +17,8 @@ Requirements:
     - InfluxDB (with an admin account for telegraf)
     - Telegraf 
         - Configuration (/etc/telegraf/telegraf.conf):
-
             [[outputs.influxdb]]
+            database = "telegraf"
             ## HTTP Basic Auth
             username = "telegraf"
             password = "xxxxxxxxxxxxxxx"

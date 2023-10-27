@@ -1,9 +1,9 @@
 ﻿<#
-PowerShell script to generate data for a Grafana metrics dashboard for servers and enclosures via Telegraf/influxdb with Exec input plugin.
+PowerShell script to generate data for a Grafana metrics dashboard for servers and enclosures via Telegraf/InfluxDB with Exec input plugin.
 
 More information about the Exec input plugin can be found at https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec 
 
-The script collects the utilization statistics of the given resource from HPE OneView REST API. Supported ressource are enclosure, server hardware and server profile.
+The script collects the utilization statistics of the given resource from HPE OneView REST API. Supported resource are enclosure, server hardware and server profile.
 
 The resource utilization metrics supported for server are CPU, power and temperature. For enclosure, it is only power and temperature.
 
@@ -16,6 +16,7 @@ Requirements:
     - Telegraf 
         - Configuration (/etc/telegraf/telegraf.conf):
             [[outputs.influxdb]]
+            database = "telegraf"
             ## HTTP Basic Auth
             username = "telegraf"
             password = "xxxxxxxxxxxxxxx"
@@ -304,7 +305,7 @@ foreach ($Resource in $Resources.GetEnumerator()) {
 # Get Databases
 # ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials ).content | Convertfrom-Json).results.series.values
 
-# Get a DB measurments
+# Get a DB measurements
 # $measurements = (((Invoke-WebRequest -Uri "$InfluxDBserver/query?db=$database&q=SHOW MEASUREMENTS" -Method GET -Credential $credentials).content | ConvertFrom-Json).results.series.values)
 
 # Get all fields and tags

@@ -1,5 +1,5 @@
 ﻿<#
-PowerShell script to generate data for a Grafana metrics dashboard for HPE Virtual Connect via Telegraf/influxdb with Exec input plugin.
+PowerShell script to generate data for a Grafana metrics dashboard for HPE Virtual Connect via Telegraf/InfluxDB with Exec input plugin.
 
 More information about the Exec input plugin can be found at https://github.com/influxdata/telegraf/tree/master/plugins/inputs/exec 
 
@@ -16,6 +16,7 @@ Requirements:
     - Telegraf 
         - Configuration (/etc/telegraf/telegraf.conf):
             [[outputs.influxdb]]
+            database = "telegraf"
             ## HTTP Basic Auth
             username = "telegraf"
             password = "xxxxxxxxxxxxxxx"
@@ -188,7 +189,7 @@ foreach ($Interconnect in $Ports.GetEnumerator()) {
 # Get Databases
 # ((Invoke-WebRequest -Uri "$InfluxDBserver/query?q=SHOW DATABASES" -Method GET -Credential $credentials ).content | Convertfrom-Json).results.series.values
 
-# Get a DB measurments
+# Get a DB measurements
 # $measurements = (((Invoke-WebRequest -Uri "$InfluxDBserver/query?db=$database&q=SHOW MEASUREMENTS" -Method GET -Credential $credentials).content | ConvertFrom-Json).results.series.values)
 
 # Get all fields and tags
