@@ -19,6 +19,7 @@ File: `/etc/telegraf/telegraf.conf`
 
 ```
 [[outputs.influxdb]]
+  database = "telegraf"
   ## HTTP Basic Auth
   username = "telegraf"
   password = "xxxxxxxxxxxxxxx"
