@@ -73,20 +73,6 @@ $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
 $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
 
 
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 #################################################################################
 
 echo "Compute Module Names; Compute Serial Numbers; Frame Serial Numbers" > $path\Compute-modules.txt 
