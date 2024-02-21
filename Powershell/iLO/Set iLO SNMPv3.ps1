@@ -37,7 +37,7 @@ $iLO_IP = "192.168.0.40"
 
 # iLO Credentials 
 $iLO_username = "demopaq"
-$iLO_password = "password"
+$iLO_password = "xxxxxxxxxxxx"
 
 
 $secpasswd = ConvertTo-SecureString -String $iLO_password -AsPlainText -Force
@@ -50,14 +50,14 @@ $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds  -DisableCer
 $SNMPProtocolEnabled = (Get-HPEiLOAccessSetting -Connection $connection).SNMPProtocolEnabled
 
 if ($SNMPProtocolEnabled -eq "No") {
-    Set-HPEiLOAccessSetting -Connection $connection -SNMPProtocolEnabled Yes
+  Set-HPEiLOAccessSetting -Connection $connection -SNMPProtocolEnabled Yes
 }
 
 # SNMP Alert setting concerns both SNMPv1 & SNMPv3 alerts so it must be enabled
 $AlertEnabled = (Get-HPEiLOSNMPAlertSetting -Connection $connection).AlertEnabled
 
 if ($AlertEnabled -eq "No") {
-    Set-HPEiLOSNMPAlertSetting -Connection $connection -AlertEnabled Yes
+  Set-HPEiLOSNMPAlertSetting -Connection $connection -AlertEnabled Yes
 }
 
 # Add a SNMPv3 user

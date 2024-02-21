@@ -56,7 +56,7 @@ $OV_IP = "composer2.lj.lab"
 
 # iLO administrator account
 $ilousername = "Administrator"
-$ilopassword = "password"
+$ilopassword = "xxxxxxxxxxxx"
 
 # MODULES TO INSTALL
 

@@ -43,7 +43,7 @@
 #
 # $iLO = '192.168.1.80'
 # $Username = "Administrator"
-# $Password = ConvertTo-SecureString "HP1nvent" -AsPlainText -Force
+# $Password = ConvertTo-SecureString "xxxxxxxxxxxx" -AsPlainText -Force
 # $Credentials = New-Object System.Management.Automation.PSCredential $Username,$Password
 #
 ##############################################

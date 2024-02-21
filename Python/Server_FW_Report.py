@@ -7,7 +7,7 @@ config = {
     "api_version": 1200,
     "credentials": {
         "userName": "Administrator",
-        "password": "password"
+        "password": "xxxxxxxxxxxx"
     }
 }
 

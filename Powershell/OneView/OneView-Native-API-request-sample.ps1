@@ -42,7 +42,7 @@ Requirements:
 
 # OneView information
 $OVusername = "Administrator"
-$OVpassword = "password"
+$OVpassword = "xxxxxxxxxxxx"
 $OVIP = "composer.lj.lab"
 
 

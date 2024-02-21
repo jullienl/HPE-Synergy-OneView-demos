@@ -55,12 +55,12 @@ Requirements:
 # InfluxDB 
 $InfluxDBserver = "http://grafana.lab:8086"
 $influxdb_admin = "admin"
-$influxdb_admin_password = "password"
+$influxdb_admin_password = "xxxxxxxxxxxx"
 $Database = "ov_sdflex_db"
 
 # OneView information
 $OVusername = "Administrator"
-$OVpassword = "password"
+$OVpassword = "xxxxxxxxxxxx"
 $OVIP = "composer.lab"
 
 # MODULES TO INSTALL
@@ -161,7 +161,7 @@ While ($true) {
 
         }
 
-        $Metrics += @{"Power" = [int]$TotalChassisPower}
+        $Metrics += @{"Power" = [int]$TotalChassisPower }
         # $Metrics | Out-Host
        
         Write-Influx -Measure $measure -Tags @{"SDFlex" = $measure } -Metrics $Metrics -Database $Database -Server $InfluxDBserver -Verbose -Credential $credentials

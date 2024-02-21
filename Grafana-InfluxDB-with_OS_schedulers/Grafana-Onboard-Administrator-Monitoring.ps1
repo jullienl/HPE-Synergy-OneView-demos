@@ -64,12 +64,12 @@ $OA_List = @(
 # InfluxDB 
 $InfluxDBserver = "http://localhost:8086"
 $influxdb_admin = "admin"
-$influxdb_admin_password = "password"
+$influxdb_admin_password = "xxxxxxxxxxxx"
 $Database = "oa_db"
 
 # OA information
 $OVAusername = "Administrator"
-$OApassword = "password"
+$OApassword = "xxxxxxxxxxxx"
 
 
 # MODULES TO INSTALL

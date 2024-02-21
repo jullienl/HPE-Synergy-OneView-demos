@@ -45,7 +45,7 @@ $newiLOPassword = "iLO_Amplifier_password"
 
 # iLO Amplifier Credentials and IP
 $iLOAmplifierusername = "Administrator" 
-$iLOAmplifierpassword = "password" 
+$iLOAmplifierpassword = "xxxxxxxxxxxx" 
 $iLOAmplifierIP = "ilo-amplifier.lj.lab"
 
 

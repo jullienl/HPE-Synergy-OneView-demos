@@ -7,7 +7,7 @@
     - set_fact: 
         iLO_IP="192.168.0.6"
         administrator="Administrator" 
-        password="password"
+        password="xxxxxxxxxxx"
 
 
     - name: Ensure python-hpilo is installed

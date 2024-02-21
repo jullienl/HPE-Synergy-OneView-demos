@@ -89,7 +89,7 @@ add-type -TypeDefinition  @"
 #################################################################################
 
 # Capture iLO Administrator account password
-$DefaultiLOpassword = "password"
+$DefaultiLOpassword = "xxxxxxxxxxxx"
 $seciLOpassword = Read-Host "Please enter the $($iLO_username) password [$($DefaultiLOpassword)]" -AsSecureString
 
 $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($seciLOpassword)

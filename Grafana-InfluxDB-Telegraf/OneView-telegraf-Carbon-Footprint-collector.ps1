@@ -88,7 +88,7 @@ $CarbonEmissionsFactor = 344.6
 
 # OneView information
 $OVusername = "Administrator"
-$OVpassword = "password"
+$OVpassword = "xxxxxxxxxxxxx"
 $OVIPs = @("composer.lj.lab", "oneview.lj.lab")
 
 

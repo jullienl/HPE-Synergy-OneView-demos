@@ -49,7 +49,7 @@
 
 #iLO Credentials
 $ilousername = "Administrator" 
-$ilopassword = "password" 
+$ilopassword = "xxxxxxxxxxxx" 
 
 #location of FW package
 #Locate and download the server firmware package from google, search for:  [  server model "Online ROM Flash Component for Windows x64" ]

@@ -10,7 +10,7 @@ $IP = "192.168.1.110"
 
 # OneView Credentials
 $username = "Administrator" 
-$password = "password" 
+$password = "xxxxxxxxxxxx" 
 
 # Import the OneView 3.10 library
 

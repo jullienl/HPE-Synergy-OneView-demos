@@ -19,12 +19,12 @@
 
 
 # Defining the netop VC CLI user password
-$netoppwd = "mypassword"
+$netoppwd = "xxxxxxxxxxxx"
 
 
 # Composer information
 $username = "Administrator"
-$password = "password"
+$password = "xxxxxxxxxxxx"
 $composer = "composer.lj.lab"
  
 

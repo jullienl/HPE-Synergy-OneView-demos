@@ -59,14 +59,14 @@ Requirements:
 
 # Brocade switches information
 $Brocade_Username = "admin"
-$Brocade_Password = "password"
+$Brocade_Password = "xxxxxxxxxxxx"
 $Brocade_IPs = @("Brocade-32G.lj.lab", "Brocade-16G.lj.lab")
 
 
 # InfluxDB 
 $InfluxDBserver = "http://grafana.lab:8086"
 $influxdb_admin = "admin"
-$influxdb_admin_password = "password"
+$influxdb_admin_password = "xxxxxxxxxxxx"
 $Database = "brocade_db"
 
 

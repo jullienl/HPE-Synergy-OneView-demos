@@ -124,7 +124,7 @@ function Get-OVinterconnectstatistics {
   )
    
   # $username = "Administrator"
-  # $password = "password"
+  # $password = "xxxxxxxxxxxx"
   # $IP = "composer2.lj.lab"
   # $interconnect = "frame4, interconnect 3"
   # $portname = "d2"  # "Q1" 
