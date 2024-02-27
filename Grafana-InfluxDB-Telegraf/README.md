@@ -42,7 +42,7 @@ By running these scripts, you will be able to collect the sustainability metrics
  - iLO Overall Security dashboard status
 
 
-**Note**: By default, official packages run Telegraf as the `telegraf` user and group on Linux systems. So, you need to ensure that the `telegraf` user can read and execute each PowerShell script you define in Telegraf. 
+**Note**: On Linux systems, official Telegraf packages are configured to execute under the `telegraf` user and group by default. It's essential to guarantee that the `telegraf` user has adequate permissions to read and execute every PowerShell script specified within your Telegraf configuration.
 
 
 ## Telegraf configuration 
