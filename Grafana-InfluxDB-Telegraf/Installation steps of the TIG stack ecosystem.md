@@ -128,7 +128,7 @@ EOF
 
 Install Grafana:
 ```sh
-sudo yum install -y grafana
+sudo yum install -y grafana-enterprise
 ```
 
 Start and enable Grafana service
@@ -220,7 +220,7 @@ gpgkey=https://rpm.grafana.com/gpg.key
 sslverify=1
 sslcacert=/etc/pki/tls/certs/ca-bundle.crt
 EOF
-sudo yum install -y grafana
+sudo yum install -y grafana-enterprise
 sudo systemctl start grafana-server
 sudo systemctl enable grafana-server
 sudo firewall-cmd --add-port=3000/tcp --permanent
