@@ -148,7 +148,7 @@ foreach ($Compute in $Computes) {
         # Request content to enable iLO High Security state
         $body = @{}
         $body["SecurityState"] = "HighSecurity"
-        $body = $body | ConvertTo-Json  
+        $body = $body | ConvertTo-Json -Depth 10  
 
         # iLO4 Redfish URI
         $uri = "/redfish/v1/Managers/1/SecurityService"
@@ -164,7 +164,7 @@ foreach ($Compute in $Computes) {
         # Request content to enable iLO High Security state
         $body = @{}
         $body["SecurityState"] = "HighSecurity"
-        $body = $body | ConvertTo-Json  
+        $body = $body | ConvertTo-Json -Depth 10 
         
         # iLO5 Redfish URI
         $uri = "/redfish/v1/Managers/1/SecurityService"
@@ -179,7 +179,7 @@ foreach ($Compute in $Computes) {
         # Request content to enable iLO High Security state
         $body = @{}
         $body["SecurityState"] = "HighSecurity"
-        $body = $body | ConvertTo-Json  
+        $body = $body | ConvertTo-Json -Depth 10 
             
         # iLO6 Redfish URI
         $uri = "/redfish/v1/Managers/1/SecurityService"
@@ -200,12 +200,26 @@ foreach ($Compute in $Computes) {
         $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
         write-host "`niLO $($iloip) High Security state is now enabled... API response: [$($msg)]"
     }
+    catch [System.Net.WebException] {
+
+        if ($null -ne $_.Exception.Response) {
+    
+            $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+            $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+            Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) configuration error ! Message returned: [$($msg)]"
+            continue
+    
+        }
+        else {
+            Write-Output "WebException occurred, but no response stream is available."
+        }
+          
+    }
+    
     catch {
-        $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
-        $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) configuration error ! Message returned: [$($msg)]"
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) configuration error ! Message returned: [$($_.Exception.Message)]"
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "Extended info: [$(($_| ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId)]"
         continue
-      
     }
 
 }
