@@ -1,10 +1,13 @@
 <# 
 
-PowerShell script to set the high security mode on all iLO5 managed by HPE OneView. 
+Example of a PowerShell script to illustrate a typical native API request to iLOs managed by HPE OneView. 
 
-Once the state is set, the iLO automatically resets to activate the high security mode.
+This script will connect to HPE OneView, get the session token, and then use that token to send a request to each iLO.
 
-Gen10/Gen10+ servers are supported. Gen9 servers are skipped by the script.
+Gen9/Gen10/Gen10+ servers are supported. PowerShell 5 and 7 are supported.
+
+This script deliberately provides a different payload/URI/method for each iLO model (iLO4,iLO5 and 6) to support queries that might differ depending on the iLO model type.
+In this example, where the script changes the iLO's security mode, the payload, URI and method are the same for each iLO type, but this is not always the case.
 
  Requirements:
    - HPE OneView Powershell Library
@@ -94,53 +97,42 @@ if ($PSEdition -eq "Desktop" ) {
 #################################################################################
 
 # Capture iLO5 server hardware managed by HPE OneView
-$SH = Search-OVIndex -Category server-hardware | ? { $_.Attributes.mpModel -eq "iLO5" } #| select -first 1
+$Computes = Search-OVIndex -Category server-hardware 
 
-clear
-
-if ($SH) {
+if ($Computes) {
     write-host ""
-    if (! $SH.count) { 
-        Write-host "1 x iLO5 is going to be configured with iLO High Security state to enable:" 
+    if (! $Computes.count) { 
+        Write-host "1 x iLO is going to be configured with iLO High Security state to enable:" 
     }
     else {
-        Write-host $SH.Count "x iLO5 are going to be configured with iLO High Security state to enable:" 
+        Write-host $Computes.Count "x iLO are going to be configured with iLO High Security state to enable:" 
     } 
-    $SH.name | Format-Table -autosize | Out-Host
+    $Computes.name | Format-Table -autosize | Out-Host
 
 }
 else {
-    Write-Warning "No iLO5 server found ! Exiting... !"
+    Write-Warning "No iLO server found ! Exiting... !"
     Disconnect-OVMgmt
     exit
 }
-
-
-# Request content to enable iLO High Security state
-$body = @{}
-$body["SecurityState"] = "HighSecurity"
-$body = $body | ConvertTo-Json  
-# $body = ConvertTo-Json @{ SecurityState = "HighSecurity" } -Depth 99
 
 # Creation of the headers  
 $headers = @{} 
 $headers["OData-Version"] = "4.0"
 
-# iLO5 Redfish URI
-$uri = "/redfish/v1/Managers/1/SecurityService"
 
-# Method
-$method = "patch"
 
 #####################################################################################################################
 
-foreach ($item in $SH) {
+foreach ($Compute in $Computes) {
 
-    $iLOIP = $item.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
+    $iLOIP = $Compute.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
+    $iloModel = $Compute.attributes | % mpmodel
+
 
     # Capture of the SSO Session Key
     try {
-        $ilosessionkey = ($item | Get-OVIloSso -IloRestSession -SkipCertificateCheck)."X-Auth-Token"
+        $ilosessionkey = ($Compute | Get-OVIloSso -IloRestSession -SkipCertificateCheck)."X-Auth-Token"
         $headers["X-Auth-Token"] = $ilosessionkey 
     }
     catch {
@@ -148,7 +140,54 @@ foreach ($item in $SH) {
         continue
     }
 
+    # This example modifies the security mode and in this case, the payload/URI/method is the same for each iLO type (which is not always the case).
+
+    # iLO4
+    if ($iloModel -eq "ilo4") {
+
+        # Request content to enable iLO High Security state
+        $body = @{}
+        $body["SecurityState"] = "HighSecurity"
+        $body = $body | ConvertTo-Json  
+
+        # iLO4 Redfish URI
+        $uri = "/redfish/v1/Managers/1/SecurityService"
+
+        # Method
+        $method = "patch"
+
+    }
+
+    # iLO5 
+    elseif ($iloModel -eq "ilo5") {
+      
+        # Request content to enable iLO High Security state
+        $body = @{}
+        $body["SecurityState"] = "HighSecurity"
+        $body = $body | ConvertTo-Json  
+        
+        # iLO5 Redfish URI
+        $uri = "/redfish/v1/Managers/1/SecurityService"
+        
+        # Method
+        $method = "patch"
+    }
+
+    # iLO6
+    elseif ($iloModel -eq "ilo6") {
     
+        # Request content to enable iLO High Security state
+        $body = @{}
+        $body["SecurityState"] = "HighSecurity"
+        $body = $body | ConvertTo-Json  
+            
+        # iLO6 Redfish URI
+        $uri = "/redfish/v1/Managers/1/SecurityService"
+            
+        # Method
+        $method = "patch"
+    }
+
     # Enabling iLO High Security state
     try {
         if ($PSEdition -eq "Desktop" ) {
@@ -164,7 +203,7 @@ foreach ($item in $SH) {
     catch {
         $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
         $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) high security state configuration error ! Message returned: [$($msg)]"
+        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) configuration error ! Message returned: [$($msg)]"
         continue
       
     }
