@@ -7,6 +7,7 @@
 # Note: The Security Dashboard is only available on Gen10/Gen10+ servers with iLO5
 #
 # Requirements:
+#    - PowerShell 7
 #    - HPE OneView Powershell Library
 #    - HPE iLO PowerShell Cmdlets (install-module HPEiLOCmdlets)
 #    - HPE OneView administrator account 
@@ -110,22 +111,6 @@ if (! $ConnectedSessions) {
     # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 }
 
-# Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
-# due to an invalid Remote Certificate
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
 
 #################################################################################
@@ -144,13 +129,17 @@ foreach ($SHiLO5 in $SHiLO5s) {
     $iLOIP = $SHiLO5.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
 
     try {
-        $ilosessionkey = ($SHiLO5 | Get-OVIloSso -IloRestSession)."X-Auth-Token"
+        $ilosessionkey = ($SHiLO5 | Get-OVIloSso -IloRestSession -SkipCertificateCheck)."X-Auth-Token"
         $headers = @{} 
         $headers["OData-Version"] = "4.0"
         $headers["X-Auth-Token"] = $ilosessionkey 
 
-        $response = (Invoke-WebRequest -Uri "https://$iLOIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard" -Headers $headers -Method GET).content | Convertfrom-Json
+        "[0] - iLO session key: [1] " -f $iLOIP, $ilosessionkey  | Write-Verbose
+
+        $response = (Invoke-WebRequest -SkipCertificateCheck -Uri "https://$iLOIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard" -Headers $headers -Method GET).content | Convertfrom-Json
         
+        "[0] - OverallSecurityStatus: [1] " -f $iLOIP, $response.OverallSecurityStatus  | Write-Verbose
+
         if ($response.OverallSecurityStatus -eq "Risk") {
             $SH += $SHiLO5
         }
@@ -255,7 +244,7 @@ Foreach ($compute in $SH) {
         $body['$expand'] = "."
 
         # iLO5 Redfish URI
-        $SecurityParams = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard/SecurityParams" -Method Get -Headers $headers -Body $body
+        $SecurityParams = Invoke-WebRequest -SkipCertificateCheck -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/SecurityDashboard/SecurityParams" -Method Get -Headers $headers -Body $body
         $snmp_uri = ($SecurityParams.Content | ConvertFrom-Json).Members | ? name -eq "SNMPv1" | % '@odata.id'
 
         # Request content to ignore iLO SNMPv1 security dashboard warning
@@ -268,7 +257,7 @@ Foreach ($compute in $SH) {
         $method = "patch"
 
         try {
-            $response = Invoke-WebRequest -Uri "https://$iloIP$snmp_uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
+            $response = Invoke-WebRequest -SkipCertificateCheck -Uri "https://$iloIP$snmp_uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
             Write-Host "[$($compute.name) - iLO:$iloIP]: iLO security dashboard parameters changed successfully!"
         }
         catch {
@@ -280,8 +269,7 @@ Foreach ($compute in $SH) {
 
         # Clearing the "Overall security status of the system is at risk" alert
         $compute  | Get-OVAlert -AlertState Active | Where-Object { $_.description -Match "Overall security status of the system is at risk" } | Set-OVAlert -Cleared | out-null
-
-        
+       
 
     }
 }
