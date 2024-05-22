@@ -219,13 +219,13 @@ if ($IgnoreRequireHostAuthentication) {
 Foreach ($compute in $SH) {
 
     # Capture of the SSO Session Key
-    $iloSession = $compute  | Get-OVIloSso -IloRestSession
+    $iloSession = $compute  | Get-OVIloSso -IloRestSession -SkipCertificateCheck
     $ilosessionkey = $iloSession."X-Auth-Token"
 
     $iloIP = $compute.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
 
     # Connection to iLO using HPEiLOCmdlets
-    $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
+    $connection = Connect-HPEiLO -Address $iloIP -XAuthToken $ilosessionkey -DisableCertificateAuthentication 
 
     # Modification of the security dashboard parameters using HPEiLOCmdlets
     $connection | Enable-HPEiLOSecurityDashboardSetting @parametersToIgnore
