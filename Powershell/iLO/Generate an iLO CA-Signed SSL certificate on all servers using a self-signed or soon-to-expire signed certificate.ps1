@@ -1,13 +1,13 @@
 <# 
 
-This PowerShell script generates an iLO SSL certificate signed by a Certificate Authority (CA) 
-for all servers managed by HPE OneView that use a self-signed certificate or soon-to-expire CA-signed certificate. 
+This PowerShell script generates an SSL certificate signed by a Certificate Authority (CA) for all servers managed by HPE OneView that are currently using a self-signed certificate or have a CA-signed certificate that is soon to expire.
+
 
 $days_before_expiration defined in the variable section specifies the number of days before the expiration date when the certificates should be replaced.  
 
 Steps of this script: 
 1- Find the first trusted Certification Authority server available on the network
-        Note: Only works if the host from which you are running this script is in an AD domain
+    Note: Only works if the host from which you are running this script is in an AD domain
 2- Import the CA server's root certificate into the OneView trust store if it is not present
 3- Collect iLO certificate information from all servers to check if they are self-signed or soon-to-expire CA-signed certificate (using RedFish)
 4- For servers using a self-signed or soon-to-expire CA-signed certificate:
@@ -15,10 +15,10 @@ Steps of this script:
     - Submit CSR to the Certificate Authority server 
     - Import new CA-signed certificate into iLOs (triggers an iLO reset)
     - Remove old iLO self-signed certificate from the OneView trust store
-    - Perform a server hardware refresh to re-establish the communication with the iLO (only with OneView < 6.10)
-    - Make sure the alert 'network connectivity has been lost' is cleared (only with OneView < 6.10)
 
-Gen9 and Gen10 servers are supported 
+    Note: OneView automatically runs the tasks necessary to restore communication with the iLO when a certificate change is detected.
+    
+Gen9, Gen10 and Gen10+ servers are supported 
 
 Requirements:
    - HPE OneView Powershell Library
@@ -27,39 +27,18 @@ Requirements:
 
 
 Output sample:
--------------------------------------------------------------------------------------------------------
-Please enter the OneView password: ********
-The trusted CA root certificate has been found in the OneView trust store, skipping the add operation.
-                                                                                                                                                                                                           
-[Frame1, bay 1 - iLO: 192.168.0.35]: work in progress...                                                                                                                                                           
-        iLO self-signed certificate detected                                                                                                                                                         
-        Generating a new CA-signed certificate                                                                                                                                                             
-        Creating a Certificate Signing Request (can take several minutes on iLO4)                                                                                                                          
-        A reset of the iLO is going to take place to activate the new certificate...
-        Once the iLO reset is complete, the CA-signed certificate will be available
-        The old iLO certificate has been successfully removed from the Oneview trust store
-        Operation completed successfully !
-
-[Frame1, bay 2 - iLO: 192.168.0.36]: work in progress...
-        The iLO uses a CA-signed certificate with an expiration date greater than 90 days
-        No action required
-
-[Frame1, bay 3 - iLO: 192.168.0.38]: work in progress...
-        iLO CA-signed certificate detected that will expire in less than 90 days
-        Generating a new CA-signed certificate
-        Creating a Certificate Signing Request (can take several minutes on iLO4)
-        A reset of the iLO is going to take place to activate the new certificate...
-        Once the iLO reset is complete, the CA-signed certificate will be available
-        The old iLO certificate has been successfully removed from the Oneview trust store
-        Operation completed successfully !
-
-[Frame3, bay 2 - iLO: 192.168.3.188]: work in progress...
-        Error ! Server cannot be found. Resolve any issues as per the resolution steps provided in the alerts and retry the operation.
-        Skipping server...
-        
-Operation completed with errors ! Not all iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated!
-Resolve any issues found in OneView and run this script again !
--------------------------------------------------------------------------------------------------------
+    Please enter the OneView password: ********
+    [Frame3, bay 1 - iLO 192.168.3.186]: Analysis in progress...
+    [Frame3, bay 1 - iLO 192.168.3.186]: iLO self-signed certificate detected. Generating a new CA-signed certificate...
+    [Frame3, bay 1 - iLO 192.168.3.186]: Creating a certificate signing request.
+    [Frame3, bay 1 - iLO 192.168.3.186]: iLO reset in progress to activate the new certificate...
+    [Frame3, bay 1 - iLO 192.168.3.186]: The old iLO certificate has been successfully removed from the Oneview trust store
+    [Frame3, bay 1 - iLO 192.168.3.186]: Operation completed successfully!
+    [Frame3, bay 10 - iLO 192.168.3.183]: Analysis in progress...
+    [Frame3, bay 10 - iLO 192.168.3.183]: The iLO uses a signed certificate with an expiration date greater than 90 days. No action is required as expiration = 2650 days
+    [Frame3, bay 11 - iLO 192.168.3.181]: Analysis in progress...
+    [Frame3, bay 11 - iLO 192.168.3.181]: The iLO uses a signed certificate with an expiration date greater than 90 days. No action is required as expiration = 1214 days
+    Operation completed successfully! All iLOs with a self-signed certificate have been successfully updated.
 
 
   Author: lionel.jullien@hpe.com
@@ -105,42 +84,63 @@ $State = "PACA"
 $CertificateTemplate = "iLOWebServer"
 
 # OneView 
-$username = "Administrator"
-$IP = "composer.lj.lab"
+$OneView_username = "Administrator"
+$OneView_IP = "composer.lab"
 
 
 # MODULES TO INSTALL/IMPORT
 
-# HPEONEVIEW
-# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
-# import-module HPEOneView.630
+# Check if the HPE OneView PowerShell module is installed and install it if not
+try {
+    
+    $APIversion = Invoke-RestMethod -Uri "https://$IP/rest/version" -Method Get | select -ExpandProperty currentVersion
+    
+    switch ($APIversion) {
+        "3800" { [decimal]$OneViewVersion = "6.6" }
+        "4000" { [decimal]$OneViewVersion = "7.0" }
+        "4200" { [decimal]$OneViewVersion = "7.1" }
+        "4400" { [decimal]$OneViewVersion = "7.2" }
+        "4600" { [decimal]$OneViewVersion = "8.0" }
+        "4800" { [decimal]$OneViewVersion = "8.1" }
+        "5000" { [decimal]$OneViewVersion = "8.2" }
+        "5200" { [decimal]$OneViewVersion = "8.3" }
+        "5400" { [decimal]$OneViewVersion = "8.4" }
+        "5600" { [decimal]$OneViewVersion = "8.5" }
+        "5800" { [decimal]$OneViewVersion = "8.6" }
+        "6000" { [decimal]$OneViewVersion = "8.7" }
+        "6200" { [decimal]$OneViewVersion = "8.8" }
+        "6400" { [decimal]$OneViewVersion = "8.9" }
+        "6600" { [decimal]$OneViewVersion = "9.0" }
+        "6800" { [decimal]$OneViewVersion = "9.1" }
+        "7000" { [decimal]$OneViewVersion = "9.2" }
+        Default { $OneViewVersion = "Unknown" }
+    }
+
+    Write-Verbose "Appliance running HPE OneView $OneViewVersion"
+
+    If ($OneViewVersion -ne "Unknown" -and -not (get-module HPEOneView* -ListAvailable )) { 
+        
+        Find-Module HPEOneView* | Where-Object version -le $OneViewVersion | Sort-Object version | Select-Object -last 1 | Install-Module -scope CurrentUser -Force -SkipPublisherCheck
+
+    }
+}
+catch {
+
+    Write-Error "Error: Unable to contact HPE OneView to retrieve the API version. The OneView PowerShell module cannot be installed."
+}
+
+
 
 # PSPKI
 # CA scripts -
 # On Windows 7/8/8.1/10 some PSPKI cmdlets are not available so it is required to install RSAT (Remote System Administration Tools)
 # Download page: https://www.microsoft.com/en-us/download/details.aspx?id=45520
 
-If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
-import-module PSPKI
+If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope CurrentUser -Force }
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
-#import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP }) 
 
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-  
 #################################################################################
 
 Clear-Host
@@ -150,26 +150,37 @@ if (! $ConnectedSessions) {
     $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
     # Connection to the Synergy Composer
-    $credentials = New-Object System.Management.Automation.PSCredential ($username, $secpasswd)
-    Connect-OVMgmt -Hostname $IP -Credential $credentials | Out-Null
+    $credentials = New-Object System.Management.Automation.PSCredential ($OneView_username, $secpasswd)
+    
+    try {
+        Connect-OVMgmt -Hostname $OneView_IP -Credential $credentials | Out-Null
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OneView_IP'! Exiting... "
+        return
+    }
 }
 
+# Getting all servers managed by Oneview
+$servers = Get-OVServer  
 
-$servers = Get-OVServer 
-
-# $servers = Get-OVServer | select -Last 2
-# $servers = Get-OVServer -Name "Frame3, bay 7"
-
-# $server = Get-OVServer | select -first 1
-# $server = Get-OVServer -Name "Frame1, bay 2"
+# $servers = Get-OVServer | ? { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" }
+# $servers = Get-OVServer | ? { $_.mpModel -eq "iLO4" }
+# $servers = Get-OVServer | ? name -eq "Frame1, bay 1"
 
 ## Finding the first trusted Certification Authority server available on the network
 ## Note: this command only works if the machine from where you execute this script is in a domain
-
-$CA = Get-CertificationAuthority | select -First 1 
+try {
+    $CA = Get-CertificationAuthority | select -First 1 
+    
+}
+catch {
+    Write-Error "Error, failed to retreive a certificate Authority Server"
+    return
+}
 
 If ($CA -eq $Null) {
-    write-warning "Error, a certificate Authority Server cannot be found on the network ! Canceling task..."
+    Write-Error "Error, a certificate Authority Server cannot be found on the network ! Canceling task..."
     return
 }
 else {
@@ -211,53 +222,43 @@ else {
 
     ForEach ($server in $servers) {
 
-        #$iloIP = $server  | % { $_.mpHostInfo.mpIpAddresses[-1].address }
         $iloIP = $server.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
+        $servername = $server.name
+        $RootUri = "https://{0}" -f $iloIP
         
-        $Ilohostname = $server  | % { $_.mpHostInfo.mpHostName }
-        $iloModel = $server  | % mpmodel
+        $Ilohostname = $server | % { $_.mpHostInfo.mpHostName }
+        $iloModel = $server | % mpmodel
 
-        write-host "`n[$($server.name) - iLO: $iloIP]: work in progress..."
+        "[{0} - iLO {1}]: Analysis in progress..." -f $servername, $iloIP | write-host 
 
-        try {
-            $iloSession = $server | Get-OVIloSso -IloRestSession
+        try {         
+            
+            $iloSession = $server | Get-OVIloSso -IloRestSession -SkipCertificateCheck
         }
         catch {
-            Write-host "`tError ! Server cannot be found. Resolve any issues as per the resolution steps provided in the alerts and retry the operation." -ForegroundColor red
-            Write-host "`tSkipping server..." -ForegroundColor red
+            "[{0} - iLO {1}]: Error! Server cannot be found. Resolve any issues as per the resolution steps provided in the alerts and retry the operation. Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
             $generate_error = $true
             continue
         }
-          
         
-        $ilosessionkey = $iloSession."X-Auth-Token"
- 
-        # Creation of the header using the SSO Session Key 
-
-        $headerilo = @{} 
-        $headerilo["Content-Type"] = "application/json" 
-        $headerilo["X-Auth-Token"] = $ilosessionkey 
-        $headerilo["OData-Version"] = "4.0"
-       
-
-        #Collecting iLO certificate information
+        # Collecting iLO certificate information
         try {
-            $certificate = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/"  -Headers $headerilo -ContentType "application/json" -Method GET -UseBasicParsing 
+            
+            $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/'
+
+            $certificate = Invoke-RestMethod -uri ($RootUri + $Location ) -Headers @{'Odata-Version' = "4.0"; 'X-Auth-Token' = $ilosession.'X-Auth-Token' } -SkipCertificateCheck
             
         }
         catch {
-            Write-host "`tError ! The iLO certificate information cannot be collected!" -ForegroundColor red
-            Write-host "`tSkipping server..." -ForegroundColor red
+            "[{0} - iLO {1}]: Error ! The iLO certificate information cannot be collected! Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
             $generate_error = $true
-            # $certificate.Content
             continue
     
         }
 
-        $serialnumber = ($certificate.Content | Convertfrom-Json).X509CertificateInformation.SerialNumber.replace(":", "")
-        
-        $issuer = ($certificate.Content | Convertfrom-Json).X509CertificateInformation.Issuer
-        $ValidNotAfter = ($certificate.Content | Convertfrom-Json).X509CertificateInformation.ValidNotAfter
+        $serialnumber = $certificate.X509CertificateInformation.SerialNumber.replace(":", "")
+        $issuer = $certificate.X509CertificateInformation.Issuer
+        $ValidNotAfter = $certificate.X509CertificateInformation.ValidNotAfter
         $expiresInDays = [math]::Ceiling((([datetime]$ValidNotAfter) - (Get-Date)).TotalDays)
 
         if ($issuer -match "Default Issuer" -or [int]$expiresInDays -lt $days_before_expiration ) {
@@ -265,12 +266,10 @@ else {
             $found = $true
 
             if ($issuer -match "Default Issuer") {
-                write-host "`tiLO self-signed certificate detected"
-                write-host "`tGenerating a new CA-signed certificate"
+                "[{0} - iLO {1}]: iLO self-signed certificate detected. Generating a new CA-signed certificate..." -f $servername, $iloIP | write-host 
             }
             else {
-                Write-Host "`tiLO CA-signed certificate detected that will expire in less than $days_before_expiration days"  
-                write-host "`tGenerating a new CA-signed certificate"
+                "[{0} - iLO {1}]: iLO CA-signed certificate detected that will expire in less than {2} days. Generating a new CA-signed certificate..." -f $servername, $iloIP, $days_before_expiration | write-host 
             }
 
             # Creation of the body content to pass to iLO to request a CSR
@@ -279,12 +278,12 @@ else {
             $CommonName = $Ilohostname
  
             # Sending the request to iLO to generate a CSR
-            Write-Host "`tCreating a Certificate Signing Request (can take several minutes on iLO4)"
+            "[{0} - iLO {1}]: Creating a certificate signing request." -f $servername, $iloIP | write-host 
  
             Try {
    
-                #iLO5
-                if ($iloModel -eq "iLO5") {
+                # iLO5/6
+                if ($iloModel -eq "iLO5" -or $iloModel -eq "iLO6") {
 
                     $bodyilo5Params = @{
                         City       = $city;
@@ -296,11 +295,13 @@ else {
                         IncludeIP  = $true
                     } | ConvertTo-Json 
 
-                    $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR" -Headers $headerilo -Body $bodyilo5Params -Method Post  
-      
-                }
+                    $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR'
 
-                #iLO4
+                    $response = Invoke-RestMethod -uri ($RootUri + $Location ) -Method POST -Headers @{'Odata-Version' = "4.0"; 'X-Auth-Token' = $ilosession.'X-Auth-Token'; 'Content-Type' = 'application/json' } -Body $bodyilo5Params -SkipCertificateCheck 
+                            
+                }
+                
+                # iLO4
                 if ($iloModel -eq "iLO4") {
 
                     $bodyilo4Params = @{
@@ -314,196 +315,137 @@ else {
                         IncludeIP  = $true
                     } | ConvertTo-Json 
 
-                    $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo -Body $bodyilo4Params -Method Post  
+                    $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/'
+
+                    $Response = Invoke-RestMethod -uri ($RootUri + $Location ) -Method POST -Headers @{'Odata-Version' = "4.0"; 'X-Auth-Token' = $ilosession.'X-Auth-Token'; 'Content-Type' = 'application/json' } -Body $bodyilo4Params -SkipCertificateCheck -verbose
                 }
 
+                if ($response.error.'@Message.ExtendedInfo'.MessageId) {
 
+                    if ($response.error.'@Message.ExtendedInfo'.MessageId -notmatch "GeneratingCertificate") {
+                        "[{0} - iLO {1}]: Error! Failed to create the certificate signing request! Message returned: {2} - Skipping server!" -f $servername, $iloIP, $response.error.'@Message.ExtendedInfo'.MessageId | Write-Host -ForegroundColor Red
+                        $generate_error = $true
+                        continue
+                    }
+                }
             }
             Catch { 
-                $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
-                $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-                Write-Host -BackgroundColor:Black -ForegroundColor:Red "`tCertificate Signing Request failure ! Message returned: [$($msg)]"
+            
+                "[{0} - iLO {1}]: Error! Failed to create the certificate signing request! Message returned: {2} - Skipping server!" -f $servername, $iloIP, $_.Exception.Response | Write-Host -ForegroundColor Red
+                $generate_error = $true
                 continue
             }     
      
             # Collecting CSR from iLO
 
             do {
-      
-                $restCSR = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/" -Headers $headerilo -Method Get 
-                $CertificateSigningRequest = ($restCSR.Content | ConvertFrom-Json).CertificateSigningRequest 
-                sleep 3
-   
+    
+                try {
+
+                    $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/'
+
+                    $restCSR = Invoke-RestMethod -uri ($RootUri + $Location ) -Headers @{'Odata-Version' = "4.0"; 'X-Auth-Token' = $ilosession.'X-Auth-Token' } -SkipCertificateCheck
+
+                    $CertificateSigningRequest = $restCSR.CertificateSigningRequest 
+                    sleep 3
+                
+                }
+                catch {
+                    "[{0} - iLO {1}]: Error! Failed to retrieve the certificate signing request. Message returned: {2} - Skipping server!" -f $servername, $iloIP, $restCSR.error.'@Message.ExtendedInfo'.MessageId | Write-Host -ForegroundColor Red
+                    $generate_error = $true
+                    continue 
+                }
+
             }
             until ($CertificateSigningRequest)
-    
-            # Saving CSR to a local file in the execution directory
-            $directorypath = Split-Path $MyInvocation.MyCommand.Path
 
-            $CertificateSigningRequest | Out-File "$directorypath\request.csr"
+            # Saving CSR to a local file in the execution directory
+            $CertificateSigningRequest | Out-File $PSScriptRoot\Request.csr 
 
             # Generating CA-Signed certificate from an available CA using the iLO CSR
- 
+
             ## Submitting the CSR using the default webServer certificate template
-            Submit-CertificateRequest -path $directorypath\request.csr -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Attribute CertificateTemplate:$CertificateTemplate | Out-Null
+            Submit-CertificateRequest -path $CSRfilePath -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Attribute CertificateTemplate:$CertificateTemplate | Out-Null
             ### To get the correct certificate template name for the $CertificateTemplate name, use: 
             ### (get-catemplate -CertificationAuthority $ca).Templates.Name
-  
+
             ## Building the certificate 
-            "-----BEGIN CERTIFICATE-----" | Out-File $directorypath\mycert.cer
-            ( Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Property "RawCertificate" | ? CommonName -eq $CommonName | select -last 1 ).RawCertificate.trim("`r`n") | Out-File $directorypath\mycert.cer -Append #-Encoding ascii
-            "-----END CERTIFICATE-----" | Out-File $directorypath\mycert.cer -Append
+            "-----BEGIN CERTIFICATE-----" | Out-File $PSScriptRoot\Newcert.cer
+            ( Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Property "RawCertificate" | ? CommonName -eq $CommonName | select -last 1 ).RawCertificate.trim("`r`n") | Out-File $PSScriptRoot\Newcert.cer -Append #-Encoding ascii
+            "-----END CERTIFICATE-----" | Out-File $PSScriptRoot\Newcert.cer -Append
 
 
             ## Formatting the built certificate for the JSON body content
-            $certificate = Get-Content $directorypath\mycert.cer -raw
+            $certificate = Get-Content $PSScriptRoot\Newcert.cer -raw
 
             $bodyiloParams = ConvertTo-Json  @{ Certificate = "$certificate" }
 
             # Importing new certificate in iLO
-  
+
             Try {
-                $rest = Invoke-WebRequest -Uri "https://$iloIP/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/" -Headers $headerilo -Body $bodyiloParams -Method Post  
+                $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.ImportCertificate/'
+
+                $rest = Invoke-RestMethod -uri ($RootUri + $Location ) -Method POST -Headers @{'Odata-Version' = "4.0"; 'X-Auth-Token' = $ilosession.'X-Auth-Token'; 'Content-Type' = 'application/json' } -Body $bodyiloParams -SkipCertificateCheck
+
             }
             Catch { 
-                $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
-                $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-                Write-Host -BackgroundColor:Black -ForegroundColor:Red "`tCertificate import failure ! Message returned: [$($msg)]"
+                "[{0} - iLO {1}]: Error! Failed to import the new certificate! Message returned: {2} - Skipping server!" -f $servername, $iloIP, $rest.error.'@Message.ExtendedInfo'.MessageId | Write-Host -ForegroundColor Red
+                $generate_error = $true
                 continue 
             }
 
-            Write-Host "`tA reset of the iLO is going to take place to activate the new certificate..."
-            Write-Host "`tOnce the iLO reset is complete, the CA-signed certificate will be available"
-       
-            # Remove the old certificate from the OneView trust store
-            try {
-                              
-                Get-OVApplianceTrustedCertificate | ? { $_.certificate.serialnumber -eq $serialnumber } | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
-                Write-Host "`tThe old iLO certificate has been successfully removed from the Oneview trust store"
-            }
-            catch {
-                Write-Host "`tError ! Old iLO certificate cannot be removed from the Oneview trust store !" -ForegroundColor red
-            }
-            
-
-            # Wait for OneView to raise a task after the certificate change 
-            $appliancename = ${Global:ConnectedSessions} | % name
-            $applianceversion = Get-OVVersion | % $appliancename | % ApplianceVersion
-            
-            $ovversion = [string]$applianceversion.major + "." + [string]$applianceversion.Minor
-            
-            # If OV < 6.00
-            # Procedure for HPE OneView 5.x ONLY
-            if ($ovversion -lt 6.00 ) {
-
-                # Importing the new iLO certificates in OneView
-                ## This step is not required as long as the CA certificate is present in the OV trust store 
-                ## Add-OVApplianceTrustedCertificate -ComputerName $iloIP
-
-                ## Waiting for the iLO reset to complete
-                $nowminus20mn = ((get-date).AddMinutes(-20))
+            "[{0} - iLO {1}]: iLO reset in progress to activate the new certificate..." -f $servername, $iloIP | Write-Host 
     
-                Do {
-                    $successfulresetalert = Get-OVServer -Name $server.name | `
-                        Get-OValert -Start (get-date -UFormat "%Y-%m-%d") | `
-                        ? description -match "Network connectivity has been restored" | Where-Object { (get-date $_.created -Format FileDateTimeUniversal) -ge (get-date $nowminus20mn -Format FileDateTimeUniversal) }
-                }
-                Until ($successfulresetalert)
-    
-                ## Waiting for the new refresh to complete
-                Write-host "`tOneView is refreshing '$($server.name)' to update the status of the server using the new certificate..." 
-                Do {
-                    $Runningrefreshtask = Get-OVServer -Name $server.name | Get-OVtask -Name Refresh -State Running -ErrorAction SilentlyContinue
-                }
-                Until ($Runningrefreshtask)
-                
-                write-host "`tOperation completed successfully !" -ForegroundColor Cyan 
+            # Remove the old certificate from the OneView trust store (if any)
+            if (Get-OVApplianceTrustedCertificate | ? { $_.certificate.serialnumber -eq $serialnumber } ) {
 
-            }
-            
-            # If OV = 6.00
-            # Procedure for HPE OneView 6.0 ONLY
-            elseif ($ovversion -eq 6.00 ) {
-                
-                # Wait for OneView to issue an alert about a communication issue with the iLO due to invalid iLO certificate
-                Do {
-                    # Collect data for the 'Unable to establish secure communication with server' alert
-                    $ilocertalert = `
-                    ( $server  | Get-OVAlert -severity Critical -AlertState Locked | Where-Object { 
-                            $_.description -Match "Unable to establish secure communication with the server" 
-                        }) 
-
-                    sleep 2
-                }
-                until ( $ilocertalert )
-
-                # Add new iLO CA-signed certificate to the OneView trust store
-                $addcerttask = Add-OVApplianceTrustedCertificate -ComputerName $iloIP -force | Wait-OVTaskComplete
-
-                if ($addcerttask.taskstate -eq "Completed" ) {
-                    write-host "`tiLO CA-signed certificate added successfully to the OneView trust store !"   
-                }
-                else {
-                    Write-Warning "`tError ! iLO CA-signed certificate cannot be added to the OneView trust store !"
-                    $addcerttask.taskErrors
-                    return
-                }
-
-                # Perform a server hardware refresh to re-establish the communication with the iLO
                 try {
-                    write-host "`t$($SH.name) refresh in progress..."
-                    $refreshtask = $server | Update-OVServer | Wait-OVTaskComplete
+                    Get-OVApplianceTrustedCertificate | ? { $_.certificate.serialnumber -eq $serialnumber } | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+                    "[{0} - iLO {1}]: The old iLO certificate has been successfully removed from the Oneview trust store" -f $servername, $iloIP | Write-Host 
                 }
                 catch {
-                    Write-Warning "`tError ! $($SH.name) refresh cannot be completed!"
-                    $refreshtask.taskErrors
-                    return
-                }
-
-                # Check that the alert 'network connectivity has been lost' has been cleared.
-                $networkconnectivityalertresult = Send-OVRequest -uri $ilocertalert.uri
-
-                if ($networkconnectivityalertresult.alertState -eq "Cleared" ) {
-                    write-host "`tOperation completed successfully and communication with server has been restored with Oneview !" -ForegroundColor Cyan 
-                }
-                else {
-                    write-host "`tError ! Communication with server cannot be restored with Oneview !" -ForegroundColor Yellow
-                }
-            }
-         
-            # If OV >= 6.10
-            # Procedure for HPE OneView 6.10 and later ONLY
-            # Starting with 6.10, OV detects the certificate change and no action is required
-            elseif ( $ovversion -ge 6.10 ) {
-
-                write-host "`tOperation completed successfully !" -ForegroundColor Cyan 
+                    "[{0} - iLO {1}]: Error! The old iLO certificate cannot be removed from the Oneview trust store! Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
+                    $generate_error = $true
+                    continue 
                 
+                }
             }
+        
+            "[{0} - iLO {1}]: Operation completed successfully!" -f $servername, $iloIP | Write-Host           
+    
         } 
         else {
-            Write-Host "`tThe iLO uses a CA-signed certificate with an expiration date greater than $days_before_expiration days"
-            write-host "`tNo action required" -ForegroundColor Cyan
-           
+            "[{0} - iLO {1}]: The iLO uses a signed certificate with an expiration date greater than {2} days. No action is required as expiration = {3} days" -f $servername, $iloIP, $days_before_expiration, $expiresInDays | Write-Host 
+        
         }
-      
     }
-
+        
     if (-not $found) {
-        write-host "`nOperation completed ! No action is required as all servers use an unexpired iLO certificate signed by a certificate authority."
+        "Operation completed! No action is required as all servers use an unexpired iLO certificate signed by a certificate authority." | Write-Host -ForegroundColor Cyan
+
     }
     elseif ($generate_error) {
-        write-host "`nOperation completed with errors ! Not all iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated!" 
-        write-host "Resolve any issues found in OneView and run this script again !"
+        "Operation completed with errors! Not all iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated! Resolve any issues found in OneView and run this script again." | Write-Host -ForegroundColor Cyan
 
     }
     else {
-        write-host "`nOperation completed successfully ! All iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated!"
+        "Operation completed successfully! All iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated." | Write-Host -ForegroundColor Cyan
+
+    }
+    
+    
+    # Cleaning working files
+    if (Get-ChildItem $PSScriptRoot\Request.csr -ErrorAction SilentlyContinue) {
+        
+        remove-item -Path "$PSScriptRoot\Request.csr"
+    }
+    
+    if (Get-ChildItem $PSScriptRoot\Newcert.cer -ErrorAction SilentlyContinue) {
+        
+        remove-item -Path "$PSScriptRoot\Newcert.cer" 
     }
 }
-        
+    
+    
 Disconnect-OVMgmt
-
-# Cleaning working files
-remove-item -Path "$directorypath\request.csr", "$directorypath\mycert.cer" 
-
 Read-Host -Prompt "Hit return to close" 
