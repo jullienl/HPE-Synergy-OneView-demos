@@ -1,9 +1,8 @@
 <# 
 
-This PowerShell script generates an iLO self-signed SSL certificate for all servers managed by HPE OneView that use a soon-to-expire self-signed certificate. 
+This PowerShell script generates a new iLO self-signed SSL certificate for all servers managed by HPE OneView that are currently using a self-signed certificate that is about to expire.
 
-$nb_days_before_expiration variable at the begining of the script defines the number of days until the certificate expires. 
-If the difference between the certificate expiration date and the script execution date is less than the set number of days, then a new SSL certificate is generated.
+$days_before_expiration defined in the variable section specifies the number of days before the expiration date when the certificates should be replaced.  
 
 The scripts takes care of deleting old certificates and importing new ones into the OneView trust store. 
 It also triggers a server hardware refresh to reset the communication between the servers and Oneview using the new SSL certificates.
@@ -140,15 +139,17 @@ if (! $ConnectedSessions) {
 
 #################################################################################
 
-# Getting all servers managed by Oneview
+# Retrieve all servers managed by HPE OneView
 $servers = Get-OVServer 
 
+# $servers = Get-OVServer | ? { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } | ? status -eq OK
 # $servers = Get-OVServer | ? name -eq "Frame3, bay 1"
+# $servers = Get-OVServer | ? name -eq "Frame3, bay 2"
 # $servers = Get-OVServer | select -first 1
 
 
-$generate_error = $false
-$found = $false
+$error_found = $false
+$iLO_found = $false
 
 ForEach ($server in $servers) {
 
@@ -167,7 +168,7 @@ ForEach ($server in $servers) {
     }
     catch {
         "[{0} - iLO {1}]: Error! Server cannot be found. Resolve any issues as per the resolution steps provided in the alerts and retry the operation. Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-        $generate_error = $true
+        $error_found = $true
         continue
     }
 
@@ -182,7 +183,7 @@ ForEach ($server in $servers) {
     }
     catch {
         "[{0} - iLO {1}]: Error ! The iLO certificate information cannot be collected! Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-        $generate_error = $true
+        $error_found = $true
         continue
 
     }
@@ -191,10 +192,11 @@ ForEach ($server in $servers) {
     $ValidNotAfter = $certificate.X509CertificateInformation.ValidNotAfter
     $expiresInDays = [math]::Ceiling((([datetime]$ValidNotAfter) - (Get-Date)).TotalDays)
    
-    if ([int]$expiresInDays -lt $days_before_expiration ) {
-        # if ($issuer -match "Default Issuer" -and [int]$expiresInDays -lt $days_before_expiration ) {
 
-        $found = $true
+    # Check if the iLO uses a self-signed certificate with an expiration date less than $days_before_expiration.
+    if ($issuer -match "Default Issuer" -and [int]$expiresInDays -lt $days_before_expiration ) {
+
+        $iLO_found = $true
 
         "[{0} - iLO {1}]: iLO self-signed certificate detected that will expire in less than {2} days. Generating a new self-signed certificate..." -f $servername, $iloIP, $days_before_expiration | write-host 
 
@@ -207,7 +209,7 @@ ForEach ($server in $servers) {
 
                 if ($response.error.'@Message.ExtendedInfo'.MessageId -notmatch "ImportCertSuccessfuliLOResetinProgress") {
                     "[{0} - iLO {1}]: Error! Failed to create the certificate signing request! Message returned: {2} - Skipping server!" -f $servername, $iloIP, $response.error.'@Message.ExtendedInfo'.MessageId | Write-Host -ForegroundColor Red
-                    $generate_error = $true
+                    $error_found = $true
                     continue
                 }
             }
@@ -215,7 +217,7 @@ ForEach ($server in $servers) {
         Catch {
 
             "[{0} - iLO {1}]: Error ! Failed to generate a new iLO self-signed certificate! Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-            $generate_error = $true
+            $error_found = $true
             continue
         }
 
@@ -230,7 +232,7 @@ ForEach ($server in $servers) {
             }
             catch {
                 "[{0} - iLO {1}]: Error! The old iLO certificate cannot be removed from the Oneview trust store! Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-                $generate_error = $true
+                $error_found = $true
                 continue 
             
             }
@@ -269,7 +271,7 @@ ForEach ($server in $servers) {
             }
             catch {
                 "[{0} - iLO {1}]: Error! The old iLO certificate cannot be removed from the Oneview trust store! Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-                $generate_error = $true
+                $error_found = $true
                 continue 
                 
             }
@@ -286,7 +288,7 @@ ForEach ($server in $servers) {
         }
         else {
             "[{0} - iLO {1}]: Error! Failed to add the new iLO self-signed certificate to the OneView trust store!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-            $generate_error = $true
+            $error_found = $true
             continue
         }
 
@@ -301,7 +303,7 @@ ForEach ($server in $servers) {
         }
         catch {
             "[{0} - iLO {1}]: Error! Failed to refresh the server hardware!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
-            $generate_error = $true
+            $error_found = $true
             continue
         }
 
@@ -348,15 +350,19 @@ ForEach ($server in $servers) {
 }
 
    
-if (-not $found) {
+if (-not $iLO_found -and -not $error_found) {
     "Operation completed! No action is required as all servers use an unexpired iLO self-signed certificate." | Write-Host -ForegroundColor Cyan
 
 }
-elseif ($generate_error) {
+if (-not $iLO_found -and $error_found) {
+    "Operation completed with errors! Resolve any issues found in OneView and run this script again." | Write-Host -ForegroundColor Cyan
+
+}
+elseif ($iLO_found -and $error_found) {
     "Operation completed with errors! Not all iLOs with a self-signed certificate have been successfully updated! Resolve any issues found in OneView and run this script again." | Write-Host -ForegroundColor Cyan
 
 }
-else {
+elseif ($iLO_found -and -not $error_found) {
     "Operation completed successfully! All iLOs with a self-signed certificate have been successfully updated." | Write-Host -ForegroundColor Cyan
 
 }
