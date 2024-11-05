@@ -20,9 +20,12 @@ Steps of this script:
 Gen9, Gen10 and Gen10+ servers are supported 
 
 Requirements:
-   - HPE OneView Powershell Library
-   - HPE OneView administrator account 
-   - PSPKI Powershell Library 
+    - HPE OneView PowerShell Library
+    - HPE OneView administrator account 
+    - PSPKI PowerShell Library 
+    - The computer executing this script must be part of a Microsoft Active Directory domain
+    - A Microsoft Certification Authority server must be available on the network
+    - A certificate template supporting server authentication must be available for generating iLO certificates
 
 
 Output sample:
