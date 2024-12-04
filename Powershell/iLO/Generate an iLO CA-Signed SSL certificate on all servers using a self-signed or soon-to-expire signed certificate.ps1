@@ -59,7 +59,7 @@ Output sample:
     [Frame3, bay 10 - iLO 192.168.3.183]: Operation completed successfully!
     [Frame3, bay 11 - iLO 192.168.3.181]: Analysis in progress...
     [Frame3, bay 11 - iLO 192.168.3.181]: CA-signed certificate detected that will only expire in 648 days. Skipping server.
-    Operation completed successfully! All iLOs with a self-signed certificate have been successfully updated.
+    Operation completed successfully! All iLOs with a self-signed certificate or a CA-signed certificate within the soon-to-expire validity period have been successfully updated.
 
 
   Author: lionel.jullien@hpe.com
@@ -106,7 +106,7 @@ $OrgName = "HPE"
 $OrgUnit = "Compute"
 $State = "PA"
 
-# Name of the certificate template available in the Certificate Authority (CA) to be used to generate iLO certificates.
+# Name of the certificate template available in the Certification Authority (CA) to be used to generate iLO certificates.
 # This template can be retrieved using 'Get-CertificateTemplate' and must support the server authentication application policy.
 $CertificateTemplate = "iLOWebServer"
 
@@ -124,7 +124,7 @@ If (-not (get-module HPEOneView.* -ListAvailable )) {
     
     try {
         
-        $APIversion = Invoke-RestMethod -Uri "https://$OneView_IP/rest/version" -Method Get | select -ExpandProperty currentVersion
+        $APIversion = Invoke-RestMethod -Uri "https://$OneView_IP/rest/version" -Method Get | Select-Object -ExpandProperty currentVersion
         
         switch ($APIversion) {
             "3800" { [decimal]$OneViewVersion = "6.6" }
@@ -204,33 +204,38 @@ if (! $ConnectedSessions) {
 
 
 # Retrieve all servers managed by HPE OneView
-$servers = Get-OVServer | ? { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } 
+$servers = Get-OVServer | Where-Object { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } 
 
 # $servers = Get-OVServer
-# $servers = Get-OVServer | ? { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } | ? { $_.name -eq "Frame3, bay 7" -or $_.name -eq "Frame4, bay 9" }
-# $servers = Get-OVServer | ? name -eq "Frame1, bay 1"
+# $servers = Get-OVServer | Where-Object { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } | Where-Object { $_.name -ne "Frame3, bay 6" -and $_.name -ne "Frame3, bay 2" -and $_.name -ne "Frame3, bay 3" }
+# $servers = Get-OVServer | Where-Object name -eq "Frame1, bay 1"
 
 
 #Region Finding the first Enterprise Certification Authority from a current Active Directory forest
+# Note: this command only works if the machine from where you execute this script is in an Active Directory domain
 
-try {
-    # Note: this command only works if the machine from where you execute this script is in an Active Directory domain
-    $CA = Get-CertificationAuthority | select -First 1 
-    
-}
-catch {
-    Write-Error "Error, failed to retreive a Certification Authority from the current Active Directory forest"
+# Check if the machine is part of an Active Directory domain
+if (-not (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain) {
+    Write-Error "Error: This machine is not part of an Active Directory domain. The script requires domain membership to retrieve a Certification Authority."
     return
 }
 
-If ($CA -eq $Null) {
-    Write-Error "Error, a certificate Authority Server cannot be found on the network ! Canceling task..."
+try {
+    $CA = Get-CertificationAuthority | Select-Object -First 1
+}
+catch {
+    Write-Error "Error: Failed to retrieve a Certification Authority from the current Active Directory forest."
+    return
+}
+
+if ($null -eq $CA) {
+    Write-Error "Error: No Certification Authority Server can be found on the network! Canceling task..."
     return
 }
 else {
 
-    $CA_computername = $CA | % Computername
-    $CA_displayname = $CA | % displayname
+    $CA_computername = $CA | ForEach-Object Computername
+    $CA_displayname = $CA | ForEach-Object displayname
 
     $TemplateFound = Get-CertificateTemplate -Name $CertificateTemplate -ErrorAction SilentlyContinue
 
@@ -249,7 +254,7 @@ else {
         write-host "The trusted CA root certificate is not found in the OneView trust store, adding it now..."
     
         ## Collecting trusted CA root certificate 
-        $CA.Certificate | % { set-content -value $($_.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)) -encoding byte -path "$directorypath\CAcert.cer" }
+        $CA.Certificate | ForEach-Object { set-content -value $($_.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)) -encoding byte -path "$directorypath\CAcert.cer" }
         $cerBytes = Get-Content "$directorypath\CAcert.cer" -Encoding Byte
         [System.Convert]::ToBase64String($cerBytes) | Out-File $directorypath\CAcert.cer
         
@@ -282,10 +287,10 @@ else {
     ForEach ($server in $servers) {
     
         #Region Capture iLO SSO session key
-        $iloIP = $server.mpHostInfo.mpIpAddresses | ? type -ne LinkLocal | % address
+        $iloIP = $server.mpHostInfo.mpIpAddresses | Where-Object type -ne LinkLocal | ForEach-Object address
         $servername = $server.name
-        $iloModel = $server | % mpmodel
-        $Ilohostname = $server | % { $_.mpHostInfo.mpHostName }
+        $iloModel = $server | ForEach-Object mpmodel
+        $Ilohostname = $server | ForEach-Object { $_.mpHostInfo.mpHostName }
         
         $RootUri = "https://{0}" -f $iloIP
         
@@ -302,9 +307,9 @@ else {
             # $iloSession = $server | Get-OVIloSso -IloRestSession -SkipCertificateCheck # Abandoned due to problems when iLO uses a self-signed certificate, fix is planned in OV 9.20 library
           
             # Get the iLO SSO URL
-            $iloSsoUrl = Invoke-RestMethod -Uri "https://$OneView_IP/$($server.uri)/iloSsoUrl" -Method Get -Headers $Headers | select -ExpandProperty iloSsoUrl
+            $iloSsoUrl = Invoke-RestMethod -Uri "https://$OneView_IP/$($server.uri)/iloSsoUrl" -Method Get -Headers $Headers | Select-Object -ExpandProperty iloSsoUrl
             # Perform the REST method and store the session information
-            $resp = Invoke-RestMethod $iloSsoUrl -Headers $Headers -SkipCertificateCheck  -SessionVariable session
+            Invoke-RestMethod $iloSsoUrl -Headers $Headers -SkipCertificateCheck  -SessionVariable session | Out-Null
             # Extract the session key from the cookies
             $iloSession = $session.Cookies.GetCookies($iloSsoUrl)["sessionKey"].Value 
 
@@ -337,10 +342,9 @@ else {
         $ValidNotAfter = $certificate.X509CertificateInformation.ValidNotAfter
         $expiresInDays = [math]::Ceiling((([datetime]$ValidNotAfter) - (Get-Date)).TotalDays)
 
-        #EndRegion
-
+        
         if ($Check) {
-
+            
             if ($issuer -notmatch "Default Issuer" -and [int]$expiresInDays -le $days_before_expiration) {
                 "[{0} - iLO {1}]: CA-signed certificate detected that will expire in {2} days. A new CA-signed certificate will be generated." -f $servername, $iloIP, $expiresInDays | Write-Host -ForegroundColor Green
             }
@@ -350,9 +354,11 @@ else {
             else {
                 "[{0} - iLO {1}]: CA-signed certificate detected that will expire in {2} days. The server will be skipped." -f $servername, $iloIP, $expiresInDays | Write-Host
             }
-
+            
         }
-        #Region Generate a new iLO signed certificate if the iLO uses a self-signed certificate or a certificate with an expiration date less than $days_before_expiration.
+        #EndRegion
+
+        #Region Generate a new iLO signed certificate if the iLO uses a self-signed certificate or a certificate with an expiration date less than or equal to $days_before_expiration.
         elseif ($issuer -match "Default Issuer" -or [int]$expiresInDays -le $days_before_expiration ) {
 
             #Region Creation of the Certificate Signing Request (CSR)
@@ -374,6 +380,10 @@ else {
             # Sending the request to iLO to generate a CSR
             "[{0} - iLO {1}]: Creating a certificate signing request." -f $servername, $iloIP | write-host 
  
+            # Warning about including IP addresses in certificates: 
+            #  - Expose to security risks or compliance issues. Many organizations and regulatory standards have policies that restrict the inclusion of IP addresses in certificates.
+            #  - Many Certificate Authorities reject the IncludeIP=True input parameter
+            #  - IP addresses can change over time due to network reconfigurations, DHCP leases, or other reasons. If a certificate includes an IP address that changes, the certificate may become invalid, leading to service disruptions.
             Try {
    
                 # iLO5/6
@@ -386,7 +396,7 @@ else {
                         OrgName    = $OrgName;
                         OrgUnit    = $OrgUnit;
                         State      = $State; 
-                        IncludeIP  = $true
+                        IncludeIP  = $false
                     } | ConvertTo-Json 
 
                     $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/Actions/HpeHttpsCert.GenerateCSR'
@@ -407,7 +417,7 @@ else {
                         OrgName    = $OrgName;
                         OrgUnit    = $OrgUnit;
                         State      = $State; 
-                        IncludeIP  = $true
+                        IncludeIP  = $false
                     } | ConvertTo-Json 
 
                     $Location = '/redfish/v1/Managers/1/SecurityService/HttpsCert/'
@@ -445,7 +455,7 @@ else {
                     # $restCSR = Invoke-RestMethod -uri ($RootUri + $Location ) -Headers @{'Odata-Version' = "4.0"; 'X-Auth-Token' = $ilosession.'X-Auth-Token' } -SkipCertificateCheck
 
                     $CertificateSigningRequest = $restCSR.CertificateSigningRequest 
-                    sleep 3
+                    Start-Sleep 3
                 
                 }
                 catch {
@@ -462,16 +472,14 @@ else {
 
             #EndRegion
 
-            #Region Generating CA-Signed certificate from an available CA using the iLO CSR
+            #Region Generating a signed certificate from the CA using the iLO CSR
 
-            ## Submitting the CSR using the specified certificate template to the 
+            ## Submitting the CSR using the specified certificate template to the certification autority server
             Submit-CertificateRequest -path $PSScriptRoot\Request.csr -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Attribute CertificateTemplate:$CertificateTemplate | Out-Null
-            ### To get the correct certificate template name for the $CertificateTemplate name, use: 
-            ### (get-catemplate -CertificationAuthority $ca).Templates.Name
 
             ## Building the certificate 
             "-----BEGIN CERTIFICATE-----" | Out-File $PSScriptRoot\Newcert.cer
-            ( Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Property "RawCertificate" | ? CommonName -eq $CommonName | select -last 1 ).RawCertificate.trim("`r`n") | Out-File $PSScriptRoot\Newcert.cer -Append #-Encoding ascii
+            ( Get-IssuedRequest -CertificationAuthority (Get-CertificationAuthority $CA_computername) -Property "RawCertificate" | Where-Object CommonName -eq $CommonName | Select-Object -last 1 ).RawCertificate.trim("`r`n") | Out-File $PSScriptRoot\Newcert.cer -Append #-Encoding ascii
             "-----END CERTIFICATE-----" | Out-File $PSScriptRoot\Newcert.cer -Append
 
 
@@ -501,10 +509,10 @@ else {
             #EndRegion
     
             #Region Remove the old certificate from the OneView trust store (if any)
-            if (Get-OVApplianceTrustedCertificate | ? { $_.certificate.serialnumber -eq $serialnumber } ) {
+            if (Get-OVApplianceTrustedCertificate | Where-Object { $_.certificate.serialnumber -eq $serialnumber } ) {
 
                 try {
-                    Get-OVApplianceTrustedCertificate | ? { $_.certificate.serialnumber -eq $serialnumber } | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
+                    Get-OVApplianceTrustedCertificate | Where-Object { $_.certificate.serialnumber -eq $serialnumber } | Remove-OVApplianceTrustedCertificate -Confirm:$false | Wait-OVTaskComplete | Out-Null  
                     "[{0} - iLO {1}]: The old iLO certificate has been successfully removed from the Oneview trust store" -f $servername, $iloIP | Write-Host 
                 }
                 catch {
@@ -529,23 +537,21 @@ else {
     }
 
     #Region Generating output 
+
+    # Define the messages based on the operation results    
     if (-not $Check) {
 
         if (-not $iLO_found -and -not $error_found) {
-            "Operation completed! No action is required as all servers use an unexpired iLO certificate signed by a certificate authority." | Write-Host -ForegroundColor Cyan
-            
+            "Operation completed! No action is required as all servers use an iLO certificate signed by a certificate authority that is not within the soon-to-expire validity period." | Write-Host -ForegroundColor Cyan
         }
-        if (-not $iLO_found -and $error_found) {
+        elseif (-not $iLO_found -and $error_found) {
             "Operation completed with errors! Resolve any issues found in OneView and run this script again." | Write-Host -ForegroundColor Cyan
-            
         }
         elseif ($iLO_found -and $error_found) {
-            "Operation completed with errors! Not all iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated! Resolve any issues found in OneView and run this script again." | Write-Host -ForegroundColor Cyan
-            
+            "Operation completed with errors! Not all iLOs with a self-signed certificate or a CA-signed certificate within the soon-to-expire validity period have been successfully updated! Resolve any issues found in OneView and run this script again." | Write-Host -ForegroundColor Cyan
         }
         elseif ($iLO_found -and -not $error_found) {
-            "Operation completed successfully! All iLOs with a self-signed certificate or an expired CA-signed certificate have been successfully updated." | Write-Host -ForegroundColor Cyan
-            
+            "Operation completed successfully! All iLOs with a self-signed certificate or a CA-signed certificate within the soon-to-expire validity period have been successfully updated." | Write-Host -ForegroundColor Cyan
         }
         #EndRegion
         
