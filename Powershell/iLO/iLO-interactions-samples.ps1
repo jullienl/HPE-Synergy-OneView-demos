@@ -1,9 +1,10 @@
 ﻿<#
 Examples of iLO interaction using different methods and HPE PowerShell libraries:
 1- HPEiLOCmdlets
-2- HPEBIOSCmdlets
-3- HPERedfishCmdlets
-4- Native API calls
+2- HPEiLOCmdlets with X-Auth-Token from HPEOneView
+3- HPEBIOSCmdlets
+4- HPERedfishCmdlets
+5- Native API calls
 
 
  Author: lionel.jullien@hpe.com
@@ -46,7 +47,7 @@ $ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username,
 
 
 ######################################## Using HPEiLOCmdlets ################################################
-# Requirements: HPEiLOCmdlets (currently not supported with Synergy Gen11 servers!)
+# Requirements: HPEiLOCmdlets
 # install-module HPEiLOCmdlets -Scope CurrentUser
 
 
@@ -61,6 +62,41 @@ $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds  -DisableCer
 Get-HPEiLOServerInfo -Connection $connection
 
 
+
+
+######################################## Using HPEiLOCmdlets with X-Auth-Token from HPEOneView ################################################
+# Requirements: HPEiLOCmdlets and HPEOneView modules + iLO5 or greater
+# install-module HPEiLOCmdlets -Scope CurrentUser
+# install-module HPEOneView.9xx -Scope CurrentUser
+
+
+# OneView Credentials and IP
+$OneView_username = "Administrator"
+$OneView_IP = "composer.lab"
+
+
+# List of cmdlets
+Get-command -Module HPEiLOCmdlets
+Get-command -Module HPEOneView.9xx
+
+# Connection to OneView
+$credentials = New-Object System.Management.Automation.PSCredential ($OneView_username, $secpasswd)
+Connect-OVMgmt -Hostname $OneView_IP -Credential $credentials
+
+# Get iLO IP from OneView of a server
+$server = Get-OVServer -ServerName "RHEL90-1.lj.lab" 
+$iLO_IP = $server.mpHostInfo.mpIpAddresses | Where-Object type -ne LinkLocal | Select-Object -ExpandProperty address
+
+# Capture of the SSO Session Key
+$iloSession = $server | Get-OVIloSso -IloRestSession -SkipCertificateCheck
+$ilosessionkey = $iloSession."X-Auth-Token"
+
+# Connection to HPEiLOCmdlets
+$connection = Connect-HPEiLO -Address $iLO_IP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
+
+# Examples
+(Get-HPEiLOUser -Connection  $connection).userinformation.count
+Get-HPEiLOServerInfo -Connection $connection
 
 
 ######################################## Using HPEBIOSCmdlets ################################################
