@@ -91,7 +91,7 @@ $iLO_IP = $server.mpHostInfo.mpIpAddresses | Where-Object type -ne LinkLocal | S
 $iloSession = $server | Get-OVIloSso -IloRestSession -SkipCertificateCheck
 $ilosessionkey = $iloSession."X-Auth-Token"
 
-# Connection to HPEiLOCmdlets
+# Connection to iLO with HPEiLOCmdlets XAuthToken
 $connection = Connect-HPEiLO -Address $iLO_IP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
 
 # Examples
