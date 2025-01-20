@@ -43,14 +43,55 @@ In this example, where the script changes the iLO's security mode, the payload, 
 
 
 # OneView Credentials and IP
-$OV_username = "Administrator"
-$OV_IP = "composer.lj.lab"
+$OneView_username = "Administrator"
+$OneView_IP = "composer.lab"
 
 
 # MODULES TO INSTALL
 
-# HPEOneView
-# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
+
+# Check if the HPE OneView PowerShell module is installed and install it if not
+If (-not (get-module HPEOneView.* -ListAvailable )) {
+    
+    try {
+        
+        $APIversion = Invoke-RestMethod -Uri "https://$OneView_IP/rest/version" -Method Get | select -ExpandProperty currentVersion
+        
+        switch ($APIversion) {
+            "3800" { [decimal]$OneViewVersion = "6.6" }
+            "4000" { [decimal]$OneViewVersion = "7.0" }
+            "4200" { [decimal]$OneViewVersion = "7.1" }
+            "4400" { [decimal]$OneViewVersion = "7.2" }
+            "4600" { [decimal]$OneViewVersion = "8.0" }
+            "4800" { [decimal]$OneViewVersion = "8.1" }
+            "5000" { [decimal]$OneViewVersion = "8.2" }
+            "5200" { [decimal]$OneViewVersion = "8.3" }
+            "5400" { [decimal]$OneViewVersion = "8.4" }
+            "5600" { [decimal]$OneViewVersion = "8.5" }
+            "5800" { [decimal]$OneViewVersion = "8.6" }
+            "6000" { [decimal]$OneViewVersion = "8.7" }
+            "6200" { [decimal]$OneViewVersion = "8.8" }
+            "6400" { [decimal]$OneViewVersion = "8.9" }
+            "6600" { [decimal]$OneViewVersion = "9.0" }
+            "6800" { [decimal]$OneViewVersion = "9.1" }
+            "7000" { [decimal]$OneViewVersion = "9.2" }
+            Default { $OneViewVersion = "Unknown" }
+        }
+        
+        Write-Verbose "Appliance running HPE OneView $OneViewVersion"
+        
+        If ($OneViewVersion -ne "Unknown" -and -not (get-module HPEOneView* -ListAvailable )) { 
+            
+            Find-Module HPEOneView* | Where-Object version -le $OneViewVersion | Sort-Object version | Select-Object -last 1 | Install-Module -scope CurrentUser -Force -SkipPublisherCheck
+            
+        }
+    }
+    catch {
+        
+        Write-Error "Error: Unable to contact HPE OneView to retrieve the API version. The OneView PowerShell module cannot be installed."
+        Return
+    }
+}
 
 
 #################################################################################
@@ -59,44 +100,23 @@ if (! $ConnectedSessions) {
     
     $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-    # Connection to the OneView / Synergy Composer
-    $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-
+    # Connection to the Synergy Composer
+    $credentials = New-Object System.Management.Automation.PSCredential ($OneView_username, $secpasswd)
+    
     try {
-        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+        Connect-OVMgmt -Hostname $OneView_IP -Credential $credentials | Out-Null
     }
     catch {
-        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        Write-Warning "Cannot connect to '$OneView_IP'! Exiting... "
         return
     }
-
-    # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-}
-
-if ($PSEdition -eq "Desktop" ) {
-
-    # Added these lines to avoid the error: "The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel."
-    # due to an invalid Remote Certificate
-    add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 }
 
     
 
 #################################################################################
 
-# Capture iLO5 server hardware managed by HPE OneView
+# Capture server hardware managed by HPE OneView
 $Computes = Search-OVIndex -Category server-hardware 
 
 if ($Computes) {
@@ -120,24 +140,35 @@ else {
 $headers = @{} 
 $headers["OData-Version"] = "4.0"
 
+$error_found = $false
+
+
+#####################################################################################################################
+
+Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso | fl
+Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso -IloRestSession | fl
+Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso -RemoteConsoleOnly | fl
 
 
 #####################################################################################################################
 
 foreach ($Compute in $Computes) {
 
-    $iLOIP = $Compute.multiAttributes.mpIpAddresses |  ? { $_ -NotMatch "fe80" }
+    $iLOIP = $Compute.multiAttributes.mpIpAddresses | ? { $_ -NotMatch "fe80" }
+    $servername = $Compute.name
     $iloModel = $Compute.attributes | % mpmodel
 
-
+    $RootUri = "https://{0}" -f $iloIP
+   
     # Capture of the SSO Session Key
     try {
         $ilosessionkey = ($Compute | Get-OVIloSso -IloRestSession -SkipCertificateCheck)."X-Auth-Token"
         $headers["X-Auth-Token"] = $ilosessionkey 
     }
     catch {
-        Write-Warning "`niLO [$iLOIP] cannot be found ! Fix any communication problem you have in OneView with this iLO/server hardware !"
-        continue
+        "[{0} - iLO {1}]: Error: Server cannot be contacted at this time. Resolve any issues found in OneView and run this script again. Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
+        $error_found = $true
+        continue 
     }
 
     # This example modifies the security mode and in this case, the payload/URI/method is the same for each iLO type (which is not always the case).
@@ -147,11 +178,12 @@ foreach ($Compute in $Computes) {
 
         # Request content to enable iLO High Security state
         $body = @{}
-        $body["SecurityState"] = "HighSecurity"
+        $body["SecurityState"] = "Production"
+        # $body["SecurityState"] = "HighSecurity"
         $body = $body | ConvertTo-Json -Depth 10  
 
         # iLO4 Redfish URI
-        $uri = "/redfish/v1/Managers/1/SecurityService"
+        $Location = "/redfish/v1/Managers/1/SecurityService"
 
         # Method
         $method = "patch"
@@ -163,11 +195,12 @@ foreach ($Compute in $Computes) {
       
         # Request content to enable iLO High Security state
         $body = @{}
-        $body["SecurityState"] = "HighSecurity"
+        $body["SecurityState"] = "Production"
+        # $body["SecurityState"] = "HighSecurity"
         $body = $body | ConvertTo-Json -Depth 10 
         
         # iLO5 Redfish URI
-        $uri = "/redfish/v1/Managers/1/SecurityService"
+        $Location = "/redfish/v1/Managers/1/SecurityService"
         
         # Method
         $method = "patch"
@@ -178,27 +211,28 @@ foreach ($Compute in $Computes) {
     
         # Request content to enable iLO High Security state
         $body = @{}
-        $body["SecurityState"] = "HighSecurity"
+        $body["SecurityState"] = "Production"
+        # $body["SecurityState"] = "HighSecurity"
         $body = $body | ConvertTo-Json -Depth 10 
             
         # iLO6 Redfish URI
-        $uri = "/redfish/v1/Managers/1/SecurityService"
+        $Location = "/redfish/v1/Managers/1/SecurityService"
             
         # Method
         $method = "patch"
     }
 
+    
     # Enabling iLO High Security state
     try {
-        if ($PSEdition -eq "Desktop" ) {
-            $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop
-        }
-        if ($PSEdition -eq "Core" ) {
-            $response = Invoke-WebRequest -Uri "https://$iLOIP$uri" -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop -SkipCertificateCheck
+        
+        $response = Invoke-RestMethod -Uri ($RootUri + $Location) -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop -SkipCertificateCheck
+        
+        if ($response.error.'@Message.ExtendedInfo'.MessageId) {
+
+            "[{0} - iLO {1}]:  High Security state is now enabled... API response: {2}" -f $servername, $iloIP, $response.error.'@Message.ExtendedInfo'.MessageId | Write-Host 
         }
 
-        $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
-        write-host "`niLO $($iloip) High Security state is now enabled... API response: [$($msg)]"
     }
     catch [System.Net.WebException] {
 
@@ -206,24 +240,41 @@ foreach ($Compute in $Computes) {
     
             $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
             $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-            Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) configuration error ! Message returned: [$($msg)]"
+
+            "[{0} - iLO {1}]:  Configuration error! Message returned: {2}" -f $servername, $iloIP, $msg | Write-Host -ForegroundColor Red
+            $error_found = $true
             continue
     
         }
         else {
-            Write-Output "WebException occurred, but no response stream is available."
+            "[{0} - iLO {1}]: WebException occurred, but no response stream is available" -f $servername, $iloIP | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
         }
           
     }
-    
     catch {
-        Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) configuration error ! Message returned: [$($_.Exception.Message)]"
-        Write-Host -BackgroundColor:Black -ForegroundColor:Red "Extended info: [$(($_| ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId)]"
-        continue
-    }
 
+        if ($response.error.'@Message.ExtendedInfo'.MessageId) {
+
+            "[{0} - iLO {1}]: Configuration error! Message returned: {2}" -f $servername, $iloIP, $response.error.'@Message.ExtendedInfo'.MessageId | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
+        }
+        else {
+            "[{0} - iLO {1}]: Configuration error! Message returned: {2}" -f $servername, $iloIP, $_ | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
+        }
+    }
 }
 
-write-host ""
-Read-Host -Prompt "Operation done ! Hit return to close" 
+if ($error_found) {
+    Write-Host -ForegroundColor Red "One or more errors occurred during the configuration. Please review the output above."
+}
+else {
+    Write-Host "All iLOs have been configured successfully."
+}
+
 Disconnect-OVMgmt
+Read-Host -Prompt "Operation completed ! Hit return to close" 

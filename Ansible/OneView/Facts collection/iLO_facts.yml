@@ -1,0 +1,39 @@
+---
+- name: Gather information from HPE iLO about product name, serial number and power status
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - set_fact: 
+        iLO_IP="192.168.0.6"
+        administrator="Administrator" 
+        password="xxxxxxxxxxx"
+
+
+    - name: Ensure python-hpilo is installed
+      pip:
+        executable: /usr/local/bin/pip3
+        name: python-hpilo
+      delegate_to: localhost
+      register: result
+
+    - name: Task result of the python-hpilo installation
+      debug:
+        msg: "{{ result.state }}"
+
+    - name: Task to get iLO information
+      community.general.hpilo_info:
+        host: "{{ iLO_IP }}"
+        login: "{{ administrator }}"
+        password: "{{ password }}"
+      # when: cmdb_hwmodel.startswith('HP ')
+      delegate_to: localhost
+      register: results
+
+    # - name: Displaying iLO information
+    #   debug:
+    #     msg: "{{ results }}"
+
+    - name: Displaying HW Product information
+      debug:
+        msg: "Product name: {{ results.hw_product_name }} - SN: {{ results.hw_system_serial }} - Power Status: {{ results.host_power_status }}"

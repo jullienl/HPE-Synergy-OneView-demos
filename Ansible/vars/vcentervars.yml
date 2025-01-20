@@ -1,7 +1,0 @@
----
-vcenter_hostname: "vcenter.lj.lab"
-vcenter_username: "administrator@vsphere.local"
-vcenter_password: "--------"  
-
-
-

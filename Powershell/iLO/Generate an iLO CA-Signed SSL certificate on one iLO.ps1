@@ -67,33 +67,18 @@ $State = "Texas"
 
 # MODULES TO INSTALL/IMPORT
 
+# Check if the HPE HPEiLOCmdlets PowerShell module is installed and install it if not
+If (-not (get-module HPEiLOCmdlets -ListAvailable )) { Install-Module -Name HPEiLOCmdlets -scope CurrentUser -Force -SkipPublisherCheck }
+
 # PSPKI
 # CA scripts -
 # On Windows 7/8/8.1/10 some PSPKI cmdlets are not available so it is required to install RSAT (Remote System Administration Tools)
 # Download page: https://www.microsoft.com/en-us/download/details.aspx?id=45520
 
-If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope Allusers -Force }
-import-module PSPKI
+If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope CurrentUser -Force -SkipPublisherCheck }
 
 
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-#import-OVSSLCertificate -ApplianceConnection ($connectedSessions | ? { $_.name -eq $IP }) 
-
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
 
 #################################################################################

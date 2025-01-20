@@ -1,0 +1,128 @@
+---
+# Playbook example to set iLO parameters using Redfish API calls
+#
+#  Command that can be used to run this playbook:
+#
+#   $ ansible-playbook -i hosts iLO_native_API_calls.yml 
+#
+#   $ ansible-playbook -i hosts iLO_native_API_calls.yml --ask-vault-password --ask-become-pass
+#
+#  Note: Make sure to provide the list of iLOs to be set with their details in the inventory file 'hosts'
+#
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+- name: Login to iLO and run Redfish calls
+  hosts: All
+  gather_facts: no
+  connection: local
+
+  vars:
+    ntp_servers: 
+      - "pool.ntp.org"
+      - "time.google.com" 
+    dns_servers: 
+      - "1.1.1.2"
+      - "1.1.1.1"
+         
+  tasks:
+    - name: Login to iLO
+      uri:
+        url: "https://{{ hostvars[inventory_hostname].ilo_ip }}/redfish/v1/SessionService/Sessions"
+        method: POST
+        validate_certs: false
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+        body:
+          UserName: "{{ hostvars[inventory_hostname].ilo_username }}"
+          Password: "{{ hostvars[inventory_hostname].ilo_password }}"
+        status_code: 201
+      register: login_response
+
+    - name: Set session token
+      set_fact:
+        session_token: "{{ login_response.x_auth_token }}"
+
+    - name: Display session token
+      debug:
+        var: session_token
+
+    - name: Get iLO Manager Info
+      uri:
+        url: "https://{{ hostvars[inventory_hostname].ilo_ip }}/redfish/v1/Managers/1"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Auth-Token: "{{ session_token }}"
+      register: manager_info
+
+    - name: Display iLO Manager Info
+      debug:
+        msg: "iLO generation is {{ manager_info.json.Model }} - FirmwareVersion is {{ manager_info.json.FirmwareVersion }}"
+
+
+    - name: Change NTP server
+      uri:
+        url: "https://{{ hostvars[inventory_hostname].ilo_ip }}/redfish/v1/Managers/1/DateTime/"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ session_token }}"
+        body_format: json
+        body:
+          StaticNTPServers: "{{ ntp_servers }}"
+      register: ntp_response
+
+    # - name: Display NTP server change response
+    #   debug:
+    #     var: ntp_response
+
+    - name: NTP server change success
+      debug:
+        msg: "NTP server change was successful."
+      when: ntp_response.status == 200
+
+    - name: Fail if NTP server change was not successful
+      debug:
+        msg: >
+          NTP server change failed for {{ inventory_hostname }} with status code {{ dns_response.status }}.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: ntp_response.status != 200
+
+
+    - name: Change DNS servers
+      uri:
+        url: "https://{{ hostvars[inventory_hostname].ilo_ip }}/redfish/v1/Managers/1/EthernetInterfaces/1/"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ session_token }}"
+        body_format: json
+        body:
+          DHCPv4: 
+            UseDNSServers: False          
+          Oem: 
+            Hpe:
+              IPv4:
+                DNSServers: "{{ dns_servers }}"
+      register: dns_response
+
+    # - name: Display NTP DNS changes response
+    #   debug:
+    #     var: dns_response
+
+    - name: DNS servers change success
+      debug:
+        msg: "DNS servers change was successful."
+      when: dns_response.status == 200
+
+    - name: Fail if DNS servers change was not successful
+      debug:
+        msg: >
+          DNS server change failed for {{ inventory_hostname }} with status code {{ dns_response.status }}.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: dns_response.status != 200      

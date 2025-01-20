@@ -1,0 +1,196 @@
+---
+# Playbook example to set iLO parameters using Redfish API calls with OneView SSO Authentication
+#
+#  Command that can be used to run this playbook:
+#
+#   $ ansible-playbook iLO_native_API_calls_with_OneView_SSO_AuthN.yml  
+#
+#  Note: A OneView configuration file 'oneview_config.json' is required to run this playbook.
+#  The file should be present in the same directory as the playbook.
+#
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+- name: Login to iLO and run Redfish calls
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    config: "{{ lookup('file', '{{ playbook_dir }}/oneview_config.json') | from_json }}"
+
+    ntp_servers: 
+      - "pool.ntp.org"
+      - "time.google.com" 
+    dns_servers: 
+      - "1.1.1.2"
+      - "1.1.1.1"
+         
+  tasks:
+
+    - name: Create OneView session
+      uri:
+        url: "https://{{ config.ip }}/rest/login-sessions"
+        method: POST
+        validate_certs: false
+        body_format: json
+        headers:
+          X-API-Version: "{{ config.api_version }}"
+          Content-Type: "application/json"
+        body:
+          authLoginDomain: "{{ config.credentials.authLoginDomain }}"
+          userName: "{{ config.credentials.userName }}"
+          password: "{{ config.credentials.password }}"
+      register: login
+
+    # - debug: var=login
+
+    - name: Set variable for the session ID
+      set_fact:
+        sessionid: "{{ login.json.sessionID }}"
+
+    - name: Display session id
+      debug:
+        var: sessionid
+
+    - name: Collect server hardware
+      uri:
+        url: "https://{{ config.ip }}/rest/server-hardware?count=2"  # Only 2 servers are returned
+        # url: "https://{{ config.ip }}/rest/server-hardware"
+        method: GET
+        validate_certs: false
+        headers:
+          X-API-Version: "{{ config.api_version }}"
+          Content-Type: "application/json"
+          Auth: "{{ sessionid }}"
+        return_content: yes
+      register: server_hardwares
+  
+    - name: Collect iLO SSO session keys
+      uri:
+        url: "https://{{ config.ip }}{{ item.uri }}/remoteConsoleUrl"
+        method: GET
+        validate_certs: false
+        headers:
+          X-API-Version: "{{ config.api_version }}"
+          Content-Type: "application/json"
+          Auth: "{{ sessionid }}"
+        return_content: yes
+      loop: "{{ server_hardwares.json.members }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: ilo_sso_keys
+
+    - name: Extract remoteConsoleUrl
+      set_fact:
+        remote_console_urls: "{{ ilo_sso_keys.results | map(attribute='content') | map('from_json') | map(attribute='remoteConsoleUrl') | list }}"
+
+    - name: Display remoteConsoleUrl
+      debug:
+        var: remote_console_urls
+
+    - name: Extract IP and session key
+      set_fact:
+        ilo_sessions: "{{ ilo_sessions | default([]) + [{'ip': (item | regex_search('addr=([^&]+)', '\\1'))[0], 'sessionkey': (item | regex_search('sessionkey=([^&]+)', '\\1'))[0]}] }}"
+      loop: "{{ remote_console_urls }}"
+
+
+    - name: Display extracted IPs and session keys
+      debug:
+        var: ilo_sessions
+
+
+    - name: Get iLO Manager Info
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/Managers/1"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Auth-Token: "{{ item.sessionkey }}"
+        return_content: yes
+      loop: "{{ ilo_sessions }}"
+      register: ilo_manager_info
+
+
+    - name: Display iLO Manager Info of each ilo in the list
+      debug:
+        msg: "iLO generation is {{ item.json.Model }} - FirmwareVersion is {{ item.json.FirmwareVersion }}"
+      loop: "{{ ilo_manager_info.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Change NTP server
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/Managers/1/DateTime/"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          StaticNTPServers: "{{ ntp_servers }}"
+      loop: "{{ ilo_sessions }}"
+      register: ntp_response
+      ignore_errors: yes
+
+
+    - name: Check NTP server change success
+      debug:
+        msg: "NTP server change was successful for {{ item.item.ip }}"
+      when: item.status == 200
+      loop: "{{ ntp_response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if NTP server change was not successful
+      debug:
+        msg: >
+          NTP server change failed for {{ item.item.ip }} with status code {{ item.status }}.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ ntp_response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Change DNS servers
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/Managers/1/EthernetInterfaces/1/"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          DHCPv4: 
+            UseDNSServers: False          
+          Oem: 
+            Hpe:
+              IPv4:
+                DNSServers: "{{ dns_servers }}"
+      loop: "{{ ilo_sessions }}"
+      register: dns_response
+
+  
+    - name: Check DNS server change success
+      debug:
+        msg: "DNS server change was successful for {{ item.item.ip }}"
+      when: item.status == 200
+      loop: "{{ dns_response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if DNS server change was not successful
+      debug:
+        msg: >
+          DNS server change failed for {{ item.item.ip }} with status code {{ item.status }}.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ dns_response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+
+

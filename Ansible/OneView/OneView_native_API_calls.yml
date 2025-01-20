@@ -1,0 +1,103 @@
+---
+# Playbook example to run OneView native API calls 
+#
+#  Command that can be used to run this playbook:
+#
+#   $ ansible-playbook OneView_native_API_calls.yml  
+#
+#  Note: A OneView configuration file 'oneview_config.json' is required to run this playbook.
+#  The file should be present in the same directory as the playbook.
+#
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+- hosts: localhost
+  gather_facts: no
+  connection: local
+      
+  vars:
+    config: "{{ lookup('file', '{{ playbook_dir }}/oneview_config.json') | from_json }}"
+
+  tasks:    
+ 
+  - name: Create OneView session
+    uri:
+      url: "https://{{ config.ip }}/rest/login-sessions"
+      method: POST
+      validate_certs: false
+      body_format: json
+      headers:
+        X-API-Version: "{{ config.api_version }}"
+        Content-Type: "application/json"
+      body:
+        authLoginDomain: "{{ config.credentials.authLoginDomain }}"
+        userName: "{{ config.credentials.userName }}"
+        password: "{{ config.credentials.password }}"
+    register: login
+
+  # - debug: var=login
+
+  - name: Set variable for the session ID
+    set_fact:
+      sessionid: "{{ login.json.sessionID }}"
+
+  - name: Display session id
+    debug:
+      var: sessionid
+
+  
+  - name: Collect server hardware
+    uri:
+      # url: "https://{{ config.ip }}/rest/server-hardware"
+      url: "https://{{ config.ip }}/rest/server-hardware?count=2"  # Only 2 servers are returned
+      method: GET
+      validate_certs: false
+      headers:
+        X-API-Version: "{{ config.api_version }}"
+        Content-Type: "application/json"
+        Auth: "{{ sessionid }}"
+      return_content: yes
+    register: server_hardwares
+
+  - name: Display Server Hardwares
+    debug: var=server_hardwares
+
+
+  - name: Collect server profiles
+    uri:
+      # url: "https://{{ config.ip }}/rest/server-profiles"
+      url: "https://{{ config.ip }}/rest/server-profiles?count=2" # Only 2 server profiles are returned
+      method: GET
+      validate_certs: false
+      headers:
+        X-API-Version: "{{ config.api_version }}"
+        Content-Type: "application/json"
+        Auth: "{{ sessionid }}"
+      return_content: yes
+    register: server_profiles
+
+  - name: Display Server Profiles
+    debug: var=server_profiles
+
+  # - name: Set Security-Protocols_TLS1.2-only (Careful, reboots OV!)
+  #   uri:
+  #     url: "https://{{ config.ip }}/rest/security-standards/protocols"
+  #     method: PUT
+  #     validate_certs: false
+  #     headers:
+  #       X-API-Version: "{{ config.api_version }}"
+  #       Content-Type: "application/json"
+  #       Auth: "{{ sessionid }}"
+  #     body_format: json
+  #     body:
+  #       - protocolName: "TLSv1"
+  #         enabled: false
+  #       - protocolName: "TLSv1.1"
+  #         enabled: false
+  #       - protocolName: "TLSv1.2"
+  #         enabled: true
+  #   register: result
+
+  # - name: Display Security-Protocols_TLS1.2-only result
+  #   debug: var=result
+
+ 

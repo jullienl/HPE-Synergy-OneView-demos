@@ -51,50 +51,78 @@ $file = "iLO_MAC_Address_Report"
 
 
 # OneView Credentials and IP
-$OV_username = "Administrator"
-$OV_IP = "composer.lj.lab"
+$OneView_username = "Administrator"
+$OneView_IP = "composer.lj.lab"
 
 
 # MODULES TO INSTALL
 
-# HPEOneView
-# If (-not (get-module HPEOneView.630 -ListAvailable )) { Install-Module -Name HPEOneView.630 -scope Allusers -Force }
-
-
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
-add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
+# Check if the HPE OneView PowerShell module is installed and install it if not
+If (-not (get-module HPEOneView.* -ListAvailable )) {
+    
+    try {
+        
+        $APIversion = Invoke-RestMethod -Uri "https://$OneView_IP/rest/version" -Method Get | select -ExpandProperty currentVersion
+        
+        switch ($APIversion) {
+            "3800" { [decimal]$OneViewVersion = "6.6" }
+            "4000" { [decimal]$OneViewVersion = "7.0" }
+            "4200" { [decimal]$OneViewVersion = "7.1" }
+            "4400" { [decimal]$OneViewVersion = "7.2" }
+            "4600" { [decimal]$OneViewVersion = "8.0" }
+            "4800" { [decimal]$OneViewVersion = "8.1" }
+            "5000" { [decimal]$OneViewVersion = "8.2" }
+            "5200" { [decimal]$OneViewVersion = "8.3" }
+            "5400" { [decimal]$OneViewVersion = "8.4" }
+            "5600" { [decimal]$OneViewVersion = "8.5" }
+            "5800" { [decimal]$OneViewVersion = "8.6" }
+            "6000" { [decimal]$OneViewVersion = "8.7" }
+            "6200" { [decimal]$OneViewVersion = "8.8" }
+            "6400" { [decimal]$OneViewVersion = "8.9" }
+            "6600" { [decimal]$OneViewVersion = "9.0" }
+            "6800" { [decimal]$OneViewVersion = "9.1" }
+            "7000" { [decimal]$OneViewVersion = "9.2" }
+            Default { $OneViewVersion = "Unknown" }
         }
-"@
-   
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+        
+        Write-Verbose "Appliance running HPE OneView $OneViewVersion"
+        
+        If ($OneViewVersion -ne "Unknown" -and -not (get-module HPEOneView* -ListAvailable )) { 
+            
+            Find-Module HPEOneView* | Where-Object version -le $OneViewVersion | Sort-Object version | Select-Object -last 1 | Install-Module -scope CurrentUser -Force -SkipPublisherCheck
+            
+        }
+    }
+    catch {
+        
+        Write-Error "Error: Unable to contact HPE OneView to retrieve the API version. The OneView PowerShell module cannot be installed."
+        Return
+    }
+}
+
 
 
 #################################################################################
-clear-host
 
-if (! $connectedsessions) {
+Clear-Host
+
+if (! $ConnectedSessions) {
+    
     $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
  
-    # Connection to the OneView / Synergy Composer
-    $credentials = New-Object System.Management.Automation.PSCredential ($OV_username, $secpasswd)
-
+    # Connection to the Synergy Composer
+    $credentials = New-Object System.Management.Automation.PSCredential ($OneView_username, $secpasswd)
+    
     try {
-        Connect-OVMgmt -Hostname $OV_IP -Credential $credentials -ErrorAction stop | Out-Null    
+        Connect-OVMgmt -Hostname $OneView_IP -Credential $credentials | Out-Null
     }
     catch {
-        Write-Warning "Cannot connect to '$OV_IP'! Exiting... "
+        Write-Warning "Cannot connect to '$OneView_IP'! Exiting... "
         return
     }
 }
+
+#################################################################################
 
 # Capture iLO4 and iLO5 IP adresses managed by OneView
 $servers = Get-OVServer # | select -first 3
@@ -112,7 +140,14 @@ foreach ($server in $servers) {
     $iloIP = $server.mpHostInfo.mpIpAddresses | ? { $_.type -ne "LinkLocal" } | % address
     $iloIPv6 = ([ipaddress]($server.mpHostInfo.mpIpAddresses | ? { $_.type -eq "LinkLocal" } | % address)).IPAddressToString
 
-    $MAC = Invoke-WebRequest -Uri "https://ben.akrin.com/ipv6_link_local_to_mac_address_converter/?mode=api&ipv6=$iloIPv6" | % Content
+    try {
+        $MAC = Invoke-WebRequest -Uri "https://ben.akrin.com/ipv6_link_local_to_mac_address_converter/?mode=api&ipv6=$iloIPv6" | % Content
+        
+    }
+    catch {
+        Write-Warning "Error: Unable to retrieve the MAC address for $iloIP"
+        continue
+    }
 
     # $name = (Get-OVServer -name $server.name ).name
     
@@ -120,7 +155,7 @@ foreach ($server in $servers) {
 
 }
 
-import-csv ("$file" + ".txt")   | export-csv ("$file" + ".csv") -NoTypeInformation
+import-csv ("$file" + ".txt") | export-csv ("$file" + ".csv") -NoTypeInformation
 remove-item ("$file" + ".txt") -Confirm:$false
 
 

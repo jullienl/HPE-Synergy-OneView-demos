@@ -97,7 +97,7 @@ param(
 
 #Region -------------------------------------------------------- Variables definition -----------------------------------------------------------------------------------------
 # Number of days before the certificate expiration date when the signed certificate must be replaced. 
-$days_before_expiration = "90"
+$days_before_expiration = "3630"
 
 # Certificate Signing Request (CSR) variables
 $city = "Mougins"
@@ -112,8 +112,7 @@ $CertificateTemplate = "iLOWebServer"
 
 # OneView 
 $OneView_username = "Administrator"
-$OneView_IP = "composer.lab"
-
+$OneView_IP = "composer.lj.lab"
 #EndRegion
 
 
@@ -204,7 +203,7 @@ if (! $ConnectedSessions) {
 
 
 # Retrieve all servers managed by HPE OneView
-$servers = Get-OVServer | Where-Object { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } 
+$servers = Get-OVServer | Where-Object { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } | Select-Object -First 9
 
 # $servers = Get-OVServer
 # $servers = Get-OVServer | Where-Object { $_.mpModel -eq "iLO5" -or $_.mpModel -eq "iLO6" } | Where-Object { $_.name -ne "Frame3, bay 6" -and $_.name -ne "Frame3, bay 2" -and $_.name -ne "Frame3, bay 3" }
@@ -570,6 +569,6 @@ else {
 }
     
     
-Disconnect-OVMgmt
-Read-Host -Prompt "Hit return to close" 
+# Disconnect-OVMgmt
+# Read-Host -Prompt "Hit return to close" 
 #EndRegion

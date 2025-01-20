@@ -1,0 +1,6 @@
+
+Server           Created              State     Percent Complete Status
+------           -------              -----     ---------------- ------
+DL365G11-2-ILO   4/19/2024 9:51:07 AM Error                  100 Unable to add server: DL365G11-2-ILO
+ilo-LIOGW.lj.lab 4/19/2024 9:51:10 AM Completed              100 Add server: ilo-LIOGW.lj.lab.
+

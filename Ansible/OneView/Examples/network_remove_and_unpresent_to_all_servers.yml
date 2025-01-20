@@ -1,0 +1,44 @@
+---
+# This playbook removes a network resource in a Synergy environment and unassigns that network to all compute modules that use a network set.
+#
+#
+# Requirement:
+# - A network Set must be defined and presented to the Server Profiles
+#
+# This playbook only performs the deletion of an existing ethernet network using the variable defined
+# in the vars section since OneView takes care of the other steps automatically.
+#
+#  Note: When deleting a network, OneView automatically:
+#   - removes the network from the uplink set defined in the selected Logical Interconnect Group
+#   - removes the network from the network set
+#   - deletes the network from the Logical interconnect
+
+# - Adds the new ethernet network to the defined network set
+- name: Remove a network resource from a Synergy environment and unpresent that network to all Compute Modules using a Network Set.
+  hosts: localhost
+  collections:
+    - hpe.oneview
+  vars:
+    config: "{{ playbook_dir }}/oneview_config.json"
+
+    # Network to remove
+    network_name: "Network-200"
+
+    LIG: "LIG-MLAG"
+    Uplinkset: "MLAG-Nexus"
+    NetworkSet: "Production_network_set"
+    logical_interconnect_name: "LE-LIG-MLAG"
+    new_uplinkset_uris: []
+
+  tasks:
+    - name: Delete the Ethernet Network
+      oneview_ethernet_network:
+        config: "{{ config }}"
+        state: absent
+        data:
+          name: "{{ network_name }}"
+      delegate_to: localhost
+      register: deleted
+
+    - name: Result of the delete network task
+      debug: msg="{{ deleted.msg }}"
