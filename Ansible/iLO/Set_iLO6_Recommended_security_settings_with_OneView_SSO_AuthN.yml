@@ -1,0 +1,397 @@
+---
+# Playbook example to set some of the HPE recommended security settings for HPE iLO using Redfish API calls with OneView SSO Authentication
+#
+# The playbook sets the following security settings:
+# 1. Authentication Failures Before Delay: 1 failure causes no delay
+# 2. Authentication Failure Delay Time: 10 seconds
+# 3. Authentication Failure Logging: Enabled-Every Failure = 1 (Enabled-Every Failure)
+# 4. Minimum Password Length = 8
+# 5. Password Complexity = Enabled
+# 6. SNMP = Disabled
+# 
+# For the list of HPE recommended security settings, see https://support.hpe.com/hpesc/public/docDisplay?docId=sd00002198en_us&page=GUID-18F131B9-7E75-43BC-BF77-0C019CF4622A.html
+#
+# The playbook uses the 'uri' module to make REST API calls to the iLO 6 using Redfish API
+#
+# Command that can be used to run this playbook:
+#
+#  $ ansible-playbook Set_iLO6_Recommended_security_settings_with_OneView_SSO_AuthN.yml  
+#
+# Note: A OneView configuration file 'oneview_config.json' is required to run this playbook.
+# The file should be present in the same directory as the playbook.
+#
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+- name: Set iLO Recommended security settings with OneView SSO Authentication
+  hosts: localhost
+  gather_facts: no
+  connection: local
+
+  vars:
+    config: "{{ lookup('file', '{{ playbook_dir }}/oneview_config.json') | from_json }}"
+         
+  tasks:
+
+    - name: Create OneView session
+      uri:
+        url: "https://{{ config.ip }}/rest/login-sessions"
+        method: POST
+        validate_certs: false
+        body_format: json
+        headers:
+          X-API-Version: "{{ config.api_version }}"
+          Content-Type: "application/json"
+        body:
+          authLoginDomain: "{{ config.credentials.authLoginDomain }}"
+          userName: "{{ config.credentials.userName }}"
+          password: "{{ config.credentials.password }}"
+      register: login
+
+    # - debug: var=login
+
+    - name: Set variable for the session ID
+      set_fact:
+        sessionid: "{{ login.json.sessionID }}"
+
+    # - name: Display session id
+    #   debug:
+    #     var: sessionid
+
+    - name: Collect server hardware
+      uri:
+        url: "https://{{ config.ip }}/rest/server-hardware?count=1"  # Only 2 servers are returned
+        # url: "https://{{ config.ip }}/rest/server-hardware"
+        method: GET
+        validate_certs: false
+        headers:
+          X-API-Version: "{{ config.api_version }}"
+          Content-Type: "application/json"
+          Auth: "{{ sessionid }}"
+        return_content: yes
+      register: server_hardwares
+
+    # - name: Display server hardware
+    #   debug:
+    #     var: server_hardwares
+  
+    - name: Collect iLO SSO session keys
+      uri:
+        url: "https://{{ config.ip }}{{ item.uri }}/remoteConsoleUrl"
+        method: GET
+        validate_certs: false
+        headers:
+          X-API-Version: "{{ config.api_version }}"
+          Content-Type: "application/json"
+          Auth: "{{ sessionid }}"
+        return_content: yes
+      loop: "{{ server_hardwares.json.members }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: ilo_sso_keys
+
+    - name: Extract remoteConsoleUrl
+      set_fact:
+        remote_console_urls: "{{ ilo_sso_keys.results | map(attribute='content') | map('from_json') | map(attribute='remoteConsoleUrl') | list }}"
+
+    # - name: Display remoteConsoleUrl
+    #   debug:
+    #     var: remote_console_urls
+
+    - name: Extract IP and session key
+      set_fact:
+        ilo_sessions: "{{ ilo_sessions | default([]) + [{'ip': (item | regex_search('addr=([^&]+)', '\\1'))[0], 'sessionkey': (item | regex_search('sessionkey=([^&]+)', '\\1'))[0]}] }}"
+      loop: "{{ remote_console_urls }}"
+
+    # - name: Display extracted IPs and session keys
+    #   debug:
+    #     var: ilo_sessions
+
+    - name: Get iLO Manager Info
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/Managers/1"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Auth-Token: "{{ item.sessionkey }}"
+        return_content: yes
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"
+      register: ilo_manager_info
+
+
+    - name: Display iLO Manager Info of each ilo in the list
+      debug:
+        msg: "iLO generation is {{ item.json.Model }} - FirmwareVersion is {{ item.json.FirmwareVersion }}"
+      loop: "{{ ilo_manager_info.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+
+    #------------------------------- Change Account Service -------------------------------
+
+    # Authentication Failures Before Delay: 1 failure causes no delay
+
+    - name: Set variable name for setting name
+      set_fact:
+        setting: "Authentication Failures Before Delay"
+        value: 1
+
+    - name: Change '{{ setting }}' = '{{ value }}' failure causes no delay
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/accountservice"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          Oem: 
+            Hpe:
+              AuthFailuresBeforeDelay: "{{ value }}"
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"      
+      register: response
+      ignore_errors: yes
+
+    - name: Display '{{ setting }}' setting change response
+      debug:
+        msg: "'{{ setting }}' setting change successfully to '{{ value }}' - Response: '{{ item.status }}'"
+      when: item.status == 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if '{{ setting }}' setting change was not successful
+      debug:
+        msg: >
+          '{{ setting }}' setting change failed for '{{ item.item.ip }}' with status code '{{ item.status }}'.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    # Authentication Failure Delay Time: 10 seconds
+
+    - name: Set variable name for setting name
+      set_fact:
+        setting: "Authentication Failure Delay Time"
+        value: 10
+
+    - name: Change '{{ setting }}' = '{{ value }}' seconds
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/accountservice"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          Oem: 
+            Hpe:
+              AuthFailureDelayTimeSeconds: "{{ value }}"
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"    
+      register: response
+      ignore_errors: yes
+
+    - name: Display '{{ setting }}' setting change response
+      debug:
+        msg: "'{{ setting }}' setting change successfully to '{{ value }}' - Response: '{{ item.status }}'"
+      when: item.status == 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if '{{ setting }}' setting change was not successful
+      debug:
+        msg: >
+          '{{ setting }}' setting change failed for '{{ item.item.ip }}' with status code '{{ item.status }}'.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    # Authentication Failure Logging: Enabled-Every Failure = 1 (Enabled-Every Failure)
+
+    - name: Set variable name for setting name
+      set_fact:
+        setting: "Authentication Failure Logging: Enabled-Every Failure"
+        value: 1
+
+    - name: Change '{{ setting }}' = '{{ value }}' to enable every failure
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/accountservice"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          Oem: 
+            Hpe:
+              AuthFailureLoggingThreshold: "{{ value }}"
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"       
+      register: response
+      ignore_errors: yes
+
+    - name: Display '{{ setting }}' setting change response
+      debug:
+        msg: "'{{ setting }}' setting change successfully to '{{ value }}' - Response: '{{ item.status }}'"
+      when: item.status == 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if '{{ setting }}' setting change was not successful
+      debug:
+        msg: >
+          '{{ setting }}' setting change failed for '{{ item.item.ip }}' with status code '{{ item.status }}'.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+
+    # Minimum Password Length = 8
+
+    - name: Set variable name for setting name
+      set_fact:
+        setting: "Minimum Password Length"
+        value: 8
+
+    - name: Change '{{ setting }}' = '{{ value }}'
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/accountservice"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          Oem: 
+            Hpe:
+              MinPasswordLength: "{{ value }}"
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"      
+      register: response
+      ignore_errors: yes
+
+    - name: Display '{{ setting }}' setting change response
+      debug:
+        msg: "'{{ setting }}' setting change successfully to '{{ value }}' - Response: '{{ item.status }}'"
+      when: item.status == 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if '{{ setting }}' setting change was not successful
+      debug:
+        msg: >
+          '{{ setting }}' setting change failed for '{{ item.item.ip }}' with status code '{{ item.status }}'.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"        
+
+
+    # Password Complexity = Enabled
+
+    - name: Set variable name for setting name
+      set_fact:
+        setting: "Password Complexity"
+        value: true
+
+    - name: Change '{{ setting }}' = '{{ value }}'
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/accountservice"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          Oem: 
+            Hpe:
+              EnforcePasswordComplexity: "{{ value }}"
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"        
+      register: response
+      ignore_errors: yes
+
+    - name: Display '{{ setting }}' setting change response
+      debug:
+        msg: "'{{ setting }}' setting change successfully to '{{ value }}' - Response: '{{ item.status }}'"
+      when: item.status == 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if '{{ setting }}' setting change was not successful
+      debug:
+        msg: >
+          '{{ setting }}' setting change failed for '{{ item.item.ip }}' with status code '{{ item.status }}'.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"                
+
+    # SNMP = Disabled
+
+    - name: Set variable name for setting name
+      set_fact:
+        setting: "SNMP"
+        value: false
+
+    - name: Change '{{ setting }}' = '{{ value }}'
+      uri:
+        url: "https://{{ item.ip }}/redfish/v1/Managers/1/networkprotocol"
+        method: PATCH
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+          X-Auth-Token: "{{ item.sessionkey }}"
+        body_format: json
+        body:
+          SNMP: 
+            ProtocolEnabled: "{{ value }}"
+      loop: "{{ ilo_sessions }}"
+      loop_control:
+        label: "{{ item.ip }}"        
+      register: response
+      ignore_errors: yes
+
+    - name: Display '{{ setting }}' setting change response
+      debug:
+        msg: "'{{ setting }}' setting change successfully to '{{ value }}' - Response: '{{ item.status }}'"
+      when: item.status == 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"
+
+    - name: Fail if '{{ setting }}' setting change was not successful
+      debug:
+        msg: >
+          '{{ setting }}' setting change failed for '{{ item.item.ip }}' with status code '{{ item.status }}'.
+          MessageId: {{ item.json.error['@Message.ExtendedInfo'][0].MessageId }}
+      when: item.status != 200
+      loop: "{{ response.results }}"
+      loop_control:
+        label: "{{ item.item.ip }}"                

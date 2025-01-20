@@ -13,7 +13,7 @@
 
 
 
-- name: Login to iLO and run Redfish calls
+- name: Set iLO parameters using Redfish API calls
   hosts: All
   gather_facts: no
   connection: local
