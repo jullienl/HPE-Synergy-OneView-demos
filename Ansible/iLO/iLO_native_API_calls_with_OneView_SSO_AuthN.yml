@@ -1,6 +1,18 @@
 ---
 # Playbook example to set iLO parameters using Redfish API calls with OneView SSO Authentication
 #
+# This playbook demonstrates how to set iLO parameters using Redfish API calls with OneView SSO Authentication.
+#
+# The playbook performs the following operations:
+# 1. Create a OneView session.
+# 2. Collect server hardware information.
+# 3. Collect iLO SSO session keys.
+# 4. Extract remoteConsoleUrl.
+# 5. Extract IP and session key.
+# 6. Get iLO Manager Info.
+# 7. Change NTP servers.
+# 8. Change DNS servers.
+#
 #  Command that can be used to run this playbook:
 #
 #   $ ansible-playbook iLO_native_API_calls_with_OneView_SSO_AuthN.yml  

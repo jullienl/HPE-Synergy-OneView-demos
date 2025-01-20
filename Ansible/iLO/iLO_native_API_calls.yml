@@ -1,11 +1,17 @@
 ---
 # Playbook example to set iLO parameters using Redfish API calls
 #
-#  Command that can be used to run this playbook:
+# This playbook demonstrates how to set iLO parameters using Redfish API calls.
+#
+# The playbook performs the following operations:
+# 1. Login to iLO.
+# 2. Get iLO Manager Info.
+# 3. Change NTP servers.
+# 4. Change DNS servers.
+#
+# Command that can be used to run this playbook:
 #
 #   $ ansible-playbook -i hosts iLO_native_API_calls.yml 
-#
-#   $ ansible-playbook -i hosts iLO_native_API_calls.yml --ask-vault-password --ask-become-pass
 #
 #  Note: Make sure to provide the list of iLOs to be set with their details in the inventory file 'hosts'
 #
