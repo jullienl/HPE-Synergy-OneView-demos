@@ -2,9 +2,10 @@
 Examples of iLO interaction using different methods and HPE PowerShell libraries:
 1- HPEiLOCmdlets
 2- HPEiLOCmdlets with X-Auth-Token from HPEOneView
-3- HPEBIOSCmdlets
-4- HPERedfishCmdlets
-5- Native API calls
+3- Using HPEiLOCmdlets to capture session token and run RedFish API calls
+4- Native RedFish API calls
+5- HPEBIOSCmdlets
+6- HPERedfishCmdlets
 
 
  Author: lionel.jullien@hpe.com
@@ -45,6 +46,7 @@ $secpasswd = read-host  "Please enter the iLO password" -AsSecureString
 $ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username, $secpasswd)
 
 
+#Region "Using HPEiLOCmdlets"
 
 ######################################## Using HPEiLOCmdlets ################################################
 # Requirements: HPEiLOCmdlets
@@ -58,11 +60,17 @@ Get-command -Module HPEiLOCmdlets
 $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds  -DisableCertificateAuthentication 
 
 # Examples
-(Get-HPEiLOUser -Connection  $connection).userinformation.count
-Get-HPEiLOServerInfo -Connection $connection
+
+# Get iLO User Information
+(Get-HPEiLOUser -Connection $connection).userinformation
+# Get iLO device list
+(Get-HPEiLODeviceInventory -Connection $connection).devices
+
+#Endregion
 
 
 
+#Region "Using HPEiLOCmdlets with X-Auth-Token from HPEOneView"
 
 ######################################## Using HPEiLOCmdlets with X-Auth-Token from HPEOneView ################################################
 # Requirements: HPEiLOCmdlets and HPEOneView modules + iLO5 or greater
@@ -98,6 +106,243 @@ $connection = Connect-HPEiLO -Address $iLO_IP -XAuthToken $ilosessionkey -Disabl
 (Get-HPEiLOUser -Connection  $connection).userinformation.count
 Get-HPEiLOServerInfo -Connection $connection
 
+#Endregion
+
+
+
+#Region "Using HPEiLOCmdlets to capture session token and run RedFish API calls"
+
+######################################## Using HPEiLOCmdlets to capture session token and run RedFish API calls ################################################
+# Requirements: HPEiLOCmdlets 
+# install-module HPEiLOCmdlets -Scope CurrentUser
+
+# List of cmdlets
+# Get-command -Module HPEiLOCmdlets
+
+# Connection
+
+$connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds -DisableCertificateAuthentication 
+
+# Get the encoded session token
+$encodedToken = $connection.ConnectionInfo.Redfish.XAuthToken
+
+# Extract Modifier1 and Modifier2 to get the encryption key and initialization vector (IV)
+$modifier1 = $connection.ExtendedInfo.Modifier1
+$modifier2 = $connection.ExtendedInfo.Modifier2
+
+# Convert the modifiers from Base64
+$key = [System.Convert]::FromBase64String($modifier1)
+$iv = [System.Convert]::FromBase64String($modifier2)
+
+# Convert the token from Base64
+$cipherText = [System.Convert]::FromBase64String($encodedToken)
+
+# Create AES decryptor
+$aes = [System.Security.Cryptography.Aes]::Create()
+$aes.Key = $key
+$aes.IV = $iv
+$decryptor = $aes.CreateDecryptor($aes.Key, $aes.IV)
+
+# Decrypt the token
+$ms = New-Object System.IO.MemoryStream
+$cs = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Write)
+$cs.Write($cipherText, 0, $cipherText.Length)
+$cs.Close()
+$plainTextXAuthToken = [System.Text.Encoding]::UTF8.GetString($ms.ToArray())
+
+# Add the token to the headers
+$headers["X-Auth-Token"] = $plainTextXAuthToken
+
+
+######################## GET Example ############################
+
+
+# iLO5 Redfish URI
+$Location = "/redfish/v1/Managers/1/SecurityService"
+
+# Method
+$Method = "Get"
+
+# Request
+try {
+    $response = Invoke-WebRequest -Uri ($RootUri + $Location) -Headers $headers -Method $Method -ErrorAction Stop -SkipCertificateCheck # -SkipCertificateCheck is only supported with PowerShell 7
+    # $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+    $content = $response.Content | ConvertFrom-Json
+    
+}
+catch {
+    Write-Host "iLO $($iloHost) Patch operation failure ! Message returned: [$($_)]"
+}
+
+
+# Response
+$content
+$content.SecurityState
+$content.TLSVersion
+
+
+######################## PATCH Example ###########################
+
+
+# iLO5 Redfish URI
+$Location = "/redfish/v1/Managers/1/SecurityService"
+
+# Body
+$Body = @{} 
+$Body["SecurityState"] = "Production"
+$body = $body | ConvertTo-Json   
+
+# Method
+$Method = "Patch"
+
+# Request
+try {
+    $response = Invoke-WebRequest -Uri ($RootUri + $Location) -Headers $headers -body $Body -Method $Method -ErrorAction Stop -SkipCertificateCheck # -SkipCertificateCheck is only supported with PowerShell 7
+    $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+
+    if ($response.StatusCode -eq 200) {
+
+        Write-Host -BackgroundColor:Black -ForegroundColor:Green "iLO $($iLO_IP) success $Method operation ! Message returned: [$($msg)]"
+    }
+    else {
+
+        Write-Host "iLO $($iloHost) Patch operation failure ! Message returned: [$($msg)]"
+    }
+
+}
+catch {
+  
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iLO_IP) $Method operation failure ! Message returned: $($_)"
+    
+}
+
+# Response
+$response
+
+
+
+#Endregion
+
+
+
+#Region "Using Native Redfish API calls"
+######################################## Using Native Redfish operations ################################################
+# Requirements: NONE
+
+# if using untrusted iLO certificate, you must use with PowerShell 5.x:
+add-type -TypeDefinition  @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+        public class TrustAllCertsPolicy : ICertificatePolicy {
+            public bool CheckValidationResult(
+                ServicePoint srvPoint, X509Certificate certificate,
+                WebRequest request, int certificateProblem) {
+                return true;
+            }
+        }
+"@
+   
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+# With PowerShell 7.x: just add -SkipCertificateCheck parameter to all your web requests
+
+######################## iLO Session creation ############################
+
+$RootUri = "https://" + $iLO_IP
+
+$Url = "$RootUri/redfish/v1/SessionService/Sessions/"
+
+$headers = @{} 
+$headers["OData-Version"] = "4.0"
+$headers["Content-Type"] = "application/json"
+
+$body = @{} 
+$body["UserName"] = $iLO_username
+$body["Password"] = $iLO_password
+$body = $Body | ConvertTo-Json
+
+try {
+    $session = Invoke-WebRequest $Url -Method 'POST' -Headers $headers -Body $body -SkipCertificateCheck 
+}
+catch {
+    Write-Host "Error logging into iLO $iLO_IP : $_"
+}
+
+$XAuthToken = $Session.headers | ForEach-Object X-Auth-Token
+
+$headers["X-Auth-Token"] = $XAuthToken
+
+
+######################## GET Example ############################
+
+
+# iLO5 Redfish URI
+$Location = "/redfish/v1/Managers/1/SecurityService"
+
+# Method
+$Method = "Get"
+
+# Request
+try {
+    $response = Invoke-WebRequest -Uri ($RootUri + $Location) -Headers $headers -Method $Method -ErrorAction Stop -SkipCertificateCheck # -SkipCertificateCheck is only supported with PowerShell 7
+    # $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+    $content = $response.Content | ConvertFrom-Json
+    
+}
+catch {
+    Write-Host "iLO $($iloHost) Patch operation failure ! Message returned: [$($_)]"
+}
+
+
+# Response
+$content
+$content.SecurityState
+$content.TLSVersion
+
+
+######################## PATCH Example ###########################
+
+
+# iLO5 Redfish URI
+$Location = "/redfish/v1/Managers/1/SecurityService"
+
+# Body
+$Body = @{} 
+$Body["SecurityState"] = "Production"
+$body = $body | ConvertTo-Json   
+
+# Method
+$Method = "Patch"
+
+# Request
+try {
+    $response = Invoke-WebRequest -Uri ($RootUri + $Location) -Headers $headers -body $Body -Method $Method -ErrorAction Stop -SkipCertificateCheck # -SkipCertificateCheck is only supported with PowerShell 7
+    $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+
+    if ($response.StatusCode -eq 200) {
+
+        Write-Host -BackgroundColor:Black -ForegroundColor:Green "iLO $($iLO_IP) success $Method operation ! Message returned: [$($msg)]"
+    }
+    else {
+
+        Write-Host "iLO $($iloHost) Patch operation failure ! Message returned: [$($msg)]"
+    }
+
+}
+catch {
+  
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iLO_IP) $Method operation failure ! Message returned: $($_)"
+    
+}
+
+# Response
+$response
+
+#Endregion
+
+
+
+#Region "Using HPEBIOSCmdlets"  
 
 ######################################## Using HPEBIOSCmdlets ################################################
 # Requirements: HPEBIOSCmdlets 
@@ -119,8 +364,11 @@ Get-HPEBIOSAdvancedSecurityOption -Connection $connection | fl
 Set-HPEBIOSServerSecurity -Connection $connection -F11BootMenuPrompt Enabled -IntelligentProvisioningF10Prompt Enabled -IntelTxtSupport Enabled -ProcessorAESNISupport Enabled
 
 
+#Endregion
 
 
+
+#Region "Using HPERedfishCmdlets" 
 
 ######################################## Using HPERedfishCmdlets ################################################
 # Requirements: HPERedfishCmdlets 
@@ -141,99 +389,7 @@ $setting = @{'IndicatorLED' = 'Lit' }
 $ret = Set-HPERedfishData -Odataid /redfish/v1/systems/1/ -Setting $setting -Session $session
 $ret.error
 
+#Endregion
 
 
-
-######################################## Using full Redfish operations ################################################
-# Requirements: NONE
-
-# if using untrusted iLO certificates, you must use with PowerShell 5.x:
-if ($PSEdition -eq "Desktop" ) {
-
-    add-type -TypeDefinition  @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-        public class TrustAllCertsPolicy : ICertificatePolicy {
-            public bool CheckValidationResult(
-                ServicePoint srvPoint, X509Certificate certificate,
-                WebRequest request, int certificateProblem) {
-                return true;
-            }
-        }
-"@
-   
-    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-}
-
-
-
-######################## Connection ############################
-
-$headers = @{} 
-$headers["OData-Version"] = "4.0"
-$headers["Content-Type"] = "application/json"
-
-$body = "{`"UserName`": `"$iLO_username`",`n`"Password`": `"$ilo_password`"}`n"
-
-if ($PSEdition -eq "Desktop" ) {
-    $session = Invoke-webrequest "https://$iLO_IP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body 
-}
-if ($PSEdition -eq "Core" ) {
-    $session = Invoke-webrequest "https://$iLO_IP/redfish/v1/SessionService/Sessions/" -Method 'POST' -Headers $headers -Body $body -SkipCertificateCheck 
-}
-
-$token = $session.headers | % X-Auth-Token
-
-$headers["X-Auth-Token"] = $token
-
-
-######################## GET Example ############################
-
-
-# iLO5 Redfish URI
-$uri = "/redfish/v1/Managers/1/SecurityService"
-
-# Method
-$method = "Get"
-
-# Request
-if ($PSEdition -eq "Desktop" ) {
-    $response = Invoke-RestMethod -Uri "https://$iLO_IP$uri" -Headers $headers -Method $method -ErrorAction Stop 
-}
-if ($PSEdition -eq "Core" ) {
-    $response = Invoke-RestMethod -Uri "https://$iLO_IP$uri" -Headers $headers -Method $method -ErrorAction Stop -SkipCertificateCheck 
-}
-
-# Response
-$response
-$response.SecurityState
-$response.TLSVersion
-
-
-######################## PATCH Example ###########################
-
-
-# iLO5 Redfish URI
-$uri = "/redfish/v1/Managers/1/SecurityService"
-
-# Body
-$Body = @{} 
-$body["SecurityState"] = "HighSecurity"
-
-# Method
-$method = "Patch"
-
-# Request
-try {
-    $response = Invoke-RestMethod -Uri "https://$iLO_IP$uri" -Headers $headers -body $Body -Method $method -ErrorAction Stop # for PowerShell 7: -SkipCertificateCheck 
-}
-catch {
-    $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
-    $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
-    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iloip) Patch operation failure ! Message returned: [$($msg)]"
-    continue
-}
-
-# Response
-$response
 
