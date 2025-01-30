@@ -4,9 +4,10 @@ Examples of iLO interaction using different methods and HPE PowerShell libraries
 2- HPEiLOCmdlets with X-Auth-Token from HPECOMCmdlets
 3- HPEiLOCmdlets with X-Auth-Token from HPEOneView
 4- Native RedFish API calls with X-Auth-Token from HPEiLOCmdlets
-5- Native RedFish API calls
-6- HPEBIOSCmdlets
-7- HPERedfishCmdlets
+5- Native RedFish API calls with X-Auth-Token from HPECOMCmdlets
+6- Native RedFish API calls
+7- HPEBIOSCmdlets
+8- HPERedfishCmdlets
 
 
  Author: lionel.jullien@hpe.com
@@ -38,6 +39,14 @@ Examples of iLO interaction using different methods and HPE PowerShell libraries
 #>
 
 
+
+#---------------------------------------------------------------------------------------------------------------
+#Region "1- Using HPEiLOCmdlets"
+################################################# 
+# Requirements: HPEiLOCmdlets
+# install-module HPEiLOCmdlets -Scope CurrentUser
+################################################# 
+
 # iLO information
 $iLO_IP = "192.168.3.52"
 $iLO_username = "Administrator"
@@ -45,14 +54,6 @@ $iLO_username = "Administrator"
 # Ask for iLO password
 $secpasswd = read-host  "Please enter the iLO password" -AsSecureString
 $ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username, $secpasswd)
-
-
-#Region "Using HPEiLOCmdlets"
-
-######################################## Using HPEiLOCmdlets ################################################
-# Requirements: HPEiLOCmdlets
-# install-module HPEiLOCmdlets -Scope CurrentUser
-
 
 # List of cmdlets
 Get-command -Module HPEiLOCmdlets
@@ -70,12 +71,13 @@ $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds  -DisableCer
 #Endregion
 
 
-#Region "Using HPEiLOCmdlets with X-Auth-Token from HPECOMCmdlets"
-
-######################################## Using HPEiLOCmdlets with X-Auth-Token from HPECOMCmdlets ################################################
+#---------------------------------------------------------------------------------------------------------------
+#Region "2- Using HPEiLOCmdlets with X-Auth-Token from HPECOMCmdlets"
+################################################# 
 # Requirements: HPEiLOCmdlets and HPECOMCmdlets modules
 # install-module HPEiLOCmdlets -Scope CurrentUser
 # install-module HPECOMCmdlets -MinimumVersion 1.0.11 -Scope CurrentUser
+################################################# 
 
 # HPE account credentials
 $MyHPEAccount = "email@domain.com"
@@ -84,7 +86,6 @@ $MyHPEAccountPassword = "01000000d08c9ddf0115d1118c7a0"
 # Workspace name to create
 $WorkspaceName = "HPE_Workspace_12345678"
 $Region = "us-west"
-
 
 # List of cmdlets
 Get-command -Module HPEiLOCmdlets
@@ -113,18 +114,17 @@ Get-HPEiLOServerInfo -Connection $connection
 #Endregion
 
 
-#Region "Using HPEiLOCmdlets with X-Auth-Token from HPEOneView"
-
-######################################## Using HPEiLOCmdlets with X-Auth-Token from HPEOneView ################################################
+#---------------------------------------------------------------------------------------------------------------
+#Region "3- Using HPEiLOCmdlets with X-Auth-Token from HPEOneView"
+#################################################
 # Requirements: HPEiLOCmdlets and HPEOneView modules + iLO5 or greater
 # install-module HPEiLOCmdlets -Scope CurrentUser
 # install-module HPEOneView.9xx -Scope CurrentUser
-
+#################################################
 
 # OneView Credentials and IP
 $OneView_username = "Administrator"
 $OneView_IP = "composer.lab"
-
 
 # List of cmdlets
 Get-command -Module HPEiLOCmdlets
@@ -152,17 +152,25 @@ Get-HPEiLOServerInfo -Connection $connection
 #Endregion
 
 
-#Region "Using HPEiLOCmdlets to capture session token and run RedFish API calls"
-
-######################################## Using HPEiLOCmdlets to capture session token and run RedFish API calls ################################################
+#---------------------------------------------------------------------------------------------------------------
+#Region "4- Native RedFish API calls with X-Auth-Token from HPEiLOCmdlets"
+#################################################
 # Requirements: HPEiLOCmdlets 
 # install-module HPEiLOCmdlets -Scope CurrentUser
+#################################################
 
 # List of cmdlets
 # Get-command -Module HPEiLOCmdlets
 
-# Connection
+# iLO information
+$iLO_IP = "192.168.3.52"
+$iLO_username = "Administrator"
 
+# Ask for iLO password
+$secpasswd = read-host  "Please enter the iLO password" -AsSecureString
+$ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username, $secpasswd)
+
+# Connection
 $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds -DisableCertificateAuthentication 
 
 # Get the encoded session token
@@ -198,7 +206,6 @@ $headers["X-Auth-Token"] = $plainTextXAuthToken
 
 ######################## GET Example ############################
 
-
 # iLO5 Redfish URI
 $Location = "/redfish/v1/Managers/1/SecurityService"
 
@@ -224,7 +231,6 @@ $content.TLSVersion
 
 
 ######################## PATCH Example ###########################
-
 
 # iLO5 Redfish URI
 $Location = "/redfish/v1/Managers/1/SecurityService"
@@ -266,9 +272,116 @@ $response
 #Endregion
 
 
-#Region "Using Native Redfish API calls"
-######################################## Using Native Redfish operations ################################################
+#---------------------------------------------------------------------------------------------------------------
+#Region "5- Native RedFish API calls with X-Auth-Token from HPECOMCmdlets"
+#################################################
+# Requirements: HPECOMCmdlets 
+# install-module HPECOMCmdlets -Scope CurrentUser
+#################################################
+
+# List of cmdlets
+# Get-command -Module HPECOMCmdlets
+
+# HPE account credentials
+$MyHPEAccount = "email@domain.com"
+$MyHPEAccountPassword = "01000000d08c9ddf0115d1118c7a0"
+
+# Workspace name to create
+$WorkspaceName = "HPE_Workspace_12345678"
+$Region = "us-west"
+
+# List of cmdlets
+Get-command -Module HPEiLOCmdlets
+Get-command -Module HPECOMCmdlets
+
+# Connection to HPE GreenLake and HPE Compute Ops Management
+$secpasswd = ConvertTo-SecureString -String $MyHPEAccountPassword -AsPlainText -Force
+$credentials = New-Object System.Management.Automation.PSCredential ($MyHPEAccount, $secpasswd)
+Connect-HPEGL -Credential $credentials -Workspace $WorkspaceName
+
+# Get the iLO IP address from Compute Ops Management of a server
+$iLO_IP = Get-HPECOMServer -Region $Region -Name "TWA4614528" | Select-Object -ExpandProperty iLOIPAddress
+
+# Capture of the SSO Session Key
+$iloSession = Get-HPECOMServeriLOSSO -Region $Region -SerialNumber "XXXXXXXXXXXXX" -GenerateXAuthToken -SkipCertificateValidation
+
+# Add the token to the headers
+$headers["X-Auth-Token"] = $iloSession."X-Auth-Token"
+
+
+######################## GET Example ############################
+
+# iLO5 Redfish URI
+$Location = "/redfish/v1/Managers/1/SecurityService"
+
+# Method
+$Method = "Get"
+
+# Request
+try {
+    $response = Invoke-WebRequest -Uri ($RootUri + $Location) -Headers $headers -Method $Method -ErrorAction Stop -SkipCertificateCheck # -SkipCertificateCheck is only supported with PowerShell 7
+    # $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+    $content = $response.Content | ConvertFrom-Json
+    
+}
+catch {
+    Write-Host "iLO $($iloHost) Patch operation failure ! Message returned: [$($_)]"
+}
+
+
+# Response
+$content
+$content.SecurityState
+$content.TLSVersion
+
+
+######################## PATCH Example ###########################
+
+# iLO5 Redfish URI
+$Location = "/redfish/v1/Managers/1/SecurityService"
+
+# Body
+$Body = @{} 
+$Body["SecurityState"] = "Production"
+$body = $body | ConvertTo-Json   
+
+# Method
+$Method = "Patch"
+
+# Request
+try {
+    $response = Invoke-WebRequest -Uri ($RootUri + $Location) -Headers $headers -body $Body -Method $Method -ErrorAction Stop -SkipCertificateCheck # -SkipCertificateCheck is only supported with PowerShell 7
+    $msg = ($response.Content | ConvertFrom-Json).error.'@Message.ExtendedInfo'.MessageId
+
+    if ($response.StatusCode -eq 200) {
+
+        Write-Host -BackgroundColor:Black -ForegroundColor:Green "iLO $($iLO_IP) success $Method operation ! Message returned: [$($msg)]"
+    }
+    else {
+
+        Write-Host "iLO $($iloHost) Patch operation failure ! Message returned: [$($msg)]"
+    }
+
+}
+catch {
+  
+    Write-Host -BackgroundColor:Black -ForegroundColor:Red "iLO $($iLO_IP) $Method operation failure ! Message returned: $($_)"
+    
+}
+
+# Response
+$response
+
+
+
+#Endregion
+
+
+#---------------------------------------------------------------------------------------------------------------
+#Region "6- Using Native Redfish API calls"
+#################################################
 # Requirements: NONE
+#################################################
 
 # if using untrusted iLO certificate, you must use with PowerShell 5.x:
 add-type -TypeDefinition  @"
@@ -316,7 +429,6 @@ $headers["X-Auth-Token"] = $XAuthToken
 
 ######################## GET Example ############################
 
-
 # iLO5 Redfish URI
 $Location = "/redfish/v1/Managers/1/SecurityService"
 
@@ -342,7 +454,6 @@ $content.TLSVersion
 
 
 ######################## PATCH Example ###########################
-
 
 # iLO5 Redfish URI
 $Location = "/redfish/v1/Managers/1/SecurityService"
@@ -382,21 +493,28 @@ $response
 #Endregion
 
 
-#Region "Using HPEBIOSCmdlets"  
-
-######################################## Using HPEBIOSCmdlets ################################################
+#---------------------------------------------------------------------------------------------------------------
+#Region "7- Using HPEBIOSCmdlets"  
+#################################################
 # Requirements: HPEBIOSCmdlets 
 # install-module HPEBIOSCmdlets -Scope CurrentUser
+#################################################
 
+
+# iLO information
+$iLO_IP = "192.168.3.52"
+$iLO_username = "Administrator"
+
+# Ask for iLO password
+$secpasswd = read-host  "Please enter the iLO password" -AsSecureString
+$ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username, $secpasswd)
 
 # List of cmdlets
 Get-command -Module HPEBIOSCmdlets
 Get-command -Module HPEBIOSCmdlets | ? name -match "security"
 
-
 # Connection
 $connection = Connect-HPEBIOS -Address $iLO_IP -Credential $ilocreds -DisableCertificateAuthentication 
-
 
 # Examples
 Get-HPEBIOSServerSecurity -Connection $connection
@@ -407,19 +525,27 @@ Set-HPEBIOSServerSecurity -Connection $connection -F11BootMenuPrompt Enabled -In
 #Endregion
 
 
-#Region "Using HPERedfishCmdlets" 
-
-######################################## Using HPERedfishCmdlets ################################################
+#---------------------------------------------------------------------------------------------------------------
+#Region "8- Using HPERedfishCmdlets" 
+#################################################
 # Requirements: HPERedfishCmdlets 
 # install-module HPERedfishCmdlets -Scope CurrentUser
+#################################################
 
 
 # List of cmdlets
 Get-command -Module HPERedfishCmdlets
 
+# iLO information
+$iLO_IP = "192.168.3.52"
+$iLO_username = "Administrator"
+
+# Ask for iLO password
+$secpasswd = read-host  "Please enter the iLO password" -AsSecureString
+$ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username, $secpasswd)
+
 # Connection
 $session = Connect-HpeRedfish -Address $iLO_IP -Credential $ilocreds -DisableCertificateAuthentication
-
 
 # Examples
 Get-HPERedfishDataRaw -Session $session -Odataid "/redfish/v1/Chassis/1/Thermal" -DisableCertificateAuthentication
