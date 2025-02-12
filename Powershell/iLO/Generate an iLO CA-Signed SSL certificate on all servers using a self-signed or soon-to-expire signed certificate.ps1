@@ -253,9 +253,15 @@ else {
         write-host "The trusted CA root certificate is not found in the OneView trust store, adding it now..."
     
         ## Collecting trusted CA root certificate 
-        $CA.Certificate | ForEach-Object { set-content -value $($_.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)) -encoding byte -path "$directorypath\CAcert.cer" }
-        $cerBytes = Get-Content "$directorypath\CAcert.cer" -Encoding Byte
-        [System.Convert]::ToBase64String($cerBytes) | Out-File $directorypath\CAcert.cer
+        $CA.Certificate | ForEach-Object {
+            $certBytes = $_.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+            [System.IO.File]::WriteAllBytes(".\CAcert.cer", $certBytes)
+        }
+
+        # Read the certificate file as bytes
+        $certBytes = [System.IO.File]::ReadAllBytes(".\CAcert.cer")
+
+        [System.Convert]::ToBase64String($certBytes) | Out-File .\CAcert.cer
         
         # Adding trusted CA root certificate to OneView trust store
         $addcerttask = Get-ChildItem $directorypath\cacert.cer | Add-OVApplianceTrustedCertificate 
