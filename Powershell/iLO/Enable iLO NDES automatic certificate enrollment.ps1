@@ -175,6 +175,8 @@ If (-not (get-module HPEOneView.* -ListAvailable )) {
 
 If (-not (get-module PSPKI -ListAvailable )) { Install-Module -Name PSPKI -scope CurrentUser -Force -SkipPublisherCheck }
 
+Import-Module PSPKI
+
 # Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force+
 
 # Check if the script is running in PowerShell 7
@@ -275,7 +277,7 @@ elseif ($null -eq $NDES_Challenge_Password) {
 #Region -------------------------------------------------------- Retreiving CA certificate -------------------------------------------------------------------------------------
 
 # Check if the machine is part of an Active Directory domain
-if (-not (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain) {
+if (-not (Get-CimInstance -Class Win32_ComputerSystem).PartOfDomain) {
     Write-Error "Error: This machine is not part of an Active Directory domain. The script requires domain membership to retrieve a Certification Authority."
     return
 }
@@ -366,7 +368,7 @@ ForEach ($server in $servers) {
 
     }
     catch {
-        "[{0} - iLO {1}]: Error: iLO cannot be contacted at this time. Resolve any issues found in OneView and run this script again. Error: {2}" -f $servername, $iloIP, $_  | Write-Host -ForegroundColor Red
+        "[{0} - iLO {1}]: Error: iLO cannot be contacted at this time. Resolve any issues found in OneView and run this script again. Error: {2}" -f $servername, $iloIP, $_ | Write-Host -ForegroundColor Red
         $objStatus.Status = "Failed"
         $objStatus.Details = "iLO cannot be contacted at this time. Resolve any issues found in OneView and run this script again."
         $objStatus.Exception = $_
@@ -387,7 +389,7 @@ ForEach ($server in $servers) {
         # Write-Output "iLO Time: $iloTime"
     }
     catch {
-        "[{0} - iLO {1}]: Failed to retrieve the iLO time! Error: {2}" -f $servername, $iloIP, $_  | Write-Host -ForegroundColor Red
+        "[{0} - iLO {1}]: Failed to retrieve the iLO time! Error: {2}" -f $servername, $iloIP, $_ | Write-Host -ForegroundColor Red
         $objStatus.Status = "Failed"
         $objStatus.Details = "Failed to retrieve the iLO time!" 
         $objStatus.Exception = $_
@@ -411,7 +413,7 @@ ForEach ($server in $servers) {
             
     }
     catch {
-        "[{0} - iLO {1}]: Error ! The iLO Automatic Certificate Enrollment information cannot be collected! Error: {2}" -f $servername, $iloIP, $_  | Write-Host -ForegroundColor Red
+        "[{0} - iLO {1}]: Error ! The iLO Automatic Certificate Enrollment information cannot be collected! Error: {2}" -f $servername, $iloIP, $_ | Write-Host -ForegroundColor Red
         $objStatus.Status = "Failed"
         $objStatus.Details = "The iLO Automatic Certificate Enrollment information cannot be collected!"
         $objStatus.Exception = $_
@@ -452,7 +454,7 @@ ForEach ($server in $servers) {
 
             $date = Get-Date
 
-            "[{0} - iLO {1}]: Automatic Certificate Enrollment is enabled but status is [{2}] => Disabling service in iLO..." -f $servername, $iloIP, $CertificateEnrollmentStatus  | Write-Host 
+            "[{0} - iLO {1}]: Automatic Certificate Enrollment is enabled but status is [{2}] => Disabling service in iLO..." -f $servername, $iloIP, $CertificateEnrollmentStatus | Write-Host 
 
             #Region Disabling Automatic Certificate Enrollment in iLO
             
@@ -538,7 +540,7 @@ ForEach ($server in $servers) {
         #Region Configuring iLO for Automatic Certificate Enrollment
         if ($ServiceEnabled -eq $False) {
 
-            "[{0} - iLO {1}]: Automatic Certificate Enrollment is not enabled => Configuring the iLO..." -f $servername, $iloIP  | Write-Host 
+            "[{0} - iLO {1}]: Automatic Certificate Enrollment is not enabled => Configuring the iLO..." -f $servername, $iloIP | Write-Host 
 
             #Region Importing SCEP CA Certificate to establish trust between iLO and SCEP server
 
