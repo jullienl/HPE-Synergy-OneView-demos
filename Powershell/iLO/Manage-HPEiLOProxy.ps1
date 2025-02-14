@@ -1,4 +1,4 @@
-Function Get-HPEiLOProxy {
+Function Manage-HPEiLOProxy {
     <#
     .SYNOPSIS
     Retrieves or modifies HPE iLO proxy settings.
@@ -46,48 +46,48 @@ Function Get-HPEiLOProxy {
     $secpasswd = ConvertTo-SecureString $EncryptedPassword
     $credentials = New-Object System.Management.Automation.PSCredential ($iLO_userName, $secpasswd)
 
-    Get-HPEiLOProxy -IloIP 192.168.0.20 -iLOCredential $credentials 
+    Manage-HPEiLOProxy -IloIP 192.168.0.20 -iLOCredential $credentials 
     
     Retrieve iLO proxy information.
 
     .EXAMPLE
-    "192.168.0.20", "192.168.0.21" | Get-HPEiLOProxy -iLOCredential $credentials 
+    "192.168.0.20", "192.168.0.21" | Manage-HPEiLOProxy -iLOCredential $credentials 
     
     Pass an array of iLO IP addresses directly and retrieve iLO proxy information.
     
     .EXAMPLE
-    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Get-HPEiLOProxy -iLOCredential $credentials 
+    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Manage-HPEiLOProxy -iLOCredential $credentials 
     
     Import iLO IP addresses from a CSV file and retrieve iLO proxy information.
     
     .EXAMPLE
-    Get-HPEiLOProxy -IloIP 192.168.0.21 -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 
+    Manage-HPEiLOProxy -IloIP 192.168.0.21 -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 
     
     Set iLO proxy settings for a specific IP with specific proxy server and port.
 
     .EXAMPLE
-    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Get-HPEiLOProxy -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 
+    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Manage-HPEiLOProxy -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 
     
     Import iLO IPs from a CSV, then set iLO proxy settings for all with specific proxy server and port.
 
     .EXAMPLE
     $iLO_secureString_Proxy_Password = Read-Host -Prompt "Enter the proxy password" -AsSecureString
-    "192.168.0.20", "192.168.0.21", "192.168.6.2" | Get-HPEiLOProxy -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 -IloProxyUserName admin -IloProxyPassword $iLO_secureString_Proxy_Password
+    "192.168.0.20", "192.168.0.21", "192.168.6.2" | Manage-HPEiLOProxy -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 -IloProxyUserName admin -IloProxyPassword $iLO_secureString_Proxy_Password
     
     Set iLO proxy settings including proxy username and password.
 
     .EXAMPLE
-    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Get-HPEiLOProxy -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 -IloProxyUserName admin -IloProxyPassword $iLO_secureString_Proxy_Password
+    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Manage-HPEiLOProxy -iLOCredential $credentials -SetiLOProxy -IloProxyServer web.proxy.com -IloProxyPort 8088 -IloProxyUserName admin -IloProxyPassword $iLO_secureString_Proxy_Password
     
     Import iLO IPs from a CSV, then set iLO proxy settings for all including proxy username and password.
 
     .EXAMPLE
-    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Get-HPEiLOProxy -iLOCredential $credentials -RemoveProxySettings
+    Import-Csv -Path Z:\Scripts\_PowerShell\iLO\iLO-IPs.csv | Manage-HPEiLOProxy -iLOCredential $credentials -RemoveProxySettings
     
     Remove proxy settings for iLOs imported from a CSV file.
 
     .EXAMPLE
-    "192.168.0.20", "192.168.0.21", "192.168.6.2" | Get-HPEiLOProxy -iLOCredential $credentials -RemoveProxySettings
+    "192.168.0.20", "192.168.0.21", "192.168.6.2" | Manage-HPEiLOProxy -iLOCredential $credentials -RemoveProxySettings
     
     Remove proxy settings for a list of IP addresses.
 
@@ -229,7 +229,7 @@ Function Get-HPEiLOProxy {
             } | ConvertTo-Json 
                 
             # Create iLO session     
-            "[{0}] '{1}' -- Attempting an iLO session creation!" -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP  | Write-Verbose
+            "[{0}] '{1}' -- Attempting an iLO session creation!" -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP | Write-Verbose
             "[{0}] '{1}' -- Method: POST - URI: '{2}'" -f $MyInvocation.InvocationName.ToString().ToUpper(), $IloIP, $url | Write-Verbose
             "[{0}] '{1}' -- Body content: `n{2}" -f $MyInvocation.InvocationName.ToString().ToUpper(), $IloIP, $Body | Write-Verbose
 
@@ -251,7 +251,7 @@ Function Get-HPEiLOProxy {
                 "[{0}] '{1}' -- Received status code response: '{2}' - Description: '{3}'" -f $MyInvocation.InvocationName.ToString().ToUpper(), $IloIP, $response.StatusCode, $InvokeReturnData.StatusDescription | Write-verbose              
                 "[{0}] '{1}' -- Raw response: `n{2}" -f $MyInvocation.InvocationName.ToString().ToUpper(), $IloIP, $response | Write-Verbose
 
-                "[{0}] '{1}' -- iLO session created successfully!" -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP  | Write-Verbose
+                "[{0}] '{1}' -- iLO session created successfully!" -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP | Write-Verbose
       
             }
             catch {
@@ -259,7 +259,7 @@ Function Get-HPEiLOProxy {
                 $objStatus.Details = "iLO connection error! Check your iLO credential!"
                 $objStatus.Exception = $_.Exception.message 
 
-                "[{0}] '{1}' -- iLO session cannot be created!" -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP  | Write-Verbose
+                "[{0}] '{1}' -- iLO session cannot be created!" -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP | Write-Verbose
                 [void] $iLOConfigurationStatus.add($objStatus)
                 return
             }
@@ -272,7 +272,7 @@ Function Get-HPEiLOProxy {
                 'OData-Version' = '4.0'    
             }
     
-            "[{0}] '{1}' -- Getting iLO generation " -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP  | Write-Verbose
+            "[{0}] '{1}' -- Getting iLO generation " -f $MyInvocation.InvocationName.ToString().ToUpper(), $iLOIP | Write-Verbose
               
             $AddURI = "/redfish/v1/Managers/1/"
 
@@ -314,7 +314,7 @@ Function Get-HPEiLOProxy {
                                     }
                                 }
                             }
-                        }  | ConvertTo-Json -d 9
+                        } | ConvertTo-Json -d 9
                          
                     }
                     else {
@@ -328,7 +328,7 @@ Function Get-HPEiLOProxy {
                                     }
                                 }
                             }
-                        }  | ConvertTo-Json -d 9
+                        } | ConvertTo-Json -d 9
                          
                     }
                          
@@ -395,7 +395,7 @@ Function Get-HPEiLOProxy {
                                 }
                             }
                         }
-                    }  | ConvertTo-Json -d 9
+                    } | ConvertTo-Json -d 9
 
 
                     "[{0}] '{1}' -- iLO '{2}' - Method: PATCH - URI: '{3}'" -f $MyInvocation.InvocationName.ToString().ToUpper(), $SerialNumber, $IloIP, $url | Write-Verbose

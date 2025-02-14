@@ -1,13 +1,18 @@
 ﻿<#
-Examples of iLO interaction using different methods and HPE PowerShell libraries:
-1- HPEiLOCmdlets
-2- HPEiLOCmdlets with X-Auth-Token from HPECOMCmdlets
-3- HPEiLOCmdlets with X-Auth-Token from HPEOneView
-4- Native RedFish API calls with X-Auth-Token from HPEiLOCmdlets
-5- Native RedFish API calls with X-Auth-Token from HPECOMCmdlets
-6- Native RedFish API calls
-7- HPEBIOSCmdlets
-8- HPERedfishCmdlets
+
+This script demonstrates various methods of interacting with HPE iLO (Integrated Lights-Out) using PowerShell.
+It includes examples of using different HPE PowerShell libraries and native RedFish API calls with various authentication methods.
+
+The methods covered are:
+  1. Using HPEiLOCmdlets with iLO credentials.
+  2. Using HPEiLOCmdlets with X-Auth-Token from HPECOMCmdlets.
+  3. Using HPEiLOCmdlets with X-Auth-Token from HPEOneView.
+  4. Native RedFish API calls with X-Auth-Token from HPEiLOCmdlets.
+  5. Native RedFish API calls with X-Auth-Token from HPECOMCmdlets.
+  6. Native RedFish API calls with X-Auth-Token from HPEOneview
+  7. Native RedFish API calls with iLO username/password.
+  8. Using HPEBIOSCmdlets.
+  9. Using HPERedfishCmdlets.
 
 
  Author: lionel.jullien@hpe.com
@@ -41,7 +46,7 @@ Examples of iLO interaction using different methods and HPE PowerShell libraries
 
 
 #---------------------------------------------------------------------------------------------------------------
-#Region "1- Using HPEiLOCmdlets"
+#Region "1- Using HPEiLOCmdlets with iLO credentials"
 ################################################# 
 # Requirements: HPEiLOCmdlets
 # install-module HPEiLOCmdlets -Scope CurrentUser
@@ -119,7 +124,7 @@ Get-HPEiLOServerInfo -Connection $connection
 #################################################
 # Requirements: HPEiLOCmdlets and HPEOneView modules + iLO5 or greater
 # install-module HPEiLOCmdlets -Scope CurrentUser
-# install-module HPEOneView.9xx -Scope CurrentUser
+# install-module HPEOneView.xxx -Scope CurrentUser
 #################################################
 
 # OneView Credentials and IP
@@ -378,7 +383,219 @@ $response
 
 
 #---------------------------------------------------------------------------------------------------------------
-#Region "6- Using Native Redfish API calls"
+#Region "6- Native RedFish API calls with X-Auth-Token from HPEOneview"
+#################################################
+# Requirements: HPEOneView module + iLO4 or greater
+# install-module HPEOneView.xxx -Scope CurrentUser
+#################################################
+
+# OneView Credentials and IP
+$OneView_username = "Administrator"
+$OneView_IP = "composer.lab"
+
+# MODULES TO INSTALL
+# Check if the HPE OneView PowerShell module is installed and install it if not
+If (-not (get-module HPEOneView.* -ListAvailable )) {
+    
+    try {
+        
+        $APIversion = Invoke-RestMethod -Uri "https://$OneView_IP/rest/version" -Method Get | select -ExpandProperty currentVersion
+        
+        switch ($APIversion) {
+            "3800" { [decimal]$OneViewVersion = "6.6" }
+            "4000" { [decimal]$OneViewVersion = "7.0" }
+            "4200" { [decimal]$OneViewVersion = "7.1" }
+            "4400" { [decimal]$OneViewVersion = "7.2" }
+            "4600" { [decimal]$OneViewVersion = "8.0" }
+            "4800" { [decimal]$OneViewVersion = "8.1" }
+            "5000" { [decimal]$OneViewVersion = "8.2" }
+            "5200" { [decimal]$OneViewVersion = "8.3" }
+            "5400" { [decimal]$OneViewVersion = "8.4" }
+            "5600" { [decimal]$OneViewVersion = "8.5" }
+            "5800" { [decimal]$OneViewVersion = "8.6" }
+            "6000" { [decimal]$OneViewVersion = "8.7" }
+            "6200" { [decimal]$OneViewVersion = "8.8" }
+            "6400" { [decimal]$OneViewVersion = "8.9" }
+            "6600" { [decimal]$OneViewVersion = "9.0" }
+            "6800" { [decimal]$OneViewVersion = "9.1" }
+            "7000" { [decimal]$OneViewVersion = "9.2" }
+            Default { $OneViewVersion = "Unknown" }
+        }
+        
+        Write-Verbose "Appliance running HPE OneView $OneViewVersion"
+        
+        If ($OneViewVersion -ne "Unknown" -and -not (get-module HPEOneView* -ListAvailable )) { 
+            
+            Find-Module HPEOneView* | Where-Object version -le $OneViewVersion | Sort-Object version | Select-Object -last 1 | Install-Module -scope CurrentUser -Force -SkipPublisherCheck
+            
+        }
+    }
+    catch {
+        
+        Write-Error "Error: Unable to contact HPE OneView to retrieve the API version. The OneView PowerShell module cannot be installed."
+        Return
+    }
+}
+
+
+#################################################################################
+
+if (! $ConnectedSessions) {
+    
+    $secpasswd = read-host  "Please enter the OneView password" -AsSecureString
+ 
+    # Connection to the Synergy Composer
+    $credentials = New-Object System.Management.Automation.PSCredential ($OneView_username, $secpasswd)
+    
+    try {
+        Connect-OVMgmt -Hostname $OneView_IP -Credential $credentials | Out-Null
+    }
+    catch {
+        Write-Warning "Cannot connect to '$OneView_IP'! Exiting... "
+        return
+    }
+}    
+
+#################################################################################
+
+# Capture server hardware managed by HPE OneView
+$Computes = Search-OVIndex -Category server-hardware 
+
+# Creation of the headers  
+$headers = @{} 
+$headers["OData-Version"] = "4.0"
+
+#####################################################################################################################
+
+foreach ($Compute in $Computes) {
+
+    $iLOIP = $Compute.multiAttributes.mpIpAddresses | ? { $_ -NotMatch "fe80" }
+    $servername = $Compute.name
+    $iloModel = $Compute.attributes | % mpmodel
+
+    $RootUri = "https://{0}" -f $iloIP
+   
+    # Capture of the SSO Session Key
+    try {
+        $ilosessionkey = ($Compute | Get-OVIloSso -IloRestSession -SkipCertificateCheck)."X-Auth-Token"
+        $headers["X-Auth-Token"] = $ilosessionkey 
+    }
+    catch {
+        "[{0} - iLO {1}]: Error: Server cannot be contacted at this time. Resolve any issues found in OneView and run this script again. Skipping server!" -f $servername, $iloIP | Write-Host -ForegroundColor Red
+        $error_found = $true
+        continue 
+    }
+
+    # This example modifies the security mode and in this case, the payload/URI/method is the same for each iLO type (which is not always the case).
+
+    # iLO4
+    if ($iloModel -eq "ilo4") {
+
+        # Request content to enable iLO High Security state
+        $body = @{}
+        $body["SecurityState"] = "Production"
+        # $body["SecurityState"] = "HighSecurity"
+        $body = $body | ConvertTo-Json -Depth 10  
+
+        # iLO4 Redfish URI
+        $Location = "/redfish/v1/Managers/1/SecurityService"
+
+        # Method
+        $method = "patch"
+
+    }
+
+    # iLO5 
+    elseif ($iloModel -eq "ilo5") {
+      
+        # Request content to enable iLO High Security state
+        $body = @{}
+        $body["SecurityState"] = "Production"
+        # $body["SecurityState"] = "HighSecurity"
+        $body = $body | ConvertTo-Json -Depth 10 
+        
+        # iLO5 Redfish URI
+        $Location = "/redfish/v1/Managers/1/SecurityService"
+        
+        # Method
+        $method = "patch"
+    }
+
+    # iLO6
+    elseif ($iloModel -eq "ilo6") {
+    
+        # Request content to enable iLO High Security state
+        $body = @{}
+        $body["SecurityState"] = "Production"
+        # $body["SecurityState"] = "HighSecurity"
+        $body = $body | ConvertTo-Json -Depth 10 
+            
+        # iLO6 Redfish URI
+        $Location = "/redfish/v1/Managers/1/SecurityService"
+            
+        # Method
+        $method = "patch"
+    }
+
+    
+    # Enabling iLO High Security state
+    try {
+        
+        $response = Invoke-RestMethod -Uri ($RootUri + $Location) -Body $body -ContentType "application/json" -Headers $headers -Method $method -ErrorAction Stop -SkipCertificateCheck
+        
+        if ($response.error.'@Message.ExtendedInfo'.MessageId) {
+
+            "[{0} - iLO {1}]:  High Security state is now enabled... API response: {2}" -f $servername, $iloIP, $response.error.'@Message.ExtendedInfo'.MessageId | Write-Host 
+        }
+
+    }
+    catch [System.Net.WebException] {
+
+        if ($null -ne $_.Exception.Response) {
+    
+            $err = (New-Object System.IO.StreamReader( $_.Exception.Response.GetResponseStream() )).ReadToEnd() 
+            $msg = ($err | ConvertFrom-Json ).error.'@Message.ExtendedInfo'.MessageId
+
+            "[{0} - iLO {1}]:  Configuration error! Message returned: {2}" -f $servername, $iloIP, $msg | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
+    
+        }
+        else {
+            "[{0} - iLO {1}]: WebException occurred, but no response stream is available" -f $servername, $iloIP | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
+        }
+          
+    }
+    catch {
+
+        if ($response.error.'@Message.ExtendedInfo'.MessageId) {
+
+            "[{0} - iLO {1}]: Configuration error! Message returned: {2}" -f $servername, $iloIP, $response.error.'@Message.ExtendedInfo'.MessageId | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
+        }
+        else {
+            "[{0} - iLO {1}]: Configuration error! Message returned: {2}" -f $servername, $iloIP, $_ | Write-Host -ForegroundColor Red
+            $error_found = $true
+            continue
+        }
+    }
+}
+
+if ($error_found) {
+    Write-Host -ForegroundColor Red "One or more errors occurred during the configuration. Please review the output above."
+}
+else {
+    Write-Host "All iLOs have been configured successfully."
+}
+
+#Endregion
+
+
+#---------------------------------------------------------------------------------------------------------------
+#Region "7- Native RedFish API calls with iLO username/password"
 #################################################
 # Requirements: NONE
 #################################################
@@ -494,7 +711,7 @@ $response
 
 
 #---------------------------------------------------------------------------------------------------------------
-#Region "7- Using HPEBIOSCmdlets"  
+#Region "8- Using HPEBIOSCmdlets"  
 #################################################
 # Requirements: HPEBIOSCmdlets 
 # install-module HPEBIOSCmdlets -Scope CurrentUser
@@ -526,7 +743,7 @@ Set-HPEBIOSServerSecurity -Connection $connection -F11BootMenuPrompt Enabled -In
 
 
 #---------------------------------------------------------------------------------------------------------------
-#Region "8- Using HPERedfishCmdlets" 
+#Region "9- Using HPERedfishCmdlets" 
 #################################################
 # Requirements: HPERedfishCmdlets 
 # install-module HPERedfishCmdlets -Scope CurrentUser

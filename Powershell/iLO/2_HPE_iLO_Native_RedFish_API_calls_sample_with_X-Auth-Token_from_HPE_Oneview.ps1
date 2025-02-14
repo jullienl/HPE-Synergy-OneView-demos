@@ -145,9 +145,9 @@ $error_found = $false
 
 #####################################################################################################################
 
-Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso | fl
-Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso -IloRestSession | fl
-Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso -RemoteConsoleOnly | fl
+# Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso | fl
+# Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso -IloRestSession | fl
+# Get-OVServer -Name "Frame3, bay 11" | Get-OVIloSso -RemoteConsoleOnly | fl
 
 
 #####################################################################################################################
