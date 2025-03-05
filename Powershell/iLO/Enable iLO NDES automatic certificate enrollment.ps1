@@ -24,7 +24,7 @@ The script performs the following steps:
 
 Note: OneView automatically runs the tasks necessary to restore communication with the iLO when a certificate change is detected.
 
-Supported servers: Gen9, Gen10, Gen10+ and Gen11.
+Supported servers: Gen10, Gen10+ and Gen11.
 
 Requirements:
 - PowerShell 7 (including both console and core editions)
