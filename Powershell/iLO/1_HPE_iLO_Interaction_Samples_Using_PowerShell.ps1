@@ -178,32 +178,22 @@ $ilocreds = New-Object System.Management.Automation.PSCredential ($iLO_username,
 # Connection
 $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds -DisableCertificateAuthentication 
 
-# Get the encoded session token
-$encodedToken = $connection.ConnectionInfo.Redfish.XAuthToken
-
-# Extract Modifier1 and Modifier2 to get the encryption key and initialization vector (IV)
-$modifier1 = $connection.ExtendedInfo.Modifier1
-$modifier2 = $connection.ExtendedInfo.Modifier2
-
-# Convert the modifiers from Base64
-$key = [System.Convert]::FromBase64String($modifier1)
-$iv = [System.Convert]::FromBase64String($modifier2)
-
-# Convert the token from Base64
-$cipherText = [System.Convert]::FromBase64String($encodedToken)
-
-# Create AES decryptor
+# Create an AES encryption object
 $aes = [System.Security.Cryptography.Aes]::Create()
-$aes.Key = $key
-$aes.IV = $iv
-$decryptor = $aes.CreateDecryptor($aes.Key, $aes.IV)
 
-# Decrypt the token
-$ms = New-Object System.IO.MemoryStream
-$cs = New-Object System.Security.Cryptography.CryptoStream($ms, $decryptor, [System.Security.Cryptography.CryptoStreamMode]::Write)
-$cs.Write($cipherText, 0, $cipherText.Length)
-$cs.Close()
-$plainTextXAuthToken = [System.Text.Encoding]::UTF8.GetString($ms.ToArray())
+# Set the AES key using the Modifier1 value from the connection's extended info
+$aes.Key = [Convert]::FromBase64String($connection.ExtendedInfo.Modifier1)
+
+# Set the AES initialization vector (IV) using the Modifier2 value from the connection's extended info
+$aes.IV = [Convert]::FromBase64String($connection.ExtendedInfo.Modifier2)
+
+# Decrypt the X-Auth-Token using the AES object and convert it back to plain text
+$plainTextXAuthToken = [Text.Encoding]::UTF8.GetString(
+    $aes.CreateDecryptor().TransformFinalBlock(
+        [Convert]::FromBase64String($connection.ConnectionInfo.Redfish.XAuthToken), 0, 
+        [Convert]::FromBase64String($connection.ConnectionInfo.Redfish.XAuthToken).Length
+    )
+)
 
 # Add the token to the headers
 $headers["X-Auth-Token"] = $plainTextXAuthToken
