@@ -301,7 +301,7 @@ $SSOObject = $server | Get-HPECOMServeriLOSSO -GenerateXAuthToken -SkipCertifica
 
 # Get iLO SSO Token and baseURL
 $iLOSessionKey = $SSOObject."X-Auth-Token"
-$RootUri = $SSOObject."BaseURL"
+$RootUri = $SSOObject.BaseURL
 
 # Create the headers
 $headers = @{} 
