@@ -88,7 +88,7 @@ $connection = Connect-HPEiLO -Address $iLO_IP -Credential $ilocreds  -DisableCer
 $MyHPEAccount = "email@domain.com"
 $MyHPEAccountPassword = "01000000d08c9ddf0115d1118c7a0"
 
-# Workspace name to create
+# HPE GreenLake Workspace details
 $WorkspaceName = "HPE_Workspace_12345678"
 $Region = "us-west"
 
@@ -101,15 +101,17 @@ $secpasswd = ConvertTo-SecureString -String $MyHPEAccountPassword -AsPlainText -
 $credentials = New-Object System.Management.Automation.PSCredential ($MyHPEAccount, $secpasswd)
 Connect-HPEGL -Credential $credentials -Workspace $WorkspaceName
 
-# Get the iLO IP address from Compute Ops Management of a server
-$iLO_IP = Get-HPECOMServer -Region $Region -Name "TWA4614528" | Select-Object -ExpandProperty iLOIPAddress
+# Get server information
+$server = Get-HPECOMServer -Region $Region -Name "TWA4614528" 
 
-# Capture of the SSO Session Key
-$iloSession = Get-HPECOMServeriLOSSO -Region $Region -SerialNumber "XXXXXXXXXXXXX" -GenerateXAuthToken -SkipCertificateValidation
-$ilosessionkey = $iloSession."X-Auth-Token"
+# Generate an iLO SSO Object that can then be used with the HPEiLOCmdlets module.
+$SSOObject = $server | Get-HPECOMServeriLOSSO -GenerateXAuthToken -SkipCertificateValidation
 
-# Connection to iLO with HPEiLOCmdlets XAuthToken
-$connection = Connect-HPEiLO -Address $iLO_IP -XAuthToken $ilosessionkey -DisableCertificateAuthentication
+# Get iLO SSO Token 
+$iLOSessionKey = $SSOObject."X-Auth-Token"
+
+# Connect to iLO using HPEiLOCmdlets module and the iLO SSO Token
+$connection = Connect-HPEiLO -Address $server.iLOIPAddress -XAuthToken $iLOSessionKey -DisableCertificateAuthentication
 
 # Examples
 (Get-HPEiLOEventLog -Connection $connection).Eventlog
@@ -274,14 +276,11 @@ $response
 # install-module HPECOMCmdlets -Scope CurrentUser
 #################################################
 
-# List of cmdlets
-# Get-command -Module HPECOMCmdlets
-
 # HPE account credentials
 $MyHPEAccount = "email@domain.com"
 $MyHPEAccountPassword = "01000000d08c9ddf0115d1118c7a0"
 
-# Workspace name to create
+# HPE GreenLake Workspace details 
 $WorkspaceName = "HPE_Workspace_12345678"
 $Region = "us-west"
 
@@ -294,14 +293,20 @@ $secpasswd = ConvertTo-SecureString -String $MyHPEAccountPassword -AsPlainText -
 $credentials = New-Object System.Management.Automation.PSCredential ($MyHPEAccount, $secpasswd)
 Connect-HPEGL -Credential $credentials -Workspace $WorkspaceName
 
-# Get the iLO IP address from Compute Ops Management of a server
-$iLO_IP = Get-HPECOMServer -Region $Region -Name "TWA4614528" | Select-Object -ExpandProperty iLOIPAddress
+# Get server information
+$server = Get-HPECOMServer -Region $Region -Name "TWA4614528" 
 
-# Capture of the SSO Session Key
-$iloSession = Get-HPECOMServeriLOSSO -Region $Region -SerialNumber "XXXXXXXXXXXXX" -GenerateXAuthToken -SkipCertificateValidation
+# Generate an iLO SSO Object that can then be used with the HPEiLOCmdlets module.
+$SSOObject = $server | Get-HPECOMServeriLOSSO -GenerateXAuthToken -SkipCertificateValidation
 
-# Add the token to the headers
-$headers["X-Auth-Token"] = $iloSession."X-Auth-Token"
+# Get iLO SSO Token and baseURL
+$iLOSessionKey = $SSOObject."X-Auth-Token"
+$RootUri = $SSOObject."BaseURL"
+
+# Create the headers
+$headers = @{} 
+$headers["OData-Version"] = "4.0"
+$headers["X-Auth-Token"] = $iLOSessionKey
 
 
 ######################## GET Example ############################
